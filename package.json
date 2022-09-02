@@ -9,9 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "app-root-path": "^3.1.0",
+    "debug": "^4.3.4",
     "next": "12.2.5",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "safe-json-decode": "^1.0.1",
+    "uuid": "^8.3.2",
+    "x-is-type": "^1.0.9"
   },
   "devDependencies": {
     "eslint": "8.23.0",
