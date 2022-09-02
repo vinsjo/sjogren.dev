@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import Image from 'next/image';
+import Button from '../components/button';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
@@ -10,7 +10,11 @@ export default function Home() {
 				<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 			</Head>
 
-			<main className={styles.main}></main>
+			<main className={styles.main}>
+				<Button onClick={() => alert('You clicked the button!')}>
+					Click Me
+				</Button>
+			</main>
 		</div>
 	);
 }
