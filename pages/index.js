@@ -6,7 +6,7 @@ export default function Home() {
 	return (
 		<div className={styles.container}>
 			<Head>
-				<title>Vincent Sjögren</title>
+				<title>sjogren.dev nextjs test</title>
 				<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 			</Head>
 

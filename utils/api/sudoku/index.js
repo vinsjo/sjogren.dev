@@ -36,7 +36,17 @@ async function getBoard() {
 	return output;
 }
 
+async function getStoredBoard(id) {
+	const jsonPath = path.join(config.DATA_DIR, `${id}.json`);
+	if (!fs.existsSync(jsonPath)) return null;
+	const data = await fs.promises.readFile(jsonPath, {
+		encoding: 'utf-8',
+	});
+	return safeJSON.decode(data);
+}
+
 module.exports = {
 	getBoard,
+	getStoredBoard,
 	config,
 };

@@ -4,34 +4,43 @@ const fs = require('fs');
 const path = require('path');
 const sudoku = require('../../../utils/api/sudoku');
 
-export default async function handler(req, res) {
-	const { params = [] } = req.query;
-	if (!params.length) {
-		const levels = { ...sudoku.config.LEVELS };
-		for (const key of Object.keys(levels)) {
-			levels[key] = `${levels[key]} empty cells`;
-		}
-		return res.status(200).json({ levels });
+const getLevels = () => {
+	const levels = { ...sudoku.config.LEVELS };
+	for (const key of Object.keys(levels)) {
+		levels[key] = `${levels[key]} empty cells`;
 	}
-	if (params[0] === 'create') {
-		let level = params[1];
+	return levels;
+};
 
-		if (!isStr(level) || sudoku.config.LEVELS[level] === undefined) {
-			level = Object.keys(sudoku.config.LEVELS)[0];
-		}
-		const board = await sudoku.getBoard();
-		return res.status(201).json(board);
+/**
+ * @param {import('next').NextApiRequest} req
+ */
+const getParams = (req) => req.query.params || [];
+
+/**
+ * @param {import('next').NextApiRequest} req
+ * @param {import('next').NextApiResponse} res
+ */
+export default async function handler(req, res) {
+	const params = getParams(req);
+	if (!params[0]) {
+		return res.status(200).json({
+			endpoints: ['/get', '/get/:id'],
+		});
 	}
 	if (params[0] === 'get') {
 		const id = params[1];
-		const jsonPath = path.join(sudoku.DATA_DIR, `${id}.json`);
-		if (!fs.existsSync(jsonPath)) {
-			return res.status(404).json({ error: 'File not found' });
+		if (!id) {
+			const board = await sudoku.getBoard();
+			return res.status(200).json(board);
 		}
-		const data = await fs.promises.readFile(jsonPath, {
-			encoding: 'utf-8',
-		});
-		return res.status(200).json(data);
+		const board = await sudoku.getStoredBoard(id);
+		if (!board) {
+			return res
+				.status(404)
+				.json({ error: `File with id: '${id}' not found` });
+		}
+		return res.status(200).json(board);
 	}
-	res.status(404);
+	res.status(404).end();
 }
