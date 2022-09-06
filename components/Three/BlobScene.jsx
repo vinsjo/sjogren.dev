@@ -5,23 +5,31 @@ import useWindowSize from '../../hooks/useWindowSize';
 import ShaderBlob from './ShaderBlob';
 import ThreeScene from './ThreeScene';
 import styles from './BlobScene.module.css';
+import useDidMount from '../../hooks/useDidMount';
+import { isEqualObj } from 'x-is-equal';
 
 const BlobScene = () => {
+	const didMount = useDidMount();
 	const canvasRef = useRef();
 	const [loaded, setLoaded] = useState(false);
-	const [canvasSize, setCanvasSize] = useState(null);
+	const [canvasRect, setCanvasRect] = useState(null);
+	const dpr = useMemo(() => {
+		if (!didMount) return 1;
+		return window.devicePixelRatio * 0.25;
+	}, [didMount]);
 
 	const handleResize = useCallback(() => {
-		if (!canvasRef.current || !loaded) return;
-		const { width, height } = canvasRef.current.getBoundingClientRect();
-		setCanvasSize({ width, height });
-	}, [canvasRef, loaded, setCanvasSize]);
+		if ((!didMount, !canvasRef.current || !loaded)) return;
+		const rect = canvasRef.current.getBoundingClientRect();
+		if (isEqualObj(canvasRect, rect)) return;
+		setCanvasRect(rect);
+	}, [didMount, canvasRef, loaded, canvasRect, setCanvasRect]);
 
 	const canvasRatio = useMemo(() => {
-		if (!canvasSize) return 0.5625;
-		const { width, height } = canvasSize;
+		if (!canvasRect) return 0.5625;
+		const { width, height } = canvasRect;
 		return Math.min(width, height) / Math.max(width, height);
-	}, [canvasSize]);
+	}, [canvasRect]);
 
 	const camFOV = useMemo(() => {
 		return 2 * canvasRatio;
@@ -53,7 +61,7 @@ const BlobScene = () => {
 				ref={canvasRef}
 				className={styles.canvas}
 				shadows={false}
-				dpr={window.devicePixelRatio * 0.25}
+				dpr={dpr}
 				camera={{
 					fov: camFOV,
 					near: 0.1,

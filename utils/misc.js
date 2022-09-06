@@ -14,5 +14,4 @@ const shuffle_arr = (arr) => {
 	}
 	return arr;
 };
-
 module.exports = { rand_int, shuffle_arr };

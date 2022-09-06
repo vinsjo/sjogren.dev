@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@react-three/fiber": "^8.7.0",
+    "@react-three/fiber": "^8.7.2",
     "@react-three/postprocessing": "^2.6.2",
     "cors": "^2.8.5",
     "next": "12.2.5",
@@ -17,11 +17,13 @@
     "react-dom": "18.2.0",
     "safe-json-decode": "^1.0.1",
     "three": "^0.144.0",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
+    "x-is-equal": "^1.0.0",
     "x-is-type": "^1.0.9"
   },
   "devDependencies": {
     "eslint": "8.23.0",
-    "eslint-config-next": "12.2.5"
+    "eslint-config-next": "12.2.5",
+    "microbundle": "^0.15.1"
   }
 }

@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react';
+import useDidMount from '../hooks/useDidMount';
 
 const ClientRender = ({ children }) => {
-	const [didMount, setDidMount] = useState(false);
-	useEffect(() => {
-		setDidMount(true);
-	}, []);
+	const didMount = useDidMount();
 	return !didMount ? null : <>{children}</>;
 };
 

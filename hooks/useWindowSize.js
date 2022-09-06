@@ -1,24 +1,27 @@
-import { useState, useLayoutEffect, useEffect } from 'react';
+import { useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import { isFn } from 'x-is-type';
+import useDidMount from './useDidMount';
 
 const useWindowSize = (onResize) => {
-	const [size, setSize] = useState({});
+	const didMount = useDidMount();
+	const getWindowSize = useCallback(() => {
+		return !didMount || !window
+			? {}
+			: { width: window.innerWidth, height: window.innerHeight };
+	}, [didMount]);
+
+	const [size, setSize] = useState(getWindowSize);
 
 	useLayoutEffect(() => {
 		const portrait = window.matchMedia('(orientation: portait)');
-		const onResize = () =>
-			setSize({
-				inner: { width: window.innerWidth, height: window.innerHeight },
-				outer: { width: window.outerWidth, height: window.outerHeight },
-				avail: { width: screen.availWidth, height: screen.availHeight },
-			});
+		const onResize = () => setSize(getWindowSize());
 		window.addEventListener('resize', onResize);
 		portrait.addEventListener('change', onResize);
 		return () => {
 			window.removeEventListener('resize', onResize);
 			portrait.removeEventListener('change', onResize);
 		};
-	}, []);
+	}, [getWindowSize]);
 
 	useEffect(() => {
 		if (!isFn(onResize)) return;
