@@ -43,19 +43,17 @@ const BlobScene = (props: {
 	useWindowSize(handleResize);
 
 	return (
-		<div
-			className={classNames(
-				styles.container,
-				loaded ? styles.show : null
-			)}
-		>
+		<div className={styles.container}>
 			{!props.children ? null : (
 				<div className={styles.cover}>{props.children}</div>
 			)}
 
 			<ThreeScene
 				ref={canvasRef}
-				className={styles.canvas}
+				className={classNames(
+					styles.canvas,
+					loaded ? styles.loaded : null
+				)}
 				shadows={false}
 				dpr={dpr}
 				camera={{

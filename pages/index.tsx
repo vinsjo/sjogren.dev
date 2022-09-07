@@ -4,6 +4,7 @@ import { classNames } from '@utils/client';
 import BlobScene from '@components/Three/Blob/BlobScene';
 import styles from '../styles/Home.module.css';
 import { tern } from '@utils/misc';
+import ClientRender from '@components/ClientRender';
 
 const Home = () => {
 	const [loaded, setLoaded] = useState(false);
@@ -23,23 +24,25 @@ const Home = () => {
 			</Head>
 
 			<main className={styles.main}>
-				<BlobScene onLoad={() => setLoaded(true)}>
-					<h1
-						className={classNames(
-							styles.caption,
-							tern(styles.loaded, null, () => loaded)
-						)}
-					>
-						<a
-							href="mailto:vincent@sjogren.dev"
-							target="_blank"
-							title="Contact Me"
-							rel="noreferrer"
+				<ClientRender>
+					<BlobScene onLoad={() => setLoaded(true)}>
+						<h1
+							className={classNames(
+								styles.caption,
+								tern(styles.loaded, null, () => loaded)
+							)}
 						>
-							vincent@sjogren.dev
-						</a>
-					</h1>
-				</BlobScene>
+							<a
+								href="mailto:vincent@sjogren.dev"
+								target="_blank"
+								title="Contact Me"
+								rel="noreferrer"
+							>
+								vincent@sjogren.dev
+							</a>
+						</h1>
+					</BlobScene>
+				</ClientRender>
 			</main>
 		</>
 	);
