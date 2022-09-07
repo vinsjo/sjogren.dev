@@ -1,25 +1,30 @@
-import { useState, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { EffectComposer, Noise } from '@react-three/postprocessing';
-import { classNames } from '../../utils/client';
-import useWindowSize from '../../hooks/useWindowSize';
+import useWindowSize from '../../../hooks/useWindowSize';
 import ShaderBlob from './ShaderBlob';
-import ThreeScene from './ThreeScene';
+import ThreeScene from '../ThreeScene';
 import styles from './BlobScene.module.css';
-import useDidMount from '../../hooks/useDidMount';
+import useDidMount from '../../../hooks/useDidMount';
 import { isEqualObj } from 'x-is-equal';
+import { classNames } from '@utils/client';
 
-const BlobScene = () => {
+const BlobScene = (props: {
+	children?: React.ReactNode;
+	onLoad?: () => unknown | void;
+}) => {
 	const didMount = useDidMount();
-	const canvasRef = useRef();
+	const canvasRef: React.MutableRefObject<HTMLCanvasElement | undefined> =
+		useRef();
 	const [loaded, setLoaded] = useState(false);
 	const [canvasRect, setCanvasRect] = useState(null);
+
 	const dpr = useMemo(() => {
-		if (!didMount) return 1;
+		if (!didMount || !window) return 0.5;
 		return window.devicePixelRatio * 0.25;
 	}, [didMount]);
 
 	const handleResize = useCallback(() => {
-		if ((!didMount, !canvasRef.current || !loaded)) return;
+		if (!didMount || !canvasRef.current || !loaded) return;
 		const rect = canvasRef.current.getBoundingClientRect();
 		if (isEqualObj(canvasRect, rect)) return;
 		setCanvasRect(rect);
@@ -44,18 +49,9 @@ const BlobScene = () => {
 				loaded ? styles.show : null
 			)}
 		>
-			<div className={styles.cover}>
-				<h1 className={styles.caption}>
-					<a
-						href="mailto:vincent@sjogren.dev"
-						target="_blank"
-						title="Contact Me"
-						rel="noreferrer"
-					>
-						vincent@sjogren.dev
-					</a>
-				</h1>
-			</div>
+			{!props.children ? null : (
+				<div className={styles.cover}>{props.children}</div>
+			)}
 
 			<ThreeScene
 				ref={canvasRef}
@@ -68,7 +64,10 @@ const BlobScene = () => {
 					far: 500,
 					position: [0, 0, 15],
 				}}
-				onLoad={() => setLoaded(true)}
+				onLoad={() => {
+					setLoaded(true);
+					typeof props.onLoad === 'function' && props.onLoad();
+				}}
 			>
 				<EffectComposer>
 					<Noise opacity={0.02} />

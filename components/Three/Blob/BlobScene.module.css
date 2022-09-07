@@ -39,26 +39,3 @@
 	grid-row: 1;
 	z-index: 2;
 }
-
-.caption {
-	cursor: default;
-	display: inline-block;
-	font-family: 'JetBrains Mono', monospace;
-	font-weight: 800;
-	color: white;
-	opacity: 0;
-	transition: opacity 3s ease-out, transform 0.2s ease-in-out;
-	background-color: transparent;
-	text-align: center;
-}
-
-.container.show .caption {
-	opacity: 1;
-	cursor: pointer;
-}
-
-@media (hover: hover) {
-	.caption:hover {
-		transform: scale(1.02);
-	}
-}

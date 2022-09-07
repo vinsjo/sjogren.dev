@@ -1,11 +1,15 @@
-const { isInt } = require('x-is-type');
-const { rand_int, shuffle_arr } = require('../../misc');
-const config = require('./config');
-/**
- * @param {Number} row
- * @param {Number} col
- */
-function getBoxMin(row, col) {
+import { isInt } from 'x-is-type';
+import { rand_int, shuffle_arr } from '../../misc';
+import { v4 as uuidv4 } from 'uuid';
+import config from './config';
+import type {
+	SudokuApiResponse,
+	SudokuBoard,
+	SudokuRow,
+	SudokuUnsolvedBoards,
+} from './types';
+
+function getBoxMin(row: number, col: number) {
 	if (row < 0 || row >= config.BOARD_SIZE) {
 		row = Math.max(Math.min(row, config.BOARD_SIZE - 1), 0);
 	}
@@ -17,14 +21,8 @@ function getBoxMin(row, col) {
 		col: Math.floor(col - (col % config.BOX_SIZE)),
 	};
 }
-/**
- *
- * @param {Number[][]} board
- * @param {Number} row
- * @param {Number} col
- * @param {Number} num
- */
-function isSafe(board, row, col, num) {
+
+function isSafe(board: SudokuBoard, row: number, col: number, num: number) {
 	if (!isInt(row, col)) throw `Invalid row or col: ${col}, ${row}`;
 	//Row Clash
 	for (let c = 0; c < board.length; c++) {
@@ -43,17 +41,12 @@ function isSafe(board, row, col, num) {
 	}
 	return true;
 }
-/**
- * @param {Number[][]} board
- */
-function cloneBoard(board) {
+
+function cloneBoard(board: SudokuBoard): SudokuBoard {
 	return board.map((row) => [...row]);
 }
 
-/**
- * @param {Number[][]} board
- */
-function nextEmptyCell(board) {
+function nextEmptyCell(board: SudokuBoard) {
 	for (let row = 0; row < board.length; row++) {
 		for (let col = 0; col < board.length; col++) {
 			if (board[row][col] !== config.EMPTY_VALUE) continue;
@@ -63,24 +56,15 @@ function nextEmptyCell(board) {
 	return false;
 }
 
-function createEmptyBoard() {
-	const board = [];
-	while (board.length < config.BOARD_SIZE) {
-		const row = [];
-		while (row.length < config.BOARD_SIZE) {
-			row.push(config.EMPTY_VALUE);
-		}
-		board.push(row);
-	}
-	return board;
+function createEmptyBoard(): SudokuBoard {
+	return Array(9)
+		.fill(0)
+		.map(() => Array(9).fill(config.EMPTY_VALUE)) as SudokuBoard;
 }
-
-/**
- * @param {Number[][]} board
- * @param {Number} counter
- * @returns {(Number[][] | false)}
- */
-function fillBoard(board, counter = 0) {
+function fillBoard(
+	board: SudokuBoard,
+	counter: number = 0
+): SudokuBoard | false {
 	const cell = nextEmptyCell(board);
 	if (!cell) return board;
 	const { row, col } = cell;
@@ -98,11 +82,8 @@ function fillBoard(board, counter = 0) {
 	}
 	return false;
 }
-/**
- *
- * @param {Number[][]} board
- */
-function randomCell(board) {
+
+function randomCell(board: SudokuBoard) {
 	const [row, col] = [rand_int(board.length), rand_int(board.length)];
 	return {
 		row,
@@ -110,11 +91,7 @@ function randomCell(board) {
 		value: board[row][col],
 	};
 }
-/**
- * @param {Number[][]} solvedBoard
- * @param {Number} [emptyCells]
- */
-function unsolveBoard(solvedBoard, emptyCells = 0) {
+function unsolveBoard(solvedBoard: SudokuBoard, emptyCells: number = 0) {
 	if (!Array.isArray(solvedBoard)) return solvedBoard;
 	let unsolved = cloneBoard(solvedBoard);
 	let removedCount = 0;
@@ -133,12 +110,7 @@ function unsolveBoard(solvedBoard, emptyCells = 0) {
 	return unsolved;
 }
 
-/**
- * @param {Number} [maxTries]
- * @param {Number} [tries]
- * @returns {Number[][]}
- */
-function createBoard(maxTries = 5, tries = 1) {
+function createBoard(maxTries: number = 5, tries: number = 1): SudokuBoard {
 	try {
 		const empty = createEmptyBoard();
 		const board = fillBoard(empty);
@@ -150,8 +122,23 @@ function createBoard(maxTries = 5, tries = 1) {
 	}
 }
 
-module.exports = {
-	createEmptyBoard,
-	createBoard,
-	unsolveBoard,
-};
+function createApiResponse(): SudokuApiResponse | null {
+	try {
+		const solution = createBoard();
+		const unsolved = Object.entries(config.LEVELS).reduce(
+			(unsolved, [key, emptyCells]) => {
+				return {
+					...unsolved,
+					[key]: unsolveBoard(solution, emptyCells),
+				};
+			},
+			{}
+		) as SudokuUnsolvedBoards;
+		return { id: uuidv4(), solution, unsolved };
+	} catch (e) {
+		console.error(e);
+		return null;
+	}
+}
+
+export { createEmptyBoard, createBoard, unsolveBoard, createApiResponse };
