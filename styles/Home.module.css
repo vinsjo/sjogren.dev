@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&display=swap');
+
 .main {
 	width: 100%;
 	min-height: 100vh;
@@ -5,6 +7,38 @@
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
+}
+
+.container {
+	display: grid;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	inset: 0 0 0 0;
+	overflow: visible;
+	justify-items: center;
+	align-content: center;
+	grid-template-columns: 1fr;
+	grid-template-rows: 1fr;
+}
+
+.caption-container,
+.blob-scene {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.caption-container {
+	position: relative;
+	width: fit-content;
+	height: fit-content;
+	align-self: center;
+	justify-self: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	z-index: 2;
 }
 
 .caption {
@@ -19,13 +53,29 @@
 	text-align: center;
 }
 
-.caption.loaded {
+.blob-scene {
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	inset: 0 0 0 0;
+	overflow: visible;
+	justify-items: center;
+	align-content: center;
+	grid-template-columns: 1fr;
+	grid-template-rows: 1fr;
+	z-index: 0;
+	opacity: 0;
+	transition: opacity 1s ease-in;
+}
+
+.loaded .blob-scene,
+.loaded .caption {
 	opacity: 1;
-	cursor: pointer;
 }
 
 @media (hover: hover) {
 	.caption:hover {
+		cursor: pointer;
 		transform: scale(1.02);
 	}
 }

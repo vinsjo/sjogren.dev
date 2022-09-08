@@ -14,18 +14,24 @@ const shuffle_arr = <T>(arr: T[]): T[] => {
 };
 /**
  * ternary operator function
- * if validatorFn returns true a is returned otherwise b is returned.
- * if additional parameters are passed (inputValues),
- * they are passed to validatorFn,
+ * if condition is true or is a function that returns true a is returned otherwise b is returned.
+ * if additional parameters are passed (args),
+ * they are passed to condition (if condition is a function),
  * otherwise a is passed
  */
 const tern = <T1, T2>(
 	a: T1,
 	b: T2,
-	validatorFn: (...values: any[]) => boolean,
-	...inputValues: any[]
+	condition: any | ((...values: any[]) => boolean),
+	...args: any[]
 ): T1 | T2 => {
-	return validatorFn(...(inputValues.length > 0 ? inputValues : [a])) ? a : b;
+	return (
+		typeof condition !== 'function'
+			? condition
+			: condition(...(args.length > 0 ? args : [a]))
+	)
+		? a
+		: b;
 };
 
 const minmax = (min?: number, max?: number): { min: number; max: number } => {

@@ -29,7 +29,8 @@ export type OrbitControllerOptions = {
 	minZoom?: number;
 };
 
-const OrbitController = (options?: OrbitControllerOptions) => {
+const OrbitController = (props: { options: OrbitControllerOptions }) => {
+	const { options } = props;
 	const { camera, gl } = useThree();
 
 	useEffect(() => {

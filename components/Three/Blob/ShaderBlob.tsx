@@ -1,10 +1,6 @@
 import { useState, useRef, useMemo, MutableRefObject } from 'react';
-import { SphereGeometry, Vector3, ShaderMaterial, Mesh } from 'three';
+import { SphereGeometry, ShaderMaterial, Mesh } from 'three';
 import { useFrame } from '@react-three/fiber';
-import { randomV3, isV3, v3 } from '@utils/client/three';
-import { tern, minmax } from '@utils/misc';
-import { isNum, isObj } from 'x-is-type';
-import type { BlobOptions } from '@utils/client/three/shaders/blob';
 import { blobShader, getRandomOptions } from '@utils/client/three/shaders/blob';
 
 const ShaderBlob = () => {
@@ -22,8 +18,8 @@ const ShaderBlob = () => {
 		mesh.current.rotation.x += speed.x;
 		mesh.current.rotation.y += speed.y;
 		mesh.current.rotation.z += speed.z;
-		const mat = mesh.current.material as ShaderMaterial;
-		mat.uniforms.uTime.value += 0.1;
+		const { uniforms } = mesh.current.material as ShaderMaterial;
+		uniforms.uTime.value += 0.1;
 	});
 
 	return (

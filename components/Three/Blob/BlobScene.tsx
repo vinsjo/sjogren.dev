@@ -1,34 +1,42 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+import React, {
+	useState,
+	useMemo,
+	useRef,
+	useCallback,
+	forwardRef,
+} from 'react';
 import { EffectComposer, Noise } from '@react-three/postprocessing';
 import useWindowSize from '../../../hooks/useWindowSize';
 import ShaderBlob from './ShaderBlob';
 import ThreeScene from '../ThreeScene';
 import styles from './BlobScene.module.css';
-import useDidMount from '../../../hooks/useDidMount';
 import { isEqualObj } from 'x-is-equal';
 import { classNames } from '@utils/client';
 
-const BlobScene = (props: {
-	children?: React.ReactNode;
-	onLoad?: () => unknown | void;
-}) => {
-	const didMount = useDidMount();
+const BlobScene = ({
+	onLoad,
+	className,
+	...props
+}: {
+	onLoad?: () => Promise<unknown> | unknown;
+	className?: string;
+} & React.HTMLAttributes<HTMLDivElement>) => {
 	const canvasRef: React.MutableRefObject<HTMLCanvasElement | undefined> =
 		useRef();
 	const [loaded, setLoaded] = useState(false);
 	const [canvasRect, setCanvasRect] = useState(null);
 
 	const dpr = useMemo(() => {
-		if (!didMount || !window) return 0.5;
+		if (!window) return 0.5;
 		return window.devicePixelRatio * 0.25;
-	}, [didMount]);
+	}, []);
 
 	const handleResize = useCallback(() => {
-		if (!didMount || !canvasRef.current || !loaded) return;
+		if (!canvasRef.current || !loaded) return;
 		const rect = canvasRef.current.getBoundingClientRect();
 		if (isEqualObj(canvasRect, rect)) return;
 		setCanvasRect(rect);
-	}, [didMount, canvasRef, loaded, canvasRect, setCanvasRect]);
+	}, [canvasRef, loaded, canvasRect, setCanvasRect]);
 
 	const canvasRatio = useMemo(() => {
 		if (!canvasRect) return 0.5625;
@@ -43,17 +51,17 @@ const BlobScene = (props: {
 	useWindowSize(handleResize);
 
 	return (
-		<div className={styles.container}>
-			{!props.children ? null : (
-				<div className={styles.cover}>{props.children}</div>
-			)}
-
+		<div
+			className={classNames(styles.container, className || null)}
+			{...props}
+		>
 			<ThreeScene
 				ref={canvasRef}
 				className={classNames(
 					styles.canvas,
 					loaded ? styles.loaded : null
 				)}
+				fpsLimit={30}
 				shadows={false}
 				dpr={dpr}
 				camera={{
@@ -62,9 +70,9 @@ const BlobScene = (props: {
 					far: 500,
 					position: [0, 0, 15],
 				}}
-				onLoad={() => {
+				onCreated={() => {
 					setLoaded(true);
-					typeof props.onLoad === 'function' && props.onLoad();
+					typeof onLoad === 'function' && onLoad();
 				}}
 			>
 				<EffectComposer>

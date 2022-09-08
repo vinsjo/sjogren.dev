@@ -4,7 +4,7 @@ import { classNames } from '@utils/client';
 import BlobScene from '@components/Three/Blob/BlobScene';
 import styles from '../styles/Home.module.css';
 import { tern } from '@utils/misc';
-import ClientRender from '@components/ClientRender';
+import { ClientRender } from '@components/Utilities';
 
 const Home = () => {
 	const [loaded, setLoaded] = useState(false);
@@ -24,14 +24,14 @@ const Home = () => {
 			</Head>
 
 			<main className={styles.main}>
-				<ClientRender>
-					<BlobScene onLoad={() => setLoaded(true)}>
-						<h1
-							className={classNames(
-								styles.caption,
-								tern(styles.loaded, null, () => loaded)
-							)}
-						>
+				<div
+					className={classNames(
+						styles.container,
+						tern(styles.loaded, null, loaded)
+					)}
+				>
+					<div className={styles['caption-container']}>
+						<h1 className={styles.caption}>
 							<a
 								href="mailto:vincent@sjogren.dev"
 								target="_blank"
@@ -41,8 +41,14 @@ const Home = () => {
 								vincent@sjogren.dev
 							</a>
 						</h1>
-					</BlobScene>
-				</ClientRender>
+					</div>
+					<ClientRender>
+						<BlobScene
+							className={styles['blob-scene']}
+							onLoad={() => setLoaded(true)}
+						/>
+					</ClientRender>
+				</div>
 			</main>
 		</>
 	);

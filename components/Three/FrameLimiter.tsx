@@ -6,10 +6,11 @@ import { isNum } from 'x-is-type';
     https://github.com/pmndrs/react-three-fiber/discussions/667#discussioncomment-3026830
 */
 
-function FrameLimiter({ fps = 60 }) {
+function FrameLimiter(props: { fps?: number }) {
+	const { fps } = props;
 	const { invalidate, clock } = useThree();
 	useEffect(() => {
-		if (!isNum(fps) || fps === 0) return;
+		if (!isFinite(fps) || fps <= 0) return;
 		let delta = 0;
 		const interval = 1 / fps;
 		const update = () => {

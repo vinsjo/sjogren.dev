@@ -1,11 +1,10 @@
 import { isInt } from 'x-is-type';
-import { rand_int, shuffle_arr } from '../../misc';
+import { rand_int, shuffle_arr } from '@utils/misc';
 import { v4 as uuidv4 } from 'uuid';
 import config from './config';
 import type {
 	SudokuApiResponse,
 	SudokuBoard,
-	SudokuRow,
 	SudokuUnsolvedBoards,
 } from './types';
 

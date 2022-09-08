@@ -1,6 +1,6 @@
 import { Vector3, ShaderMaterial } from 'three';
 import { isNum, isObj } from 'x-is-type';
-import { tern, minmax, cloneObjRecursive } from '@utils/misc';
+import { tern, minmax } from '@utils/misc';
 import type { UniformNum, UniformV3 } from '../types';
 import { v3, isV3, randomV3, uValue } from '..';
 
@@ -55,6 +55,7 @@ export const randomLimits = {
 };
 
 export function blobShader(options?: BlobShaderOptions | undefined) {
+	const uniforms = initUniforms(options);
 	const fragmentShader = `
 	precision mediump float;
 
@@ -106,17 +107,19 @@ export function blobShader(options?: BlobShaderOptions | undefined) {
 		
 				vNormal = normal;
 			}`;
+
 	return new ShaderMaterial({
-		uniforms: uniforms(options),
+		uniforms,
 		vertexShader,
 		fragmentShader,
 	});
 }
 
-export function uniforms(options: BlobShaderOptions | undefined): BlobUniforms {
-	let { lightThreshold, ...opt } = { ...DEFAULT_OPTIONS };
+export function initUniforms(
+	options: BlobShaderOptions | undefined
+): BlobUniforms {
+	let opt = { ...DEFAULT_OPTIONS };
 	if (isObj(options)) {
-		lightThreshold = tern(options.lightThreshold, lightThreshold, isNum);
 		Object.keys(opt).forEach((key) => {
 			opt[key] = tern(options[key], opt[key], isV3);
 		});
@@ -124,7 +127,7 @@ export function uniforms(options: BlobShaderOptions | undefined): BlobUniforms {
 	return {
 		uTime: uValue(0.0),
 		uAlpha: uValue(1.0),
-		uLightThreshold: uValue(lightThreshold),
+		uLightThreshold: uValue(opt.lightThreshold),
 		uFrequency: uValue(opt.frequency),
 		uAmplitude: uValue(opt.amplitude),
 		uDistSpeed: uValue(opt.distSpeed),
