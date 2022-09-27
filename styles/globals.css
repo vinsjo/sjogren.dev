@@ -1,8 +1,13 @@
 :root {
-	--bg-color-dark: #252525;
+	--bg-color-dark: #202020;
 	--bg-color-light: white;
 	--text-color-dark: white;
 	--text-color-light: black;
+}
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
 }
 
 html,
@@ -13,6 +18,8 @@ body {
 body {
 	color: var(--text-color-light);
 	background-color: var(--bg-color-light);
+	width: 100vw;
+	min-height: 100vh;
 }
 
 a {
@@ -20,13 +27,7 @@ a {
 	text-decoration: none;
 }
 
-* {
-	box-sizing: border-box;
-	margin: 0;
-	padding: 0;
-}
-
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
 	html {
 		color-scheme: dark;
 	}
@@ -34,4 +35,4 @@ a {
 		color: var(--text-color-dark);
 		background: var(--bg-color-dark);
 	}
-}
+} */

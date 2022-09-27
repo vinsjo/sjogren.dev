@@ -1,17 +1,23 @@
-import { isArr, isNum, isObj } from 'x-is-type';
+import { isArr, isNum, isObj } from 'x-is-type/callbacks';
 
-const rand_int = (max = 10, min = 0) => {
-	return Math.floor(Math.random() * (max - min)) + min;
-};
+export function rand(max = 1, min = 0) {
+	return Math.random() * (max - min) + min;
+}
+export function rand_int(max = 10, min = 0) {
+	return Math.floor(rand(max, min));
+}
+export function rand_neg(max = 1) {
+	return rand(max, -max);
+}
 
-const shuffle_arr = <T>(arr: T[]): T[] => {
-	if (!Array.isArray(arr)) return arr;
+export function shuffle_arr<T>(arr: T[]): T[] {
+	if (!isArr(arr)) return arr;
 	for (let i = arr.length - 1; i > 0; i--) {
 		const randomIndex = rand_int(i + 1);
 		[arr[i], arr[randomIndex]] = [arr[randomIndex], arr[i]];
 	}
 	return arr;
-};
+}
 /**
  * ternary operator function
  * if condition is true or is a function that returns true a is returned otherwise b is returned.
@@ -19,12 +25,12 @@ const shuffle_arr = <T>(arr: T[]): T[] => {
  * they are passed to condition (if condition is a function),
  * otherwise a is passed
  */
-const tern = <T1, T2>(
+export function tern<T1, T2>(
 	a: T1,
 	b: T2,
 	condition: any | ((...values: any[]) => boolean),
 	...args: any[]
-): T1 | T2 => {
+): T1 | T2 {
 	return (
 		typeof condition !== 'function'
 			? condition
@@ -32,17 +38,29 @@ const tern = <T1, T2>(
 	)
 		? a
 		: b;
-};
+}
 
-const minmax = (min?: number, max?: number): { min: number; max: number } => {
+export function minmax(a?: number, b?: number) {
+	if (!isNum(a)) return isNum(b) ? { min: b, max: b } : { min: 0, max: 0 };
+	if (!isNum(b)) return { min: a, max: a };
 	return {
-		min: tern(min, 0, isNum),
-		max: tern(max, 0, isNum),
+		min: Math.min(a, b),
+		max: Math.max(a, b),
 	};
-};
+}
+export type MinMax = ReturnType<typeof minmax>;
 
-function cloneArrayRecursive(arr: any[]) {
-	if (!Array.isArray(arr)) return arr;
+export function isMinMax<T = unknown>(x?: T) {
+	return (isObj(x) && isNum(x['min']) && isNum(x['max'])) as T extends {
+		min: number;
+		max: number;
+	}
+		? true
+		: false;
+}
+
+export function cloneArrayRecursive(arr: any[]) {
+	if (!isArr(arr)) return arr;
 	const clone = [...arr];
 	for (let i = 0; i < clone.length; i++) {
 		if (clone[i] === arr) {
@@ -61,7 +79,7 @@ function cloneArrayRecursive(arr: any[]) {
 	return clone;
 }
 
-function cloneObjRecursive<T extends Object>(obj: T): T {
+export function cloneObjRecursive<T extends Object>(obj: T): T {
 	if (!(obj instanceof Object)) return obj;
 	const clone = { ...obj };
 	for (const key of Object.keys(clone)) {
@@ -80,12 +98,3 @@ function cloneObjRecursive<T extends Object>(obj: T): T {
 	}
 	return clone;
 }
-
-export {
-	rand_int,
-	shuffle_arr,
-	minmax,
-	tern,
-	cloneArrayRecursive,
-	cloneObjRecursive,
-};

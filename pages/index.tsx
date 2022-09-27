@@ -1,12 +1,12 @@
+import type { NextPage } from 'next';
 import Head from 'next/head';
 import React, { useState } from 'react';
 import { classNames } from '@utils/client';
 import BlobScene from '@components/Three/Blob/BlobScene';
 import styles from '../styles/Home.module.css';
-import { tern } from '@utils/misc';
 import { ClientRender } from '@components/Utilities';
 
-const Home = () => {
+const Home: NextPage = () => {
 	const [loaded, setLoaded] = useState(false);
 	return (
 		<>
@@ -24,31 +24,31 @@ const Home = () => {
 			</Head>
 
 			<main className={styles.main}>
-				<div
+				<section
 					className={classNames(
-						styles.container,
-						tern(styles.loaded, null, loaded)
+						styles.section,
+						styles.hero,
+						loaded ? styles.loaded : null
 					)}
 				>
-					<div className={styles['caption-container']}>
-						<h1 className={styles.caption}>
-							<a
-								href="mailto:vincent@sjogren.dev"
-								target="_blank"
-								title="Contact Me"
-								rel="noreferrer"
-							>
-								vincent@sjogren.dev
-							</a>
-						</h1>
+					{/* <div className={styles['caption-container']}> */}
+					<h1 className={styles.caption}>
+						<a
+							href="mailto:vincent@sjogren.dev"
+							target="_blank"
+							title="Contact Me"
+							rel="noreferrer"
+						>
+							vincent@sjogren.dev
+						</a>
+					</h1>
+					{/* </div> */}
+					<div className={styles['blob-container']}>
+						<ClientRender>
+							<BlobScene onLoad={() => setLoaded(true)} />
+						</ClientRender>
 					</div>
-					<ClientRender>
-						<BlobScene
-							className={styles['blob-scene']}
-							onLoad={() => setLoaded(true)}
-						/>
-					</ClientRender>
-				</div>
+				</section>
 			</main>
 		</>
 	);
