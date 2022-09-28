@@ -114,7 +114,7 @@ const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
 	return (
 		<ThreeScene
 			className={className || null}
-			fpsLimit={1}
+			fpsLimit={30}
 			shadows={false}
 			dpr={dpr}
 			camera={camera}
@@ -161,8 +161,8 @@ function initBlobs(camera: PerspectiveCamera, count = 10) {
 	const center = v3(0, 0, 0);
 	while (blobs.length < count) {
 		const position = v3(
-			r * Math.sin(angle) * rand(0.8, 1.2),
-			r * Math.cos(angle) * rand(0.8, 1.2),
+			r * Math.sin(angle) * rand(0.5, 1.5),
+			r * Math.cos(angle) * rand(0.5, 1.5),
 			rand_neg(avgScale)
 		).lerp(center, Math.random() * 0.8);
 		blobs.push({

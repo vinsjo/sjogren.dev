@@ -10,6 +10,7 @@ export type ShaderBlobProps = MeshProps & {
 	radius?: number;
 	widthSegments?: number;
 	heightSegments?: number;
+	randomRefresh?: number;
 };
 
 const ShaderBlob = ({
@@ -17,6 +18,7 @@ const ShaderBlob = ({
 	widthSegments,
 	heightSegments,
 	scale,
+	randomRefresh,
 	...meshProps
 }: ShaderBlobProps) => {
 	const [options, setOptions] = useState(getRandomOptions());
@@ -57,6 +59,15 @@ const ShaderBlob = ({
 		}
 		uniforms.uTime.value += 0.1;
 	});
+
+	useEffect(() => {
+		if (!randomRefresh || !isNum(randomRefresh)) return;
+		const timeout = setTimeout(
+			() => randomize(),
+			Math.floor(Math.random() * randomRefresh)
+		);
+		return () => clearTimeout(timeout);
+	}, [randomRefresh, randomize, options]);
 
 	return (
 		<mesh

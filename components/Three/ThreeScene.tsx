@@ -6,13 +6,11 @@ import {
 	Camera,
 	CameraProps,
 } from '@react-three/fiber';
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef, useMemo } from 'react';
 import FrameLimiter from './FrameLimiter';
 import { WebGLRendererParameters } from 'three';
-import { RenderIf } from '@components/Utilities';
 import useResizeObserver from '@hooks/useResizeObserver';
-import { isFn } from 'x-is-type/callbacks';
-import useDidMount from '@hooks/useDidMount';
+import { isFn, isNum } from 'x-is-type/callbacks';
 
 export type ThreeSceneProps = {
 	children?: React.ReactNode;
@@ -42,9 +40,12 @@ const ThreeScene = ({
 	...props
 }: ThreeSceneProps) => {
 	const glProps = useRef(!gl ? defaultGL : { ...defaultGL, ...gl });
-	const didMount = useDidMount();
 	const canvasRef = useRef<HTMLCanvasElement>();
 	const canvasSize = useResizeObserver(canvasRef.current);
+	const fps = useMemo(
+		() => (isNum(fpsLimit) && fpsLimit > 0 ? fpsLimit : 0),
+		[fpsLimit]
+	);
 	useLayoutEffect(() => {
 		isFn(onResize) && onResize(canvasSize);
 	}, [onResize, canvasSize]);
@@ -53,11 +54,10 @@ const ThreeScene = ({
 			gl={glProps.current}
 			shadows={shadows}
 			ref={canvasRef}
+			frameloop={fps ? 'demand' : 'always'}
 			{...props}
 		>
-			<RenderIf condition={!!fpsLimit}>
-				<FrameLimiter fps={fpsLimit} />
-			</RenderIf>
+			{fps ? <FrameLimiter fps={fps} /> : null}
 			{children}
 		</Canvas>
 	);
