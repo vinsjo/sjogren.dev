@@ -183,7 +183,6 @@ function initBlobs(camera: PerspectiveCamera, count = 10) {
 	const visible = visibleSizeAtZ(0, camera);
 	const cols = Math.floor(count ** clamp(aspect, 0.4, 0.6));
 	const rows = Math.ceil(count / cols);
-	console.log(cols, rows);
 	const maxRadius = Math.min(visible.x / cols, visible.y / rows);
 	const scaleLimits = minmax(maxRadius * 0.8, maxRadius * 1.2);
 	const avgScale = (scaleLimits.max + scaleLimits.min) / 2;
