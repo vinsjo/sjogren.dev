@@ -41,12 +41,47 @@ const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
 	const blobCount = useMemo(() => {
 		if (!canvasSize) return 0;
 		const { width, height } = canvasSize;
-		return Math.ceil(Math.max(width, height) / 75);
+		return Math.ceil(Math.max(width, height) / 50);
 	}, [canvasSize]);
 
 	const [camera, setCamera] = useState<PerspectiveCamera | null>();
 	const [initialBlobs, setInitialBlobs] = useState<BlobPropArray>([]);
-	const [adjustedBlobs, setAdjustedBlobs] = useState<BlobPropArray>([]);
+
+	const adjustedBlobs = useMemo(() => {
+		if (!camera || !initialBlobs.length || !canvasSize) return [];
+		return initialBlobs.map((blob) => {
+			const s = blob.scale;
+			const p = blob.position.clone();
+			const visible = visibleSizeAtZ(p.z, camera);
+			const { aspect } = camera;
+			const maxRadius = Math.max(s.x, s.y, s.z);
+			const limit = v2(visible.x * 0.4, visible.y * 0.4);
+			p.y =
+				p.y && limit.y - maxRadius > 0
+					? clamp(
+							p.y / aspect,
+							-limit.y + maxRadius,
+							limit.y - maxRadius
+					  )
+					: 0;
+			p.x =
+				p.x && limit.x - maxRadius > 0
+					? clamp(
+							p.x * aspect,
+							-limit.x + maxRadius,
+							limit.x - maxRadius
+					  )
+					: 0;
+			const minLimit = Math.min(limit.x, limit.y);
+			return {
+				position: p,
+				scale:
+					(p.x === 0 || p.y === 0) && minLimit - maxRadius <= 0
+						? s.clone().clamp(equalV3(0), equalV3(minLimit))
+						: s,
+			};
+		});
+	}, [initialBlobs, canvasSize, camera]);
 
 	const handleResize = useCallback(
 		({ width, height }: WH) => {
@@ -55,10 +90,8 @@ const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
 			setCanvasSize({ width, height });
 			if (!camera) return;
 			updateAspect(camera, { width, height });
-			if (!initialBlobs.length) return;
-			setAdjustedBlobs(fitBlobs(initialBlobs, camera));
 		},
-		[initialBlobs, setAdjustedBlobs, camera]
+		[camera]
 	);
 
 	const handleLoad = useCallback(() => {
@@ -107,68 +140,42 @@ const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
 
 function initBlobs(camera: PerspectiveCamera, count = 10) {
 	const scaleLimits = minmax(0.8, 1.2);
-	let avgScale = scaleLimits.max - scaleLimits.min;
+	let avgScale = (scaleLimits.max + scaleLimits.min) / 2;
 	const visible = visibleSizeAtZ(0, camera);
-	const cols = Math.floor(count ** 0.5);
-	const rows = Math.ceil(count / cols);
-	const maxRadius = Math.min(visible.x / cols, visible.y / rows) * 0.5;
-	if (avgScale > maxRadius) {
+	let angle = 0;
+	let currentCircle = 0;
+	const circles = Math.ceil(count / 10);
+	const visibleR = Math.min(visible.x / 2, visible.y / 2);
+	const r = visibleR - avgScale;
+	const step = ((Math.PI * 2) / count) * circles;
+
+	const circ = 2 * r * Math.PI;
+	const maxScale = (circ / count) * (circles / 2);
+	if (avgScale > maxScale) {
 		const { max, min } = scaleLimits;
-		scaleLimits.max = mapLinear(max, 0, avgScale, 0, maxRadius);
-		scaleLimits.min = mapLinear(min, 0, avgScale, 0, maxRadius);
-		avgScale = scaleLimits.max - scaleLimits.min;
+		scaleLimits.max = mapLinear(max, 0, avgScale, 0, maxScale);
+		scaleLimits.min = mapLinear(min, 0, avgScale, 0, maxScale);
+		avgScale = (scaleLimits.max + scaleLimits.min) / 2;
 	}
-
-	const blobs = [];
+	const blobs: BlobPropArray = [];
 	const center = v3(0, 0, 0);
-	for (let row = 1; row <= rows; row++) {
-		for (let col = 1; col <= cols; col++) {
-			const z = rand_neg(avgScale);
-			const v = visibleSizeAtZ(z, camera);
-			const offset = v2(v.x / 2 - avgScale, v.y / 2 - avgScale);
-			const position = v3(
-				mapLinear(col, 1, cols, -offset.y, offset.y) * rand(0.9, 1.1),
-				mapLinear(row, 1, rows, -offset.x, offset.x) * rand(0.9, 1.1),
-				z
-			);
-			position.lerp(center, Math.random() * 0.75);
-			blobs.push({
-				position,
-				scale: randomV3(scaleLimits.min, scaleLimits.max),
-			});
+	while (blobs.length < count) {
+		const position = v3(
+			r * Math.sin(angle) * rand(0.8, 1.2),
+			r * Math.cos(angle) * rand(0.8, 1.2),
+			rand_neg(avgScale)
+		).lerp(center, Math.random() * 0.8);
+		blobs.push({
+			position,
+			scale: randomV3(scaleLimits.min, scaleLimits.max),
+		});
+		const maxAngle = Math.PI * 2 * (currentCircle + 1);
+		if (angle < maxAngle && angle + step >= maxAngle) {
+			currentCircle += 1;
 		}
+		angle += step;
 	}
-	return blobs as BlobPropArray;
-}
-
-function fitBlobs(
-	blobs: BlobPropArray,
-	camera: PerspectiveCamera
-): BlobPropArray {
-	return blobs.map((blob) => {
-		const s = blob.scale;
-		const p = blob.position.clone();
-		const visible = visibleSizeAtZ(p.z, camera);
-		const { aspect } = camera;
-		const maxRadius = Math.max(s.x, s.y, s.z);
-		const limit = v2(visible.x * 0.4, visible.y * 0.4);
-		p.y =
-			p.y && limit.y - maxRadius > 0
-				? clamp(p.y / aspect, -limit.y + maxRadius, limit.y - maxRadius)
-				: 0;
-		p.x =
-			p.x && limit.x - maxRadius > 0
-				? clamp(p.x * aspect, -limit.x + maxRadius, limit.x - maxRadius)
-				: 0;
-		const minLimit = Math.min(limit.x, limit.y);
-		return {
-			position: p,
-			scale:
-				(p.x === 0 || p.y === 0) && minLimit - maxRadius <= 0
-					? s.clone().clamp(equalV3(0), equalV3(minLimit))
-					: s,
-		};
-	});
+	return blobs;
 }
 
 export default BlobScene;
