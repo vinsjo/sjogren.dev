@@ -1,7 +1,7 @@
 import { MathUtils, PerspectiveCamera, Vector2, Vector3 } from 'three';
 import { isNum } from 'x-is-type';
 import { isObj } from 'x-is-type/callbacks';
-import { rand } from '@utils/misc';
+import { rand, WH } from '@utils/misc';
 
 export type V3 = Vector3 | { x: number; y: number; z: number };
 export type V2 = Vector2 | { x: number; y: number };
@@ -55,4 +55,12 @@ export function visibleSizeAtZ(z: number, camera: PerspectiveCamera) {
 	// Math.abs to ensure the result is always positive
 	const height = !vFOV ? 0 : 2 * Math.tan(vFOV / 2) * Math.abs(depth);
 	return v2(height * camera.aspect, height);
+}
+
+export function updateAspect(camera: PerspectiveCamera, canvasSize: WH) {
+	const { width, height } = canvasSize;
+	if (!width || !height) return camera.aspect;
+	const aspect = width / height;
+	if (camera.aspect !== aspect) camera.aspect = aspect;
+	return aspect;
 }

@@ -1,11 +1,10 @@
+import { WH } from '@utils/misc';
 import { useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import useDidMount from './useDidMount';
 
-export type windowSize = { width: number; height: number };
-
-const useWindowSize = (onResize?: (size?: windowSize) => void | undefined) => {
+const useWindowSize = (onResize?: (size: WH) => void | undefined) => {
 	const didMount = useDidMount();
-	const getWindowSize = useCallback((): windowSize => {
+	const getWindowSize = useCallback(() => {
 		return !didMount || !window
 			? { width: 0, height: 0 }
 			: { width: window.innerWidth, height: window.innerHeight };

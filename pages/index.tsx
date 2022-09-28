@@ -2,9 +2,13 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import React, { useState } from 'react';
 import { classNames } from '@utils/client';
-import BlobScene from '@components/Three/Blob/BlobScene';
+// import BlobScene from '@components/Three/Blob/BlobScene';
 import styles from '../styles/Home.module.css';
 import { ClientRender } from '@components/Utilities';
+
+const BlobScene = React.lazy(
+	() => import('../components/Three/Blob/BlobScene')
+);
 
 const Home: NextPage = () => {
 	const [loaded, setLoaded] = useState(false);
@@ -45,7 +49,9 @@ const Home: NextPage = () => {
 					{/* </div> */}
 					<div className={styles['blob-container']}>
 						<ClientRender>
-							<BlobScene onLoad={() => setLoaded(true)} />
+							<React.Suspense>
+								<BlobScene onLoad={() => setLoaded(true)} />
+							</React.Suspense>
 						</ClientRender>
 					</div>
 				</section>

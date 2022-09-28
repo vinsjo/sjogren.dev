@@ -59,6 +59,24 @@ export function isMinMax<T = unknown>(x?: T) {
 		: false;
 }
 
+export function wh(width?: number, height?: number) {
+	return {
+		width: isNum(width) ? width : 0,
+		height: isNum(height) ? height : 0,
+	};
+}
+
+export type WH = ReturnType<typeof wh>;
+
+export function isWH<T = unknown>(x?: T) {
+	return (isObj(x) && isNum(x['width']) && isNum(x['height'])) as T extends {
+		width: number;
+		height: number;
+	}
+		? true
+		: false;
+}
+
 export function cloneArrayRecursive(arr: any[]) {
 	if (!isArr(arr)) return arr;
 	const clone = [...arr];

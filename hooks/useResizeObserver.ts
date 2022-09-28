@@ -1,39 +1,49 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useLayoutEffect, useMemo } from 'react';
+import { isArr } from 'x-is-type/callbacks';
+import { wh } from '@utils/misc';
+import { ResizeObserver as ObserverPolyfill } from '@juggle/resize-observer';
 
-const useResizeObserver = <T extends HTMLElement>(el?: T) => {
-	const element = useMemo<T | null>(
-		() => (el instanceof HTMLElement ? el : null),
-		[el]
-	);
+const ResizeObserver =
+	!window || !('ResizeObserver' in window)
+		? ObserverPolyfill
+		: window['ResizeObserver'];
+/**
+ * Inspired by / based on: https://github.com/jaredLunde/react-hook/blob/master/packages/resize-observer/src/index.tsx
+ */
+const useResizeObserver = <T extends HTMLElement>(
+	target?: React.RefObject<T> | T
+) => {
+	const element = useMemo<T | null>(() => {
+		const el = target && 'current' in target ? target.current : target;
+		return !(el instanceof HTMLElement) ? null : el;
+	}, [target]);
+
 	const [size, setSize] = useState(() => {
-		if (!element) return { width: 0, height: 0 };
+		if (!element) return wh(0, 0);
 		const { width, height } = element.getBoundingClientRect();
-		return { width, height };
+		return wh(width, height);
 	});
-
-	useEffect(() => {
-		if (!element) return;
-		const observer = new ResizeObserver((entries) => {
-			try {
-				if (!entries.length) return;
-				const [entry] = entries;
-				if (!entry) return;
-				if (!entry.contentBoxSize) {
-					const { width, height } = entry.contentRect;
-					return setSize({ width, height });
-				}
-				const contentBoxSize = Array.isArray(entry.contentBoxSize)
-					? entry.contentBoxSize[0]
-					: entry.contentBoxSize;
-				const { inlineSize, blockSize } = contentBoxSize;
-				setSize({ width: inlineSize, height: blockSize });
-			} catch (e) {
-				console.error(e);
+	const observer = useMemo(() => {
+		return new ResizeObserver(([entry]) => {
+			if (!entry) return;
+			if ('contentBoxSize' in entry) {
+				const cbs = entry.contentBoxSize;
+				const { inlineSize, blockSize } = (
+					isArr(cbs) ? cbs[0] : cbs
+				) as ResizeObserverSize;
+				return setSize(wh(inlineSize, blockSize));
 			}
+			const { width, height } = entry.contentRect;
+			setSize(wh(width, height));
 		});
+	}, [setSize]);
+
+	useLayoutEffect(() => {
+		if (!element) return;
 		observer.observe(element);
 		return () => observer.disconnect();
-	}, [element, setSize]);
+	}, [element, observer]);
+
 	return size;
 };
 

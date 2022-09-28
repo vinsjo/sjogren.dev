@@ -1,149 +1,102 @@
 import React, {
 	useState,
 	useMemo,
-	useRef,
 	useEffect,
+	useCallback,
 	useLayoutEffect,
 } from 'react';
-import { EffectComposer, Noise } from '@react-three/postprocessing';
-import ShaderBlob from './ShaderBlob';
-import ThreeScene from '../ThreeScene';
-import useResizeObserver from '@hooks/useResizeObserver';
+
+import { isFn } from 'x-is-type/callbacks';
+import { PerspectiveCamera, Vector3 } from 'three';
+import { clamp, mapLinear } from 'three/src/math/MathUtils';
 import {
 	randomV3,
 	v2,
 	v3,
-	isV3,
 	equalV3,
 	visibleSizeAtZ,
+	updateAspect,
 } from '@utils/client/three';
-import { isNum, isFn } from 'x-is-type/callbacks';
-import { isMinMax, MinMax, minmax, rand_neg } from '@utils/misc';
-import { PerspectiveCamera, Vector3 } from 'three';
-import { clamp, mapLinear } from 'three/src/math/MathUtils';
+import { minmax, rand, rand_neg, WH } from '@utils/misc';
+import useDidMount from '@hooks/useDidMount';
+import ShaderBlob from './ShaderBlob';
+import ThreeScene from '../ThreeScene';
+import useWindowSize from '@hooks/useWindowSize';
 
 type BlobSceneProps = {
 	onLoad?: () => unknown;
-	className?: string;
-	blobCount?: number;
-	blobScale?: MinMax;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-const BlobScene = (props: BlobSceneProps) => {
-	const canvasRef = useRef<HTMLCanvasElement>();
-	const { width, height } = useResizeObserver(canvasRef.current);
+type BlobPropArray = { position: Vector3; scale: Vector3 }[];
+
+const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
+	const didMount = useDidMount();
 	const dpr = useMemo(() => {
-		return !window ? 0.5 : window.devicePixelRatio * 0.5;
-	}, []);
-	const aspectRatio = useMemo(
-		() => (!width || !height ? 1 : width / height),
-		[width, height]
+		return !didMount || !window || !('devicePixelRatio' in window)
+			? 1
+			: window.devicePixelRatio;
+	}, [didMount]);
+	const [canvasSize, setCanvasSize] = useState<WH | null>(null);
+
+	const blobCount = useMemo(() => {
+		if (!canvasSize) return 0;
+		const { width, height } = canvasSize;
+		return Math.ceil(Math.max(width, height) / 75);
+	}, [canvasSize]);
+
+	const [camera, setCamera] = useState<PerspectiveCamera | null>();
+	const [initialBlobs, setInitialBlobs] = useState<BlobPropArray>([]);
+	const [adjustedBlobs, setAdjustedBlobs] = useState<BlobPropArray>([]);
+
+	const handleResize = useCallback(
+		({ width, height }: WH) => {
+			// Wait until canvas has adjusted to container to set canvas size
+			if (!width || !height || (width === 300 && height === 150)) return;
+			setCanvasSize({ width, height });
+			if (!camera) return;
+			updateAspect(camera, { width, height });
+			if (!initialBlobs.length) return;
+			setAdjustedBlobs(fitBlobs(initialBlobs, camera));
+		},
+		[initialBlobs, setAdjustedBlobs, camera]
 	);
 
-	const [camera, setCamera] = useState<null | PerspectiveCamera>(null);
-	// const camera = useRef<PerspectiveCamera>(
-	// 	(() => {
-	// 		const c = new PerspectiveCamera(getAspect(), getFOV(), 0.1, 500);
-	// 		c.position.set(0, 0, 15);
-	// 		return c;
-	// 	})()
-	// );
-
-	const [blobCount, blobScale] = useMemo(() => {
-		return [
-			!isNum(props.blobCount) ? 20 : props.blobCount,
-			!isMinMax(props.blobScale) ? minmax(0.9, 1.1) : props.blobScale,
-		];
-	}, [props.blobCount, props.blobScale]);
-
-	const initialBlobs = useMemo(() => {
-		if (!camera || blobCount < 1) return [];
-		const initialProps = (x?: number, y?: number, z?: number) => {
-			return {
-				position: v3(
-					isNum(x) ? x : 0,
-					isNum(y) ? y : 0,
-					isNum(z) ? z : 0
-				),
-				scale: randomV3(blobScale.min, blobScale.max),
-			};
-		};
-		if (blobCount === 1) return [initialProps()];
-		const visible = visibleSizeAtZ(0, camera);
-		const offset = v2(
-			visible.x / 2 - blobScale.min,
-			visible.y / 2 - blobScale.min
-		);
-		return [...Array(blobCount)].map(() => {
-			return {
-				position: v3(
-					rand_neg(offset.x),
-					rand_neg(offset.y),
-					rand_neg(0.2)
-				),
-				scale: randomV3(blobScale.min, blobScale.max),
-			};
-		});
-	}, [camera, blobCount, blobScale]);
-
-	const blobs = useMemo(() => {
-		if (!camera) return [];
-		return initialBlobs.map((blob) => {
-			const s = blob.scale;
-			const p = blob.position.clone();
-			const visible = visibleSizeAtZ(p.z, camera);
-			const maxScale = Math.max(s.x, s.y, s.z);
-			const limit = v2(visible.x * 0.45, visible.y * 0.45);
-			p.y =
-				p.y && limit.y - maxScale > 0
-					? clamp(p.y, -limit.y + maxScale, limit.y - maxScale)
-					: 0;
-			p.x =
-				p.x && limit.x - maxScale > 0
-					? clamp(p.x, -limit.x + maxScale, limit.x - maxScale)
-					: 0;
-			const minLimit = Math.min(limit.x, limit.y);
-			return {
-				position: p,
-				scale:
-					(p.x === 0 || p.y === 0) && minLimit - maxScale <= 0
-						? s.clone().clamp(equalV3(0), equalV3(minLimit))
-						: s,
-			};
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [camera, initialBlobs, aspectRatio]);
+	const handleLoad = useCallback(() => {
+		isFn(onLoad) && onLoad();
+	}, [onLoad]);
 
 	useLayoutEffect(() => {
 		if (camera) return;
-		const c = new PerspectiveCamera(15, aspectRatio, 0.1, 500);
-		c.position.set(0, 0, 15);
+		const c = new PerspectiveCamera(15, 1, 0.1, 500);
+		c.position.set(0, 0, 20);
+		c.lookAt(v3(0, 0, 0));
 		setCamera(c);
-	}, [camera, aspectRatio]);
+	}, [camera]);
+
+	useEffect(() => {
+		if (!camera || !blobCount) return;
+		setInitialBlobs(initBlobs(camera, blobCount));
+	}, [camera, blobCount]);
 
 	return (
 		<ThreeScene
-			ref={canvasRef}
-			className={props.className || null}
-			fpsLimit={10}
+			className={className || null}
+			fpsLimit={1}
 			shadows={false}
 			dpr={dpr}
 			camera={camera}
 			gl={{ antialias: false }}
-			onCreated={() => {
-				isFn(props.onLoad) && props.onLoad();
-			}}
+			onCreated={handleLoad}
+			onResize={handleResize}
 		>
 			<group>
-				{blobs.map(({ position, scale }, i) => {
+				{adjustedBlobs.map(({ position, scale }, i) => {
 					return (
 						<ShaderBlob
 							key={`blob-${i}`}
 							position={position}
 							scale={scale}
 							radius={1}
-							updateFrequency={5000}
-							randomizeFrequency={true}
 						/>
 					);
 				})}
@@ -151,5 +104,71 @@ const BlobScene = (props: BlobSceneProps) => {
 		</ThreeScene>
 	);
 };
+
+function initBlobs(camera: PerspectiveCamera, count = 10) {
+	const scaleLimits = minmax(0.8, 1.2);
+	let avgScale = scaleLimits.max - scaleLimits.min;
+	const visible = visibleSizeAtZ(0, camera);
+	const cols = Math.floor(count ** 0.5);
+	const rows = Math.ceil(count / cols);
+	const maxRadius = Math.min(visible.x / cols, visible.y / rows) * 0.5;
+	if (avgScale > maxRadius) {
+		const { max, min } = scaleLimits;
+		scaleLimits.max = mapLinear(max, 0, avgScale, 0, maxRadius);
+		scaleLimits.min = mapLinear(min, 0, avgScale, 0, maxRadius);
+		avgScale = scaleLimits.max - scaleLimits.min;
+	}
+
+	const blobs = [];
+	const center = v3(0, 0, 0);
+	for (let row = 1; row <= rows; row++) {
+		for (let col = 1; col <= cols; col++) {
+			const z = rand_neg(avgScale);
+			const v = visibleSizeAtZ(z, camera);
+			const offset = v2(v.x / 2 - avgScale, v.y / 2 - avgScale);
+			const position = v3(
+				mapLinear(col, 1, cols, -offset.y, offset.y) * rand(0.9, 1.1),
+				mapLinear(row, 1, rows, -offset.x, offset.x) * rand(0.9, 1.1),
+				z
+			);
+			position.lerp(center, Math.random() * 0.75);
+			blobs.push({
+				position,
+				scale: randomV3(scaleLimits.min, scaleLimits.max),
+			});
+		}
+	}
+	return blobs as BlobPropArray;
+}
+
+function fitBlobs(
+	blobs: BlobPropArray,
+	camera: PerspectiveCamera
+): BlobPropArray {
+	return blobs.map((blob) => {
+		const s = blob.scale;
+		const p = blob.position.clone();
+		const visible = visibleSizeAtZ(p.z, camera);
+		const { aspect } = camera;
+		const maxRadius = Math.max(s.x, s.y, s.z);
+		const limit = v2(visible.x * 0.4, visible.y * 0.4);
+		p.y =
+			p.y && limit.y - maxRadius > 0
+				? clamp(p.y / aspect, -limit.y + maxRadius, limit.y - maxRadius)
+				: 0;
+		p.x =
+			p.x && limit.x - maxRadius > 0
+				? clamp(p.x * aspect, -limit.x + maxRadius, limit.x - maxRadius)
+				: 0;
+		const minLimit = Math.min(limit.x, limit.y);
+		return {
+			position: p,
+			scale:
+				(p.x === 0 || p.y === 0) && minLimit - maxRadius <= 0
+					? s.clone().clamp(equalV3(0), equalV3(minLimit))
+					: s,
+		};
+	});
+}
 
 export default BlobScene;
