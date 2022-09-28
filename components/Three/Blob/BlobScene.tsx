@@ -55,7 +55,7 @@ const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
 			const visible = visibleSizeAtZ(p.z, camera);
 			const { aspect } = camera;
 			const maxRadius = Math.max(s.x, s.y, s.z);
-			const limit = v2(visible.x * 0.4, visible.y * 0.4);
+			const limit = v2(visible.x * 0.45, visible.y * 0.45);
 			p.y =
 				p.y && limit.y - maxRadius > 0
 					? clamp(
@@ -138,7 +138,7 @@ const BlobScene = ({ onLoad, className }: BlobSceneProps) => {
 	);
 };
 
-function initBlobs(camera: PerspectiveCamera, count = 10) {
+function initBlobsCircular(camera: PerspectiveCamera, count: number = 20) {
 	const scaleLimits = minmax(0.8, 1.2);
 	let avgScale = (scaleLimits.max + scaleLimits.min) / 2;
 	const visible = visibleSizeAtZ(0, camera);
@@ -176,6 +176,39 @@ function initBlobs(camera: PerspectiveCamera, count = 10) {
 		angle += step;
 	}
 	return blobs;
+}
+
+function initBlobs(camera: PerspectiveCamera, count = 10) {
+	const { aspect } = camera;
+	const visible = visibleSizeAtZ(0, camera);
+	const cols = Math.floor(count ** clamp(aspect, 0.4, 0.6));
+	const rows = Math.ceil(count / cols);
+	console.log(cols, rows);
+	const maxRadius = Math.min(visible.x / cols, visible.y / rows);
+	const scaleLimits = minmax(maxRadius * 0.8, maxRadius * 1.2);
+	const avgScale = (scaleLimits.max + scaleLimits.min) / 2;
+	const blobs = [];
+	const center = v3(0, 0, 0);
+	for (let row = 1; row <= rows; row++) {
+		for (let col = 1; col <= cols; col++) {
+			const z = rand_neg(scaleLimits.max);
+			const v = visibleSizeAtZ(z, camera);
+			const offset = v2(
+				v.x * 0.5 - avgScale * 1.5,
+				v.y * 0.5 - avgScale * 1.5
+			);
+			const position = v3(
+				mapLinear(col, 1, cols, -offset.x, offset.x) * rand(0.8, 1.1),
+				mapLinear(row, 1, rows, -offset.y, offset.y) * rand(0.8, 1.1),
+				z
+			).lerp(center, Math.random() * 0.5);
+			blobs.push({
+				position,
+				scale: randomV3(scaleLimits.min, scaleLimits.max),
+			});
+		}
+	}
+	return blobs as BlobPropArray;
 }
 
 export default BlobScene;
