@@ -39,6 +39,7 @@
 	z-index: 10;
 	cursor: default;
 	font-family: 'JetBrains Mono', monospace;
+	font-size: 1rem;
 	font-weight: 800;
 	color: #111;
 	opacity: 0;
@@ -76,5 +77,16 @@
 @media (prefers-color-scheme: dark) {
 	.caption {
 		color: white;
+	}
+}
+
+@media only screen and (min-width: 600px) {
+	.caption {
+		font-size: 1.4rem;
+	}
+}
+@media only screen and (min-width: 900px) {
+	.caption {
+		font-size: 1.8rem;
 	}
 }
