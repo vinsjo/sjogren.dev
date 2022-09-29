@@ -12,10 +12,10 @@ const useMatchMedia = <T = unknown>(
 		outputCallback
 	);
 	const [matches, setMatches] = useState(initialState);
-	const handler = useCallback(
-		(ev: MediaQueryListEvent) => setMatches(ev.matches),
-		[]
-	);
+
+	const handler = useCallback((ev: MediaQueryListEvent) => {
+		setMatches(ev.matches);
+	}, []);
 
 	const output = useMemo(() => {
 		return (

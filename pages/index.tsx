@@ -1,5 +1,5 @@
 import type { NextPage } from 'next';
-import Head from 'next/head';
+import Head from '@components/Head';
 import React, { useState } from 'react';
 import { classNames } from '@utils/client';
 // import BlobScene from '@components/Three/Blob/BlobScene';
@@ -10,22 +10,13 @@ const BlobScene = React.lazy(
 	() => import('../components/Three/Blob/BlobScene')
 );
 
+const keywords = ['Three.js'];
+
 const Home: NextPage = () => {
 	const [loaded, setLoaded] = useState(false);
 	return (
-		<>
-			<Head>
-				<meta
-					name="keywords"
-					content="Vincent Sjögren, Vincent, Sjögren, Developer, Front-end, Frontend, Javascript, React, Three.js, Stockholm"
-				/>
-				<meta
-					name="viewport"
-					content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-				/>
-				<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-				<title>sjogren.dev</title>
-			</Head>
+		<div className={styles.container}>
+			<Head keywords={keywords} />
 
 			<main className={styles.main}>
 				<section
@@ -56,7 +47,7 @@ const Home: NextPage = () => {
 					</div>
 				</section>
 			</main>
-		</>
+		</div>
 	);
 };
 

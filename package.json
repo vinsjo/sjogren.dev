@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -20,7 +20,7 @@
     "three": "^0.144.0",
     "typescript": "^4.8.2",
     "uuid": "^9.0.0",
-    "x-is-equal": "^1.0.4",
+    "x-is-equal": "^1.0.5",
     "x-is-type": "^1.0.9"
   },
   "devDependencies": {

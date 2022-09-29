@@ -1,4 +1,5 @@
 import { isArr, isNum, isObj } from 'x-is-type/callbacks';
+import { isEqual } from 'x-is-equal';
 
 export function rand(max = 1, min = 0) {
 	return Math.random() * (max - min) + min;
@@ -115,4 +116,8 @@ export function cloneObjRecursive<T extends Object>(obj: T): T {
 		}
 	}
 	return clone;
+}
+
+export function objStateSetter<T = unknown>(prev: T, next: T) {
+	return isEqual(prev, next) ? prev : next;
 }
