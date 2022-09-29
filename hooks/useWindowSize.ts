@@ -1,33 +1,30 @@
-import { WH } from '@utils/misc';
-import { useState, useLayoutEffect, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import useDidMount from './useDidMount';
+import useMatchMedia from './useMatchMedia';
+import { objStateSetter } from '@utils/misc';
 
-const useWindowSize = (onResize?: (size: WH) => void | undefined) => {
+const getWindowSize = () => {
+	return !window
+		? { width: 0, height: 0 }
+		: { width: window.innerWidth, height: window.innerHeight };
+};
+
+const useWindowSize = () => {
 	const didMount = useDidMount();
-	const getWindowSize = useCallback(() => {
-		return !didMount || !window
-			? { width: 0, height: 0 }
-			: { width: window.innerWidth, height: window.innerHeight };
-	}, [didMount]);
-
-	const [size, setSize] = useState(getWindowSize);
-
-	useLayoutEffect(() => {
-		if (!didMount) return;
-		const portrait = window.matchMedia('(orientation: portait)');
-		const onResize = () => setSize(getWindowSize());
-		window.addEventListener('resize', onResize);
-		portrait.addEventListener('change', onResize);
-		return () => {
-			window.removeEventListener('resize', onResize);
-			portrait.removeEventListener('change', onResize);
-		};
-	}, [getWindowSize, didMount]);
+	const portrait = useMatchMedia('(orientation: portait)');
+	const [size, setSize] = useState(getWindowSize());
+	const updateSize = useCallback(() => {
+		setSize((prev) => objStateSetter(prev, getWindowSize()));
+	}, []);
 
 	useEffect(() => {
-		if (typeof onResize !== 'function') return;
-		onResize(size);
-	}, [size, onResize]);
+		if (!didMount) return;
+		updateSize();
+		window.addEventListener('resize', updateSize);
+		return () => {
+			window.removeEventListener('resize', updateSize);
+		};
+	}, [updateSize, didMount, portrait]);
 
 	return size;
 };

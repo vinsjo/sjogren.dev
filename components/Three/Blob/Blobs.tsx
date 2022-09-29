@@ -19,8 +19,6 @@ const initBlobs = (count: number, camera: PerspectiveCamera) => {
 	const blobs: BlobPropArray = [];
 	const center = v3(0, 0, 0);
 	const maxPos = v2((avgRad * cols) / 2, (avgRad * rows) / 2);
-	console.log(`maxPos x: ${maxPos.x} y: ${maxPos.y}`);
-	console.log(`visible x: ${visible.x} y: ${visible.y}`);
 	for (let row = 0; row < rows; row++) {
 		const y = mapLinear(row, 0, rows - 1, -maxPos.y, maxPos.y) || 0;
 		for (let col = 0; col < cols; col++) {
