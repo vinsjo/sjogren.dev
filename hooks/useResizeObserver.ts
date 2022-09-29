@@ -1,28 +1,20 @@
-import {
-	useState,
-	useLayoutEffect,
-	useEffect,
-	useMemo,
-	useCallback,
-} from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { isArr } from 'x-is-type/callbacks';
 import { ResizeObserver as ObserverPolyfill } from '@juggle/resize-observer';
 import useMatchMedia from './useMatchMedia';
-import useDidMount from './useDidMount';
-import { isNum } from 'x-is-type';
 import { objStateSetter } from '@utils/misc';
 
 const ResizeObserver =
-	!window || !('ResizeObserver' in window)
+	typeof window === 'undefined' || !('ResizeObserver' in window)
 		? ObserverPolyfill
 		: window['ResizeObserver'];
+
 /**
  * Inspired by / based on: https://github.com/jaredLunde/react-hook/blob/master/packages/resize-observer/src/index.tsx
  */
 const useResizeObserver = <T extends HTMLElement>(
 	target?: React.RefObject<T> | T
 ) => {
-	const didMount = useDidMount();
 	const element = useMemo<T | null>(() => {
 		const el = target && 'current' in target ? target.current : target;
 		return !(el instanceof HTMLElement) ? null : el;
@@ -40,8 +32,10 @@ const useResizeObserver = <T extends HTMLElement>(
 		setSize((prev) => objStateSetter(prev, { width, height }));
 	}, []);
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (!element) return;
+		const { width, height } = element.getBoundingClientRect();
+		updateSize(width, height);
 		const observer = new ResizeObserver(([entry]) => {
 			if (!entry) return;
 			let width: number, height: number;
@@ -60,13 +54,7 @@ const useResizeObserver = <T extends HTMLElement>(
 		});
 		observer.observe(element);
 		return () => observer.disconnect();
-	}, [element, updateSize]);
-
-	useEffect(() => {
-		if (!element || !didMount) return;
-		const { width, height } = element.getBoundingClientRect();
-		updateSize(width, height);
-	}, [element, portrait, updateSize, didMount]);
+	}, [element, updateSize, portrait]);
 
 	return size;
 };

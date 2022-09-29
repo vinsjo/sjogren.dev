@@ -1,38 +1,21 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { isFn } from 'x-is-type/callbacks';
+import { useState, useLayoutEffect, useEffect, useCallback } from 'react';
 
-export type MatchMediaOutputCallback<T = unknown> = (matches: boolean) => T;
+const effect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
-const useMatchMedia = <T = unknown>(
-	mediaQuery: string,
-	initialState = false,
-	outputCallback?: MatchMediaOutputCallback<T>
-) => {
-	const callback = useRef<undefined | MatchMediaOutputCallback<T>>(
-		outputCallback
-	);
+const useMatchMedia = (mediaQuery: string, initialState = false) => {
 	const [matches, setMatches] = useState(initialState);
 
 	const handler = useCallback((ev: MediaQueryListEvent) => {
 		setMatches(ev.matches);
 	}, []);
 
-	const output = useMemo(() => {
-		return (
-			isFn(callback.current) ? callback.current(matches) : matches
-		) as typeof callback.current extends MatchMediaOutputCallback<T>
-			? T
-			: boolean;
-	}, [matches, callback]);
-
-	useEffect(() => {
-		if (!window) return;
+	effect(() => {
 		const media = window.matchMedia(mediaQuery);
 		setMatches(media.matches);
 		media.addEventListener('change', handler);
 		return () => media.removeEventListener('change', handler);
 	}, [mediaQuery, handler]);
 
-	return output;
+	return matches;
 };
 export default useMatchMedia;

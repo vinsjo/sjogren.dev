@@ -4,7 +4,7 @@ import useMatchMedia from './useMatchMedia';
 import { objStateSetter } from '@utils/misc';
 
 const getWindowSize = () => {
-	return !window
+	return typeof window === 'undefined'
 		? { width: 0, height: 0 }
 		: { width: window.innerWidth, height: window.innerHeight };
 };
@@ -18,7 +18,6 @@ const useWindowSize = () => {
 	}, []);
 
 	useEffect(() => {
-		if (!didMount) return;
 		updateSize();
 		window.addEventListener('resize', updateSize);
 		return () => {
