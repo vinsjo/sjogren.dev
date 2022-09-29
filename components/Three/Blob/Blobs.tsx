@@ -4,8 +4,7 @@ import { clamp, mapLinear } from 'three/src/math/MathUtils';
 import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/client/three';
 import { minmax, rand, rand_neg } from '@utils/misc';
 import ShaderBlob from './ShaderBlob';
-import useWindowSize from '@hooks/useWindowSize';
-import { useThree, RootState } from '@react-three/fiber';
+import { useThree } from '@react-three/fiber';
 
 type BlobPropArray = { position: Vector3; scale: Vector3 }[];
 
@@ -25,8 +24,8 @@ const initBlobs = (count: number, camera: PerspectiveCamera) => {
 			const x = mapLinear(col, 0, cols - 1, -maxPos.x, maxPos.x) || 0;
 			const z = rand_neg(avgRad / 2);
 			const position = v3(
-				x + rand_neg(avgRad),
-				y + rand_neg(avgRad),
+				x + rand_neg(avgRad / 2),
+				y + rand_neg(avgRad / 2),
 				z
 			).lerp(center, Math.random() * 0.5);
 			blobs.push({
@@ -35,35 +34,6 @@ const initBlobs = (count: number, camera: PerspectiveCamera) => {
 			});
 		}
 	}
-
-	// for (let row = 1; row <= rows; row++) {
-	// 	for (let col = 1; col <= cols; col++) {
-	// 		// const z = rand_neg(scaleLimits.min);
-	// 		const z = 0;
-	// 		const v = visibleSizeAtZ(z, camera);
-	// 		const offset = v2(
-	// 			v.x / 2 - avgScale * cols,
-	// 			v.y / 2 - avgScale * rows
-	// 		);
-	// 		// const position = v3(
-	// 		// 	mapLinear(col, 1, cols, -offset.x, offset.x) *
-	// 		// 		rand(scaleLimits.min, scaleLimits.max),
-	// 		// 	mapLinear(row, 1, rows, -offset.y, offset.y) *
-	// 		// 		rand(scaleLimits.min, scaleLimits.max),
-	// 		// 	z
-	// 		// ).lerp(center, Math.random() * 0.5);
-	// 		const position = v3(
-	// 			mapLinear(col, 1, mid.col, -offset.x, offset.x),
-	// 			mapLinear(row, 1, mid.row, -offset.y, offset.y),
-	// 			z
-	// 		);
-	// 		blobs.push({
-	// 			position,
-	// 			// scale: randomV3(scaleLimits.min, scaleLimits.max),
-	// 			scale: v3(0.2, 0.2, 0.2),
-	// 		});
-	// 	}
-	// }
 	return blobs;
 };
 
@@ -98,9 +68,9 @@ const fitBlobsInView = (
 };
 
 const Blobs = () => {
-	// const windowSize = useWindowSize();
 	const camera = useThree(({ camera }) => camera as PerspectiveCamera);
 	const { width, height } = useThree(({ size }) => size);
+	const orientation = useMemo(() => width >= height, [width, height]);
 
 	const count = useMemo(() => {
 		if (!width || !height) return 0;
@@ -110,15 +80,13 @@ const Blobs = () => {
 	const [initialBlobs, setInitialBlobs] = useState<BlobPropArray>([]);
 
 	const adjustedBlobs = useMemo<BlobPropArray>(() => {
-		return !camera || !initialBlobs.length
-			? []
-			: fitBlobsInView(initialBlobs, camera);
+		return !initialBlobs.length ? [] : fitBlobsInView(initialBlobs, camera);
 	}, [initialBlobs, camera]);
 
 	useEffect(() => {
-		if (!camera || !count) return;
+		if (!count) return;
 		setInitialBlobs(initBlobs(count, camera));
-	}, [camera, count]);
+	}, [camera, count, orientation]);
 
 	return (
 		<group>

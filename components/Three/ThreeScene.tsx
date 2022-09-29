@@ -1,5 +1,4 @@
-/* eslint-disable react/display-name */
-import { Canvas, Props, RootState } from '@react-three/fiber';
+import { Canvas, Props } from '@react-three/fiber';
 import React, { useRef } from 'react';
 import FPSLimiter from './FPSLimiter';
 import { WebGLRendererParameters } from 'three';

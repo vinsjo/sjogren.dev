@@ -3,10 +3,10 @@ import { tern } from '@utils/misc';
 
 const RenderIf = (props: {
 	children: React.ReactNode;
-	condition: boolean | ((...args: any[]) => boolean);
+	condition: unknown;
 	fallback?: React.ReactNode | null;
 }) => {
-	return <>{tern(props.children, props.fallback || null, props.condition)}</>;
+	return <>{!!props.condition ? props.children : props.fallback ?? null}</>;
 };
 
 export default RenderIf;

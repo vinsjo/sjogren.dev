@@ -2,13 +2,10 @@ import type { NextPage } from 'next';
 import Head from '@components/Head';
 import React, { useState } from 'react';
 import { classNames } from '@utils/client';
-// import BlobScene from '@components/Three/Blob/BlobScene';
 import styles from '../styles/Home.module.css';
 import { ClientRender } from '@components/Utilities';
 
-const BlobScene = React.lazy(
-	() => import('../components/Three/Blob/BlobScene')
-);
+const BlobScene = React.lazy(() => import('@components/Three/Blob/BlobScene'));
 
 const keywords = ['Three.js'];
 
@@ -26,7 +23,6 @@ const Home: NextPage = () => {
 						loaded ? styles.loaded : null
 					)}
 				>
-					{/* <div className={styles['caption-container']}> */}
 					<h1 className={styles.caption}>
 						<a
 							href="mailto:vincent@sjogren.dev"
@@ -37,7 +33,6 @@ const Home: NextPage = () => {
 							vincent@sjogren.dev
 						</a>
 					</h1>
-					{/* </div> */}
 					<div className={styles['blob-container']}>
 						<ClientRender>
 							<React.Suspense>
