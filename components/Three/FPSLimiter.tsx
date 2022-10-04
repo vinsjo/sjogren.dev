@@ -7,28 +7,28 @@ import { isNum } from 'x-is-type/callbacks';
 */
 
 function FPSLimiter({ limit = 30 }: { limit?: number }) {
-	const { invalidate, clock, setFrameloop } = useThree();
-	useEffect(() => {
-		if (!isNum(limit) || limit <= 0) return;
-		setFrameloop('demand');
-		let delta = 0;
-		let willUnmount = false;
-		const interval = 1 / limit;
-		function update() {
-			if (willUnmount) return;
-			requestAnimationFrame(update);
-			delta += clock.getDelta();
-			if (delta <= interval) return;
-			invalidate();
-			delta = delta % interval;
-		}
-		update();
-		return () => {
-			willUnmount = true;
-		};
-	}, [limit, invalidate, clock, setFrameloop]);
+    const { invalidate, clock, setFrameloop } = useThree();
+    useEffect(() => {
+        if (!isNum(limit) || limit <= 0) return;
+        setFrameloop('demand');
+        let delta = 0;
+        let willUnmount = false;
+        const interval = 1 / limit;
+        function update() {
+            if (willUnmount) return;
+            requestAnimationFrame(update);
+            delta += clock.getDelta();
+            if (delta <= interval) return;
+            invalidate();
+            delta = delta % interval;
+        }
+        update();
+        return () => {
+            willUnmount = true;
+        };
+    }, [limit, invalidate, clock, setFrameloop]);
 
-	return null;
+    return null;
 }
 
 export default FPSLimiter;
