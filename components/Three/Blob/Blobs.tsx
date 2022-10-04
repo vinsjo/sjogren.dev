@@ -25,12 +25,12 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
         for (let col = 0; col < cols; col++) {
             const x =
                 MathUtils.mapLinear(col, 0, cols - 1, -maxPos.x, maxPos.x) || 0;
-            const z = rand_neg(avgRad / 2);
+            const z = rand_neg(avgRad / 3);
             const position = v3(
-                x + rand_neg(avgRad / 2),
-                y + rand_neg(avgRad / 2),
+                x + rand_neg(avgRad / 3),
+                y + rand_neg(avgRad / 3),
                 z
-            ).lerp(center, Math.random() * 0.5);
+            ).lerp(center, Math.random() * 0.4);
             blobs.push({
                 position,
                 scale: randomV3(radLimits.min, radLimits.max),
@@ -41,8 +41,8 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
 };
 
 const fitBlobsInView = (blobs: BlobPropArray, camera: PerspectiveCamera) => {
-    const aspect = MathUtils.clamp(camera.aspect, 0.3, 1.3);
-    const maxCover = 0.9;
+    const aspect = MathUtils.clamp(camera.aspect, 0.5, 1.2);
+    const maxCover = 0.95;
     return blobs.map((blob) => {
         let s = blob.scale;
         let p = blob.position;
@@ -89,7 +89,7 @@ const Blobs = ({ fpsLimit = 30 }) => {
     const blobPxSize = useMemo(() => {
         const { width, height } = screenSize;
         if (!width || !height) return 0;
-        return Math.round(Math.max(width, height) / 10);
+        return Math.round(Math.max(width, height) / 5);
     }, [screenSize]);
 
     const [cols, rows] = useMemo(() => {

@@ -1,6 +1,5 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import Blobs from './Blobs';
-import FPSLimiter from '../FPSLimiter';
 import { Canvas, Props } from '@react-three/fiber';
 
 type BlobSceneProps = Omit<Props, 'children'> &

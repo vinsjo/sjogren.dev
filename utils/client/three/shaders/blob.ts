@@ -62,15 +62,15 @@ export const DEFAULT_OPTIONS: BlobShaderOptions = {
 export const DEFAULT_RAND_LIMITS: RandomLimits = {
     mesh: {
         scale: minmax(0.9, 1.1),
-        rotationSpeed: minmax(-0.01, 0.01),
+        rotationSpeed: minmax(-0.005, 0.005),
     },
     shader: {
         alpha: minmax(1, 1),
-        colorMultiplier: minmax(0.5, 1),
-        lightThreshold: minmax(0.1, 0.3),
-        frequency: minmax(1, 5),
-        amplitude: minmax(0.05, 0.25),
-        distSpeed: minmax(0.005, 0.05),
+        colorMultiplier: minmax(0.4, 1),
+        lightThreshold: minmax(0.05, 0.25),
+        frequency: minmax(0.5, 3),
+        amplitude: minmax(0.05, 0.3),
+        distSpeed: minmax(0.01, 0.2),
     },
 };
 
