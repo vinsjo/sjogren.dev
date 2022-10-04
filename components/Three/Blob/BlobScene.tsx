@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Blobs from './Blobs';
 import FPSLimiter from '../FPSLimiter';
 import { Canvas, Props } from '@react-three/fiber';
@@ -28,7 +28,6 @@ const BlobScene = ({
 }: BlobSceneProps) => {
     return (
         <Canvas shadows={shadows} camera={camera} gl={gl} {...props}>
-            <FPSLimiter limit={30} />
             <Blobs />
         </Canvas>
     );

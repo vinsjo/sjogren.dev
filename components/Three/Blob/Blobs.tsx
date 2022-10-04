@@ -5,13 +5,14 @@ import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/client/three';
 import { minmax, rand_neg } from '@utils/misc';
 import Blob from './Blob';
 import { useThree } from '@react-three/fiber';
+import useScreenSize from '@hooks/useScreenSize';
+import FPSLimiter from '../FPSLimiter';
 
 type BlobPropArray = { position: Vector3; scale: Vector3 }[];
 
-const initBlobs = (count: number, camera: PerspectiveCamera) => {
+const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
+    if (!cols || !rows) return [] as BlobPropArray;
     const visible = visibleSizeAtZ(0, camera);
-    const cols = Math.floor(count ** 0.5);
-    const rows = Math.ceil(count / cols);
     const maxRad = Math.min(visible.x / cols / 2, visible.y / rows / 2);
     const radLimits = minmax(maxRad * 0.8, maxRad * 1.2);
     const avgRad = (radLimits.max + radLimits.min) / 2;
@@ -39,78 +40,91 @@ const initBlobs = (count: number, camera: PerspectiveCamera) => {
     return blobs;
 };
 
-const fitBlobsInView = (
-    initialBlobs: BlobPropArray,
-    camera: PerspectiveCamera
-) => {
-    return initialBlobs.map((blob) => {
-        const s = blob.scale;
-        const p = blob.position.clone();
-        const visible = visibleSizeAtZ(p.z, camera);
-        const { aspect } = camera;
+const fitBlobsInView = (blobs: BlobPropArray, camera: PerspectiveCamera) => {
+    const aspect = MathUtils.clamp(camera.aspect, 0.3, 1.3);
+    const maxCover = 0.9;
+    return blobs.map((blob) => {
+        let s = blob.scale;
+        let p = blob.position;
+        let { x, y, z } = p;
+        const visible = visibleSizeAtZ(z, camera);
         const maxRadius = Math.max(s.x, s.y, s.z);
-        const limit = v2(visible.x * 0.45, visible.y * 0.45);
-        p.y =
-            p.y && limit.y - maxRadius > 0
-                ? MathUtils.clamp(
-                      limit.y >= limit.x ? p.y / aspect : p.y,
-                      -limit.y + maxRadius,
-                      limit.y - maxRadius
-                  )
-                : 0;
-        p.x =
-            p.x && limit.x - maxRadius > 0
-                ? MathUtils.clamp(
-                      limit.x >= limit.y ? p.x * aspect : p.x,
-                      -limit.x + maxRadius,
-                      limit.x - maxRadius
-                  )
-                : 0;
+        const limit = v2(
+            (visible.x * maxCover) / 2,
+            (visible.y * maxCover) / 2
+        );
+        if (limit.x - maxRadius < 0) x = 0;
+        if (limit.y - maxRadius < 0) y = 0;
+        if (y) {
+            y = MathUtils.clamp(
+                y / aspect,
+                -limit.y + maxRadius,
+                limit.y - maxRadius
+            );
+        }
+        if (x) {
+            x = MathUtils.clamp(
+                x * aspect,
+                -limit.x + maxRadius,
+                limit.x - maxRadius
+            );
+        }
         const minLimit = Math.min(limit.x, limit.y);
-        return {
-            position: p,
-            scale:
-                (p.x === 0 || p.y === 0) && minLimit - maxRadius <= 0
-                    ? s.clone().clamp(equalV3(0), equalV3(minLimit))
-                    : s,
-        };
+        if (minLimit - maxRadius < 0 && (x === 0 || y === 0)) {
+            s = s.clone().clamp(equalV3(0), equalV3(minLimit));
+        }
+        if (x !== p.x || y !== p.y) p = v3(x, y, z);
+        return p !== blob.position || s !== blob.scale
+            ? { position: p, scale: s }
+            : blob;
     });
 };
 
-const Blobs = () => {
+const Blobs = ({ fpsLimit = 30 }) => {
+    const screenSize = useScreenSize();
     const camera = useThree(({ camera }) => camera as PerspectiveCamera);
     const { width, height } = useThree(({ size }) => size);
-    const orientation = useMemo(() => width >= height, [width, height]);
+    const portrait = useMemo(() => width < height, [width, height]);
 
-    const count = useMemo(() => {
+    const blobPxSize = useMemo(() => {
+        const { width, height } = screenSize;
         if (!width || !height) return 0;
-        return Math.ceil(Math.max(width, height) / 50);
-    }, [width, height]);
+        return Math.round(Math.max(width, height) / 10);
+    }, [screenSize]);
+
+    const [cols, rows] = useMemo(() => {
+        if (!width || !height || !blobPxSize) return [0, 0];
+        const cols = Math.ceil(width / blobPxSize);
+        const rows = Math.ceil(height / blobPxSize);
+        return [cols, rows];
+    }, [width, height, blobPxSize]);
 
     const [initialBlobs, setInitialBlobs] = useState<BlobPropArray>([]);
 
     const adjustedBlobs = useMemo<BlobPropArray>(() => {
         return !initialBlobs.length ? [] : fitBlobsInView(initialBlobs, camera);
-    }, [initialBlobs, camera]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialBlobs, camera, width, height]);
 
     useEffect(() => {
-        if (!count) return;
-        setInitialBlobs(initBlobs(count, camera));
-    }, [camera, count, orientation]);
+        setInitialBlobs(initBlobs(cols, rows, camera));
+    }, [camera, cols, rows, portrait]);
 
     return (
-        <group>
-            {adjustedBlobs.map(({ position, scale }, i) => {
-                return (
-                    <Blob
-                        key={`blob-${i}`}
-                        position={position}
-                        scale={scale}
-                        radius={1}
-                    />
-                );
-            })}
-        </group>
+        <FPSLimiter limit={fpsLimit}>
+            <group>
+                {adjustedBlobs.map(({ position, scale }, i) => {
+                    return (
+                        <Blob
+                            key={`blob-${i}`}
+                            position={position}
+                            scale={scale}
+                            radius={1}
+                        />
+                    );
+                })}
+            </group>
+        </FPSLimiter>
     );
 };
 
