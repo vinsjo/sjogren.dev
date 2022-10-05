@@ -14,10 +14,9 @@ function FPSLimiter({
     limit?: number;
     children?: React.ReactNode;
 }) {
-    const maxFPS = useRefreshRate(1000, !limit);
+    const maxFPS = useRefreshRate(500, 10);
 
     const fps = useMemo(() => {
-        console.log(maxFPS);
         return !isNum(limit) || limit <= 0
             ? 0
             : !maxFPS

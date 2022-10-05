@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { isNum } from 'x-is-type/callbacks';
-import useDidMount from './useDidMount';
 
 /**
  * inspired by:
@@ -37,12 +36,17 @@ async function getAverageFPS(
     const fps = 1000 / avgDelta;
     return !fps || !isNum(fps) || !isFinite(fps) ? 0 : fps;
 }
-
-const useRefreshRate = (measurementLength = 1000, measureOnce = true) => {
+/**
+ *
+ * @param measurementLength How long each measurement should take, in milliseconds
+ * @param measurementCount Maximum amount of measurements, or null if measurements should continue indefinitely
+ */
+const useRefreshRate = (
+    measurementLength = 1000,
+    measurementCount: number | null
+) => {
     const [measurements, setMeasurements] = useState<number[]>([]);
-    const [finishedAt, setFinishedAt] = useState(0);
     const [error, setError] = useState<Error | unknown | null>(null);
-
     const avgFPS = useMemo(() => {
         const sum = measurements.reduce((sum, fps) => sum + fps, 0);
         if (!sum) return 0;
@@ -51,13 +55,15 @@ const useRefreshRate = (measurementLength = 1000, measureOnce = true) => {
     }, [measurements]);
 
     useEffect(() => {
-        if (error || (measureOnce && measurements.length && finishedAt)) {
+        if (
+            error ||
+            (isNum(measurementCount) && measurements.length >= measurementCount)
+        ) {
             return;
         }
         const controller = new AbortController();
         getAverageFPS(measurementLength, controller)
             .then((fps) => {
-                setFinishedAt(Date.now());
                 if (!fps || !isNum(fps) || !isFinite(fps)) return;
                 setMeasurements((prev) => {
                     const next = [...prev, fps];
@@ -72,7 +78,7 @@ const useRefreshRate = (measurementLength = 1000, measureOnce = true) => {
                 }
             });
         return () => controller.abort();
-    }, [measurementLength, measureOnce, measurements, finishedAt, error]);
+    }, [measurementLength, measurementCount, measurements, error]);
 
     return avgFPS;
 };
