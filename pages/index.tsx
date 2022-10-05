@@ -20,8 +20,29 @@ const Home: NextPage = () => {
     return (
         <div className={styles.container}>
             <Head keywords={keywords} />
-
             <main className={styles.main}>
+                <section className={classNames(styles.section, styles.hero)}>
+                    <h1 className={styles.caption}>
+                        <a
+                            href="mailto:vincent@sjogren.dev"
+                            target="_blank"
+                            title="Contact Me"
+                            rel="noreferrer"
+                        >
+                            vincent@sjogren.dev
+                        </a>
+                    </h1>
+                    <div
+                        className={classNames(
+                            styles['blob-container'],
+                            loaded ? styles.loaded : null
+                        )}
+                    >
+                        <React.Suspense>
+                            <BlobScene onCreated={() => setLoaded(true)} />
+                        </React.Suspense>
+                    </div>
+                </section>
                 <section className={classNames(styles.section, styles.hero)}>
                     <h1 className={styles.caption}>
                         <a

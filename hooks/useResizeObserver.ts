@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { isArr } from 'x-is-type/callbacks';
 import { ResizeObserver as ObserverPolyfill } from '@juggle/resize-observer';
 import useMatchMedia from './useMatchMedia';
+import useElement from './useElement';
 import { objStateSetter } from '@utils/misc';
 
 const ResizeObserver =
@@ -15,11 +16,7 @@ const ResizeObserver =
 const useResizeObserver = <T extends HTMLElement>(
     target?: React.RefObject<T> | T
 ) => {
-    const element = useMemo<T | null>(() => {
-        const el = target && 'current' in target ? target.current : target;
-        return !(el instanceof HTMLElement) ? null : el;
-    }, [target]);
-
+    const element = useElement(target);
     const portrait = useMatchMedia('(orientation: portrait)');
 
     const [size, setSize] = useState(() => {

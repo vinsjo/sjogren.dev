@@ -7,28 +7,32 @@ import useRefreshRate from '@hooks/useRefreshRate';
     https://github.com/pmndrs/react-three-fiber/discussions/667#discussioncomment-3026830
 */
 
-function FPSLimiter({
-    limit,
-    children,
-}: {
-    limit?: number;
-    children?: React.ReactNode;
-}) {
-    const maxFPS = useRefreshRate(500, 10);
+function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
+    const { invalidate, clock, setFrameloop, frameloop } = useThree();
+    const maxFPS = useRefreshRate(500);
 
-    const fps = useMemo(() => {
-        return !isNum(limit) || limit <= 0
+    const limit = useMemo<number | null>(() => {
+        return !isNum(props.limit)
+            ? null
+            : props.limit <= 0
             ? 0
             : !maxFPS
-            ? 0
-            : Math.min(limit, maxFPS);
-    }, [limit, maxFPS]);
+            ? props.limit
+            : Math.min(props.limit, maxFPS);
+    }, [props.limit, maxFPS]);
 
-    const { invalidate, clock, setFrameloop } = useThree();
     useEffect(() => {
-        if (!fps) return;
-        const interval = 1 / fps;
-        setFrameloop('demand');
+        if (limit === null) return setFrameloop('always');
+        if (limit === 0) {
+            if (frameloop !== 'never') {
+                console.log('pausing frameloop');
+                setFrameloop('never');
+            }
+            return;
+        }
+        if (frameloop !== 'demand') setFrameloop('demand');
+        const interval = 1 / limit;
+
         let delta = 0;
         let animationID = 0;
         function update() {
@@ -40,9 +44,9 @@ function FPSLimiter({
         }
         update();
         return () => cancelAnimationFrame(animationID);
-    }, [fps, invalidate, clock, setFrameloop, children]);
+    }, [limit, invalidate, clock, setFrameloop, props.children, frameloop]);
 
-    return !children ? null : <>{children}</>;
+    return !props.children ? null : <>{props.children}</>;
 }
 
 export default FPSLimiter;

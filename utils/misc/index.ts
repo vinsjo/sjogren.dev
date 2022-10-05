@@ -119,5 +119,9 @@ export function cloneObjRecursive<T extends Object>(obj: T): T {
 }
 
 export function objStateSetter<T = unknown>(prev: T, next: T) {
-    return isEqual(prev, next) ? prev : next;
+    return typeof prev !== typeof next
+        ? next
+        : isEqual(prev, next)
+        ? prev
+        : next;
 }

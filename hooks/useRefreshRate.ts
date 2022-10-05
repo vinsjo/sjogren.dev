@@ -39,28 +39,25 @@ async function getAverageFPS(
 /**
  *
  * @param measurementLength How long each measurement should take, in milliseconds
- * @param measurementCount Maximum amount of measurements, or null if measurements should continue indefinitely
+ * @param measurementCount Maximum amount of measurements, or undefined if measurements should continue indefinitely
  */
 const useRefreshRate = (
     measurementLength = 1000,
-    measurementCount: number | null
+    measurementCount?: number
 ) => {
     const [measurements, setMeasurements] = useState<number[]>([]);
     const [error, setError] = useState<Error | unknown | null>(null);
-    const avgFPS = useMemo(() => {
-        const sum = measurements.reduce((sum, fps) => sum + fps, 0);
-        if (!sum) return 0;
-        const avg = Math.round(sum / measurements.length);
-        return !avg || !isFinite(avg) || !isNum(avg) ? 0 : avg;
-    }, [measurements]);
+    const execute = useMemo(() => {
+        return (
+            !error &&
+            (!measurementCount ||
+                (isNum(measurementCount) &&
+                    measurements.length < measurementCount))
+        );
+    }, [error, measurements, measurementCount]);
 
     useEffect(() => {
-        if (
-            error ||
-            (isNum(measurementCount) && measurements.length >= measurementCount)
-        ) {
-            return;
-        }
+        if (!execute) return;
         const controller = new AbortController();
         getAverageFPS(measurementLength, controller)
             .then((fps) => {
@@ -78,9 +75,15 @@ const useRefreshRate = (
                 }
             });
         return () => controller.abort();
-    }, [measurementLength, measurementCount, measurements, error]);
+    }, [measurementLength, measurements, execute]);
 
-    return avgFPS;
+    return useMemo(() => {
+        if (!measurements.length) return 0;
+        const sum = measurements.reduce((sum, fps) => sum + fps, 0);
+        if (!sum) return 0;
+        const avg = Math.round(sum / measurements.length);
+        return !avg || !isFinite(avg) || !isNum(avg) ? 0 : avg;
+    }, [measurements]);
 };
 
 export default useRefreshRate;
