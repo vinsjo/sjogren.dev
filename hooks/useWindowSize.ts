@@ -12,19 +12,17 @@ const getWindowSize = () => {
 const useWindowSize = () => {
     const didMount = useDidMount();
     const portrait = useMatchMedia('(orientation: portait)');
-    const [size, setSize] = useState(getWindowSize());
-    const updateSize = useCallback(() => {
-        setSize((prev) => objStateSetter(prev, getWindowSize()));
-    }, []);
-
+    const [size, setSize] = useState(getWindowSize);
+    const updateSize = useCallback(
+        () => setSize((prev) => objStateSetter(prev, getWindowSize())),
+        []
+    );
     useEffect(() => {
+        if (!didMount) return;
         updateSize();
         window.addEventListener('resize', updateSize);
-        return () => {
-            window.removeEventListener('resize', updateSize);
-        };
+        return () => window.removeEventListener('resize', updateSize);
     }, [updateSize, didMount, portrait]);
-
     return size;
 };
 

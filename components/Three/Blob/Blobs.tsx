@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { MathUtils } from 'three';
 import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/client/three';
@@ -6,7 +6,7 @@ import { minmax, rand_neg } from '@utils/misc';
 import Blob from './Blob';
 import { useThree } from '@react-three/fiber';
 import useScreenSize from '@hooks/useScreenSize';
-import FPSLimiter from '../FPSLimiter';
+import useWindowSize from '@hooks/useWindowSize';
 
 type BlobPropArray = { position: Vector3; scale: Vector3 }[];
 
@@ -80,10 +80,12 @@ const fitBlobsInView = (blobs: BlobPropArray, camera: PerspectiveCamera) => {
     });
 };
 
-const Blobs = ({ fpsLimit = 30 }) => {
+const Blobs = () => {
     const screenSize = useScreenSize();
-    const camera = useThree(({ camera }) => camera as PerspectiveCamera);
-    const { width, height } = useThree(({ size }) => size);
+    const camera = useThree(
+        useCallback(({ camera }) => camera as PerspectiveCamera, [])
+    );
+    const { width, height } = useThree(useCallback(({ size }) => size, []));
     const portrait = useMemo(() => width < height, [width, height]);
 
     const blobPxSize = useMemo(() => {
@@ -111,20 +113,18 @@ const Blobs = ({ fpsLimit = 30 }) => {
     }, [camera, cols, rows, portrait]);
 
     return (
-        <FPSLimiter limit={fpsLimit}>
-            <group>
-                {adjustedBlobs.map(({ position, scale }, i) => {
-                    return (
-                        <Blob
-                            key={`blob-${i}`}
-                            position={position}
-                            scale={scale}
-                            radius={1}
-                        />
-                    );
-                })}
-            </group>
-        </FPSLimiter>
+        <group>
+            {adjustedBlobs.map(({ position, scale }, i) => {
+                return (
+                    <Blob
+                        key={`blob-${i}`}
+                        position={position}
+                        scale={scale}
+                        radius={1}
+                    />
+                );
+            })}
+        </group>
     );
 };
 

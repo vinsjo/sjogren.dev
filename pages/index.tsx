@@ -3,11 +3,17 @@ import Head from '@components/Head';
 import React, { useState } from 'react';
 import { classNames } from '@utils/client';
 import styles from '../styles/Home.module.css';
-import { ClientRender } from '@components/Utilities';
+import { Octokit } from 'octokit';
 
 const BlobScene = React.lazy(() => import('@components/Three/Blob/BlobScene'));
 
 const keywords = ['Three.js'];
+
+export async function getServerSideProps() {
+    const token = process.env.GH_API_ACCESS_KEY;
+
+    return { props: {} };
+}
 
 const Home: NextPage = () => {
     const [loaded, setLoaded] = useState(false);
@@ -16,13 +22,7 @@ const Home: NextPage = () => {
             <Head keywords={keywords} />
 
             <main className={styles.main}>
-                <section
-                    className={classNames(
-                        styles.section,
-                        styles.hero,
-                        loaded ? styles.loaded : null
-                    )}
-                >
+                <section className={classNames(styles.section, styles.hero)}>
                     <h1 className={styles.caption}>
                         <a
                             href="mailto:vincent@sjogren.dev"
@@ -33,7 +33,12 @@ const Home: NextPage = () => {
                             vincent@sjogren.dev
                         </a>
                     </h1>
-                    <div className={styles['blob-container']}>
+                    <div
+                        className={classNames(
+                            styles['blob-container'],
+                            loaded ? styles.loaded : null
+                        )}
+                    >
                         <React.Suspense>
                             <BlobScene onCreated={() => setLoaded(true)} />
                         </React.Suspense>

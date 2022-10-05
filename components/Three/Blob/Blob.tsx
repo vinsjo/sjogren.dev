@@ -4,10 +4,11 @@ import { SphereGeometry, ShaderMaterial, Mesh } from 'three';
 import { MeshProps, ThreeEvent, useFrame } from '@react-three/fiber';
 import { isNum } from 'x-is-type/callbacks';
 import { blobShader, getRandomOptions } from '@utils/client/three/shaders/blob';
-import { Vector3 } from 'three';
 
-export type ShaderBlobProps = MeshProps & {
-    scale?: Vector3;
+export type ShaderBlobProps = Omit<
+    MeshProps,
+    'geometry' | 'onClick' | 'material'
+> & {
     radius?: number;
     widthSegments?: number;
     heightSegments?: number;

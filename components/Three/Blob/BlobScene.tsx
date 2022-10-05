@@ -1,34 +1,35 @@
-import React from 'react';
+import ThreeScene, { ThreeSceneProps } from '../ThreeScene';
 import Blobs from './Blobs';
-import { Canvas, Props } from '@react-three/fiber';
 
-type BlobSceneProps = Omit<Props, 'children'> &
-    React.HTMLAttributes<HTMLDivElement>;
+type BlobSceneProps = Omit<
+    ThreeSceneProps,
+    'children' | 'fpsLimit' | 'camera' | 'gl' | 'shadows'
+>;
 
-const glProps: Props['gl'] = {
+const gl: ThreeSceneProps['gl'] = {
     antialias: false,
     powerPreference: 'low-power',
     alpha: true,
 };
 
-const camProps: Props['camera'] = {
+const camera: ThreeSceneProps['camera'] = {
     fov: 50,
     near: 0.1,
     far: 500,
     position: [0, 0, 15],
 };
 
-const BlobScene = ({
-    shadows = false,
-    camera = camProps,
-    gl = glProps,
-    className,
-    ...props
-}: BlobSceneProps) => {
+const BlobScene = (props: BlobSceneProps) => {
     return (
-        <Canvas shadows={shadows} camera={camera} gl={gl} {...props}>
+        <ThreeScene
+            fpsLimit={30}
+            shadows={false}
+            camera={camera}
+            gl={gl}
+            {...props}
+        >
             <Blobs />
-        </Canvas>
+        </ThreeScene>
     );
 };
 
