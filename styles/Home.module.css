@@ -51,7 +51,6 @@
     font-size: 1rem;
     font-weight: 800;
     color: white;
-    opacity: 0;
     transition: opacity 3s ease-out, transform 0.2s ease-in-out;
     text-align: center;
 }
@@ -68,11 +67,9 @@
     z-index: 0;
     opacity: 0;
     transition: opacity 1s ease-in;
-    border: 1px solid red;
 }
 
-.loaded .blob-container,
-.loaded .caption {
+.blob-container.loaded {
     opacity: 1;
 }
 
