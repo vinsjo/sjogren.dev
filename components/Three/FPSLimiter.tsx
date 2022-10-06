@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 import { isNum } from 'x-is-type/callbacks';
 import useRefreshRate from '@hooks/useRefreshRate';
@@ -8,7 +8,11 @@ import useRefreshRate from '@hooks/useRefreshRate';
 */
 
 function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
-    const { invalidate, clock, setFrameloop, frameloop } = useThree();
+    const state = useThree(
+        useCallback(({ invalidate, clock, setFrameloop, frameloop }) => {
+            return { invalidate, clock, setFrameloop, frameloop };
+        }, [])
+    );
     const maxFPS = useRefreshRate(500);
 
     const limit = useMemo<number | null>(() => {
@@ -22,29 +26,26 @@ function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
     }, [props.limit, maxFPS]);
 
     useEffect(() => {
-        if (limit === null) return setFrameloop('always');
+        if (limit === null) return;
         if (limit === 0) {
-            if (frameloop !== 'never') {
-                console.log('pausing frameloop');
-                setFrameloop('never');
-            }
+            if (state.frameloop !== 'never') state.setFrameloop('never');
             return;
         }
-        if (frameloop !== 'demand') setFrameloop('demand');
+        if (state.frameloop !== 'demand') state.setFrameloop('demand');
         const interval = 1 / limit;
 
         let delta = 0;
         let animationID = 0;
         function update() {
             animationID = requestAnimationFrame(update);
-            delta += clock.getDelta();
+            delta += state.clock.getDelta();
             if (delta <= interval) return;
-            invalidate();
+            state.invalidate();
             delta = delta % interval;
         }
         update();
         return () => cancelAnimationFrame(animationID);
-    }, [limit, invalidate, clock, setFrameloop, props.children, frameloop]);
+    }, [limit, state, props.children]);
 
     return !props.children ? null : <>{props.children}</>;
 }
