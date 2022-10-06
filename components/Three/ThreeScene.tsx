@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import FPSLimiter from './FPSLimiter';
 import { Canvas, Props } from '@react-three/fiber';
 import useIntersectionObserver from '@hooks/useIntersectionObserver';
+import { clientRender } from '@components/Utilities/ClientRender';
 
 export type ThreeSceneProps = Props &
     React.HTMLAttributes<HTMLDivElement> & { fpsLimit?: number };

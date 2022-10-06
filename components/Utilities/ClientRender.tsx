@@ -1,17 +1,43 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import useDidMount from '@hooks/useDidMount';
-import RenderIf from './RenderIf';
 
-const ClientRender = (props: {
+const ClientRender = ({
+    children,
+    fallback,
+    withSuspense,
+}: {
     children: React.ReactNode;
     fallback?: React.ReactNode;
+    withSuspense?: boolean;
 }) => {
     const didMount = useDidMount();
     return (
-        <RenderIf condition={didMount} fallback={props.fallback}>
-            {props.children}
-        </RenderIf>
+        <>
+            {!didMount ? (
+                withSuspense ? null : (
+                    fallback || null
+                )
+            ) : withSuspense ? (
+                <Suspense fallback={fallback}>{children}</Suspense>
+            ) : (
+                children
+            )}
+        </>
     );
 };
+
+export function clientRender<P, T extends JSX.Element>(
+    Component: (props: P) => T,
+    fallback?: React.ReactNode
+) {
+    // eslint-disable-next-line react/display-name
+    return (props: P) => {
+        return (
+            <ClientRender fallback={fallback}>
+                <Component {...props} />
+            </ClientRender>
+        );
+    };
+}
 
 export default ClientRender;

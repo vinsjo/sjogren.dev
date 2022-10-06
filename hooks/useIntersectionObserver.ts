@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { objStateSetter } from '@utils/misc';
+import { compareState } from '@utils/react';
 import useElement from './useElement';
 import useDidMount from './useDidMount';
 
@@ -31,8 +31,10 @@ const useIntersectionObserver = <T extends HTMLElement>(
     }, []);
 
     const isVisible = useMemo(() => {
+        if (!didMount) return false;
+        if (!('ResizeObserver' in window)) return true;
         return !!entry && (entry['isVisible'] || entry.isIntersecting);
-    }, [entry]);
+    }, [entry, didMount]);
 
     const execute = useMemo(() => {
         return (
@@ -45,7 +47,7 @@ const useIntersectionObserver = <T extends HTMLElement>(
 
     useEffect(() => {
         if (!(observerOptions instanceof Object)) return;
-        setOptions((prev) => objStateSetter(prev, observerOptions));
+        setOptions((prev) => compareState(prev, observerOptions));
     }, [observerOptions]);
 
     useEffect(() => {

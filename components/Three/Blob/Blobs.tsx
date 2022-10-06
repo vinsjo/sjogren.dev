@@ -1,22 +1,20 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { PerspectiveCamera, Vector3 } from 'three';
-import { MathUtils } from 'three';
-import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/client/three';
+import { PerspectiveCamera, Vector3, MathUtils } from 'three';
+import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/three';
 import { minmax, rand_neg } from '@utils/misc';
-import Blob from './Blob';
 import { useThree } from '@react-three/fiber';
 import useScreenSize from '@hooks/useScreenSize';
-import useWindowSize from '@hooks/useWindowSize';
+import Blob from './Blob';
 
-type BlobPropArray = { position: Vector3; scale: Vector3 }[];
+type BlobProp = { position: Vector3; scale: Vector3 };
 
 const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
-    if (!cols || !rows) return [] as BlobPropArray;
+    if (!cols || !rows) return [] as BlobProp[];
     const visible = visibleSizeAtZ(0, camera);
     const maxRad = Math.min(visible.x / cols / 2, visible.y / rows / 2);
     const radLimits = minmax(maxRad * 0.8, maxRad * 1.2);
     const avgRad = (radLimits.max + radLimits.min) / 2;
-    const blobs: BlobPropArray = [];
+    const blobs: BlobProp[] = [];
     const center = v3(0, 0, 0);
     const maxPos = v2((avgRad * cols) / 2, (avgRad * rows) / 2);
     for (let row = 0; row < rows; row++) {
@@ -27,10 +25,10 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
                 MathUtils.mapLinear(col, 0, cols - 1, -maxPos.x, maxPos.x) || 0;
             const z = rand_neg(avgRad / 3);
             const position = v3(
-                x + rand_neg(avgRad / 3),
-                y + rand_neg(avgRad / 3),
+                x + rand_neg(avgRad / 2),
+                y + rand_neg(avgRad / 2),
                 z
-            ).lerp(center, Math.random() * 0.4);
+            ).lerp(center, Math.random() * 0.5);
             blobs.push({
                 position,
                 scale: randomV3(radLimits.min, radLimits.max),
@@ -40,9 +38,10 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
     return blobs;
 };
 
-const fitBlobsInView = (blobs: BlobPropArray, camera: PerspectiveCamera) => {
+const fitBlobsInView = (blobs: BlobProp[], camera: PerspectiveCamera) => {
     const aspect = MathUtils.clamp(camera.aspect, 0.5, 1.2);
-    const maxCover = 0.95;
+    const maxCover = 0.8;
+    const center = v3(0, 0, 0);
     return blobs.map((blob) => {
         let s = blob.scale;
         let p = blob.position;
@@ -73,7 +72,7 @@ const fitBlobsInView = (blobs: BlobPropArray, camera: PerspectiveCamera) => {
         if (minLimit - maxRadius < 0 && (x === 0 || y === 0)) {
             s = s.clone().clamp(equalV3(0), equalV3(minLimit));
         }
-        if (x !== p.x || y !== p.y) p = v3(x, y, z);
+        if (x !== p.x || y !== p.y) p = v3(x, y, z).lerp(center, 0.1);
         return p !== blob.position || s !== blob.scale
             ? { position: p, scale: s }
             : blob;
@@ -91,7 +90,8 @@ const Blobs = () => {
     const blobPxSize = useMemo(() => {
         const { width, height } = screenSize;
         if (!width || !height) return 0;
-        return Math.round(Math.max(width, height) / 5);
+        const base = Math.max(width, height);
+        return Math.round(base / 6);
     }, [screenSize]);
 
     const [cols, rows] = useMemo(() => {
@@ -101,9 +101,9 @@ const Blobs = () => {
         return [cols, rows];
     }, [width, height, blobPxSize]);
 
-    const [initialBlobs, setInitialBlobs] = useState<BlobPropArray>([]);
+    const [initialBlobs, setInitialBlobs] = useState<BlobProp[]>([]);
 
-    const adjustedBlobs = useMemo<BlobPropArray>(() => {
+    const adjustedBlobs = useMemo<BlobProp[]>(() => {
         return !initialBlobs.length ? [] : fitBlobsInView(initialBlobs, camera);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialBlobs, camera, width, height]);

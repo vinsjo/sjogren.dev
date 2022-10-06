@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { objStateSetter } from '@utils/misc';
+import { compareState } from '@utils/react';
 import useDidMount from './useDidMount';
 
 const getScreenSize = () => {
@@ -13,7 +13,7 @@ const useScreenSize = () => {
     const [size, setSize] = useState(getScreenSize);
     useEffect(() => {
         if (!didMount) return;
-        setSize((prev) => objStateSetter(prev, getScreenSize()));
+        setSize((prev) => compareState(prev, getScreenSize()));
     }, [didMount]);
     return size;
 };

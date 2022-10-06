@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { isArr } from 'x-is-type/callbacks';
 import { ResizeObserver as ObserverPolyfill } from '@juggle/resize-observer';
 import useMatchMedia from './useMatchMedia';
 import useElement from './useElement';
-import { objStateSetter } from '@utils/misc';
+import { compareState } from '@utils/react';
 
 const ResizeObserver =
     typeof window === 'undefined' || !('ResizeObserver' in window)
@@ -26,7 +26,7 @@ const useResizeObserver = <T extends HTMLElement>(
     });
 
     const updateSize = useCallback((width: number, height: number) => {
-        setSize((prev) => objStateSetter(prev, { width, height }));
+        setSize((prev) => compareState(prev, { width, height }));
     }, []);
 
     useEffect(() => {

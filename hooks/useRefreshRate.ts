@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { isNum } from 'x-is-type/callbacks';
 
 /**
@@ -36,6 +36,8 @@ async function getAverageFPS(
     const fps = 1000 / avgDelta;
     return !fps || !isNum(fps) || !isFinite(fps) ? 0 : fps;
 }
+
+const MAX_STORED_MEASUREMENTS = 20;
 /**
  *
  * @param measurementLength How long each measurement should take, in milliseconds
@@ -63,9 +65,7 @@ const useRefreshRate = (
             .then((fps) => {
                 if (!fps || !isNum(fps) || !isFinite(fps)) return;
                 setMeasurements((prev) => {
-                    const next = [...prev, fps];
-                    if (next.length > 20) next.shift();
-                    return next;
+                    return [...prev, fps].slice(MAX_STORED_MEASUREMENTS - 1);
                 });
             })
             .catch((err) => {
