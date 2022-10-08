@@ -30,11 +30,6 @@ const getScreenSize = (): ScreenSizeState => {
         : pick(window.screen, 'width', 'height');
 };
 
-const getScreenOrientation = () => {
-    const { width, height } = getScreenSize();
-    return width >= height ? 'landscape' : 'portrait';
-};
-
 const RecoilEventSubscriber = () => {
     const setWindowSize = useSetRecoilState(windowSizeState);
     const setScreenSize = useSetRecoilState(screenSizeState);
