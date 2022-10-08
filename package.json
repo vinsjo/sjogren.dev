@@ -23,6 +23,7 @@
         "safe-json-decode": "^1.0.1",
         "three": "^0.144.0",
         "typescript": "^4.8.2",
+        "ua-parser-js": "^1.0.2",
         "uuid": "^9.0.0",
         "x-is-equal": "^1.0.5",
         "x-is-type": "^1.0.9"
@@ -30,6 +31,7 @@
     "devDependencies": {
         "@types/cors": "^2.8.12",
         "@types/three": "^0.144.0",
+        "@types/ua-parser-js": "^0.7.36",
         "@types/uuid": "^8.3.4",
         "eslint": "8.23.0",
         "eslint-config-next": "12.2.5",

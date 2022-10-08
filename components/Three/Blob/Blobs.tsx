@@ -3,8 +3,10 @@ import { PerspectiveCamera, Vector3, MathUtils } from 'three';
 import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/three';
 import { minmax, rand_neg } from '@utils/misc';
 import { useThree } from '@react-three/fiber';
-import useScreenSize from '@hooks/useScreenSize';
+import { useOrientation, useScreenSize } from '@hooks/recoil';
 import Blob from './Blob';
+import useDebouncedEffect from '@hooks/useDebouncedEffect';
+import useIsMobile from '@hooks/useIsMobile';
 
 type BlobProp = { position: Vector3; scale: Vector3 };
 
@@ -81,36 +83,42 @@ const fitBlobsInView = (blobs: BlobProp[], camera: PerspectiveCamera) => {
 
 const Blobs = () => {
     const screenSize = useScreenSize();
+    const orientation = useOrientation();
     const camera = useThree(
         useCallback(({ camera }) => camera as PerspectiveCamera, [])
     );
     const { width, height } = useThree(useCallback(({ size }) => size, []));
-    const portrait = useMemo(() => width < height, [width, height]);
 
-    const blobPxSize = useMemo(() => {
+    const [cols, setCols] = useState(0);
+    const [rows, setRows] = useState(0);
+    const [blobs, setBlobs] = useState<BlobProp[]>([]);
+
+    const blobSize = useMemo(() => {
         const { width, height } = screenSize;
         if (!width || !height) return 0;
-        const base = Math.max(width, height);
-        return Math.round(base / 6);
+        return Math.round(Math.max(width, height) / 6);
     }, [screenSize]);
 
-    const [cols, rows] = useMemo(() => {
-        if (!width || !height || !blobPxSize) return [0, 0];
-        const cols = Math.ceil(width / blobPxSize);
-        const rows = Math.ceil(height / blobPxSize);
-        return [cols, rows];
-    }, [width, height, blobPxSize]);
-
-    const [initialBlobs, setInitialBlobs] = useState<BlobProp[]>([]);
-
     const adjustedBlobs = useMemo<BlobProp[]>(() => {
-        return !initialBlobs.length ? [] : fitBlobsInView(initialBlobs, camera);
+        if (!blobs.length) return [];
+        return fitBlobsInView(blobs, camera);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [initialBlobs, camera, width, height]);
+    }, [blobs, camera, width, height]);
 
     useEffect(() => {
-        setInitialBlobs(initBlobs(cols, rows, camera));
-    }, [camera, cols, rows, portrait]);
+        if (!rows || !cols) return;
+        setBlobs(initBlobs(cols, rows, camera));
+    }, [rows, cols, camera, orientation]);
+
+    useDebouncedEffect(
+        () => {
+            if (!width || !height) return;
+            setCols(Math.ceil(width / blobSize));
+            setRows(Math.ceil(height / blobSize));
+        },
+        100,
+        [width, height, blobSize]
+    );
 
     return (
         <group>

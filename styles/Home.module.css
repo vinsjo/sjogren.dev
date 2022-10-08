@@ -16,6 +16,7 @@
     flex-direction: column;
     width: 100vw;
     height: 100vh;
+    padding: 1rem;
 }
 
 .section#start {
@@ -61,6 +62,16 @@
 
 .blob-container.loaded {
     opacity: 1;
+}
+
+.mobile .blob-container {
+    max-height: 80vh;
+}
+
+@media (orientation: landscape) {
+    .mobile .blob-container {
+        max-width: 80vw;
+    }
 }
 
 @media (hover: hover) {

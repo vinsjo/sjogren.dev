@@ -20,7 +20,6 @@
             "@styles/*": ["styles/*"],
             "@hooks/*": ["hooks/*"],
             "@components/*": ["components/*"],
-            "@context/*": ["context/*"],
             "@recoil/*": ["recoilStores/*"]
         }
     },

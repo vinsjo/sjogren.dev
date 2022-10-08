@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import useDebouncedEffect from '@hooks/useDebouncedEffect';
 import windowSizeState, { WindowSizeState } from '@recoil/windowSize';
 import screenSizeState, { ScreenSizeState } from '@recoil/screenSize';
 import orientationState from '@recoil/orientation';
@@ -30,7 +29,7 @@ const getScreenSize = (): ScreenSizeState => {
         : pick(window.screen, 'width', 'height');
 };
 
-const RecoilEventSubscriber = () => {
+const RecoilStoreManager = () => {
     const setWindowSize = useSetRecoilState(windowSizeState);
     const setScreenSize = useSetRecoilState(screenSizeState);
     const [orientation, setOrientation] = useRecoilState(orientationState);
@@ -75,4 +74,4 @@ const RecoilEventSubscriber = () => {
     return null;
 };
 
-export default RecoilEventSubscriber;
+export default RecoilStoreManager;

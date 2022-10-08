@@ -1,5 +1,5 @@
 import { isArr, isNum, isObj } from 'x-is-type/callbacks';
-import { isEqual } from 'x-is-equal';
+import UAParser from 'ua-parser-js';
 
 export function rand(max = 1, min = 0) {
     return Math.random() * (max - min) + min;

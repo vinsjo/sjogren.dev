@@ -13,11 +13,7 @@ const observerOptions: IntersectionObserverInit = {
 
 const ThreeScene = ({ children, fpsLimit, ...props }: ThreeSceneProps) => {
     const canvasRef = useRef();
-    const { isVisible, entry } = useIntersectionObserver(
-        canvasRef,
-        observerOptions
-    );
-    useEffect(() => console.log(entry), [entry]);
+    const { isVisible } = useIntersectionObserver(canvasRef, observerOptions);
     return (
         <Canvas {...props} ref={canvasRef}>
             <FPSLimiter limit={!isVisible ? 0 : fpsLimit}>

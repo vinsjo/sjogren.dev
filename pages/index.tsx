@@ -1,14 +1,15 @@
 import type { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import Head from '@components/Head';
-import { useState, useEffect, HTMLProps, useMemo } from 'react';
-import { classNames, compareState } from '@utils/react';
+import { useState, HTMLProps, useMemo } from 'react';
+import { classNames } from '@utils/react';
 import styles from '../styles/Home.module.css';
 import ClientRender from '@components/Utilities/ClientRender';
 import { useWindowSize } from '@hooks/recoil';
+import useIsMobile from '@hooks/useIsMobile';
 import axios from 'axios';
 import GitHubAPI from 'types/github-api';
-import RecoilEventSubscriber from '@components/Utilities/RecoilEventSubscriber';
+import RecoilStoreManager from '@components/Utilities/RecoilStoreManager';
 // import { fetchRepos, PartialRepo } from '@utils/misc/github-api';
 
 const BlobScene = dynamic(() => import('@components/Three/Blob/BlobScene'), {
@@ -16,30 +17,25 @@ const BlobScene = dynamic(() => import('@components/Three/Blob/BlobScene'), {
     ssr: false,
 });
 
-type SectionProps = {
-    width?: number;
-    height?: number;
-};
+type SectionProps = Omit<HTMLProps<HTMLDivElement>, 'className'>;
 
-const Section = (
-    props: Omit<HTMLProps<HTMLDivElement>, 'className' | 'style'> & SectionProps
-) => {
-    const { innerWidth, innerHeight } = useWindowSize();
-    const style = useMemo(() => {
-        if (!innerWidth || !innerHeight) return null;
-        return { width: innerWidth, height: innerHeight };
-    }, [innerWidth, innerHeight]);
+const Section = (props: SectionProps) => {
+    const { innerWidth: width, innerHeight: height } = useWindowSize();
     return (
-        <section className={styles.section} style={style} {...props}>
+        <section
+            className={styles.section}
+            style={{ width: width || null, height: height || null }}
+            {...props}
+        >
             {props.children}
         </section>
     );
 };
 
-const Start = () => {
+const Start = (props: SectionProps) => {
     const [loaded, setLoaded] = useState(false);
     return (
-        <Section id={styles.start}>
+        <Section id={styles.start} {...props}>
             <h1 className={styles.caption}>
                 <a
                     href="mailto:vincent@sjogren.dev"
@@ -64,10 +60,6 @@ const Start = () => {
     );
 };
 
-const Repos = () => {
-    return <Section id={styles.repos}>repos</Section>;
-};
-
 const keywords = ['Three.js'];
 // interface PageProps {
 //     repos?: PartialRepo[];
@@ -80,14 +72,14 @@ const keywords = ['Three.js'];
 
 // const Home: NextPage = (props: PageProps) => {
 const Home: NextPage = () => {
+    const mobile = useIsMobile();
     return (
         <>
-            <RecoilEventSubscriber />
+            <RecoilStoreManager />
             <div className={styles.container}>
                 <Head keywords={keywords} />
-                <main className={styles.main}>
+                <main className={classNames(styles.main, mobile && 'mobile')}>
                     <Start />
-                    <Repos />
                 </main>
             </div>
         </>
