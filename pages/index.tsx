@@ -1,28 +1,45 @@
 import type { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import Head from '@components/Head';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, HTMLProps, useMemo } from 'react';
 import { classNames, compareState } from '@utils/react';
-import { pick } from '@utils/misc';
 import styles from '../styles/Home.module.css';
 import ClientRender from '@components/Utilities/ClientRender';
-import useWindowSize from '@hooks/useWindowSize';
+import { useWindowSize } from '@hooks/recoil';
 import axios from 'axios';
 import GitHubAPI from 'types/github-api';
+import RecoilEventSubscriber from '@components/Utilities/RecoilEventSubscriber';
 // import { fetchRepos, PartialRepo } from '@utils/misc/github-api';
 
 const BlobScene = dynamic(() => import('@components/Three/Blob/BlobScene'), {
     suspense: true,
+    ssr: false,
 });
 
 type SectionProps = {
-    style?: { width: number; height: number };
+    width?: number;
+    height?: number;
 };
 
-const Start = (props: SectionProps) => {
+const Section = (
+    props: Omit<HTMLProps<HTMLDivElement>, 'className' | 'style'> & SectionProps
+) => {
+    const { innerWidth, innerHeight } = useWindowSize();
+    const style = useMemo(() => {
+        if (!innerWidth || !innerHeight) return null;
+        return { width: innerWidth, height: innerHeight };
+    }, [innerWidth, innerHeight]);
+    return (
+        <section className={styles.section} style={style} {...props}>
+            {props.children}
+        </section>
+    );
+};
+
+const Start = () => {
     const [loaded, setLoaded] = useState(false);
     return (
-        <section className={styles.section} id={styles.start} {...props}>
+        <Section id={styles.start}>
             <h1 className={styles.caption}>
                 <a
                     href="mailto:vincent@sjogren.dev"
@@ -43,34 +60,12 @@ const Start = (props: SectionProps) => {
                     <BlobScene onCreated={() => setLoaded(true)} />
                 </ClientRender>
             </div>
-        </section>
+        </Section>
     );
 };
 
-const Repos = (props: SectionProps) => {
-    return (
-        <section className={styles.section} id={styles.repos} {...props}>
-            repos
-        </section>
-    );
-};
-
-const Sections = () => {
-    const windowSize = useWindowSize();
-    const [props, setProps] = useState<{
-        style?: { width: number; height: number };
-    }>({});
-    useEffect(() => {
-        const { innerWidth: width, innerHeight: height } = windowSize;
-        if (!width || !height) return;
-        setProps((prev) => compareState(prev, { style: { width, height } }));
-    }, [windowSize]);
-    return (
-        <>
-            <Start {...props} />
-            {/* <Repos {...props} /> */}
-        </>
-    );
+const Repos = () => {
+    return <Section id={styles.repos}>repos</Section>;
 };
 
 const keywords = ['Three.js'];
@@ -86,12 +81,16 @@ const keywords = ['Three.js'];
 // const Home: NextPage = (props: PageProps) => {
 const Home: NextPage = () => {
     return (
-        <div className={styles.container}>
-            <Head keywords={keywords} />
-            <main className={styles.main}>
-                <Sections />
-            </main>
-        </div>
+        <>
+            <RecoilEventSubscriber />
+            <div className={styles.container}>
+                <Head keywords={keywords} />
+                <main className={styles.main}>
+                    <Start />
+                    <Repos />
+                </main>
+            </div>
+        </>
     );
 };
 

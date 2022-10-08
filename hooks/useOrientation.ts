@@ -1,15 +1,12 @@
 import { useCallback, useRef } from 'react';
 import useMatchMedia from './useMatchMedia';
 
-export type ScreenOrientation = 'landscape' | 'portrait';
+type OrientationState = 'landscape' | 'portrait';
 
-const useOrientation = (
-    initialState?: ScreenOrientation
-): ScreenOrientation => {
-    const initialValue = useRef(initialState || 'landscape');
+const useOrientation = (initialState?: OrientationState) => {
     const orientation = useMatchMedia(
         '(orientation: portrait)',
-        initialValue.current === 'portrait',
+        initialState === 'portrait',
         useCallback((matches) => (matches ? 'portrait' : 'landscape'), [])
     );
     return orientation;

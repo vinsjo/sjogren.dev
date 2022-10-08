@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import FPSLimiter from './FPSLimiter';
 import { Canvas, Props } from '@react-three/fiber';
 import useIntersectionObserver from '@hooks/useIntersectionObserver';
@@ -13,7 +13,11 @@ const observerOptions: IntersectionObserverInit = {
 
 const ThreeScene = ({ children, fpsLimit, ...props }: ThreeSceneProps) => {
     const canvasRef = useRef();
-    const { isVisible } = useIntersectionObserver(canvasRef, observerOptions);
+    const { isVisible, entry } = useIntersectionObserver(
+        canvasRef,
+        observerOptions
+    );
+    useEffect(() => console.log(entry), [entry]);
     return (
         <Canvas {...props} ref={canvasRef}>
             <FPSLimiter limit={!isVisible ? 0 : fpsLimit}>

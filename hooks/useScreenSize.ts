@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { compareState } from '@utils/react';
 import useOrientation from './useOrientation';
+import { pick, windowExists } from '@utils/misc';
 
-const getScreenSize = () => {
-    return typeof window === 'undefined'
+const getScreenSize = (): { width: number; height: number } => {
+    return !windowExists()
         ? { width: 0, height: 0 }
-        : { width: window.screen.width, height: window.screen.height };
+        : pick(window.screen, 'width', 'height');
 };
 
 const useScreenSize = () => {

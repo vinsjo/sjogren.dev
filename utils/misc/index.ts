@@ -145,3 +145,7 @@ export function omit<
               }, {})
     ) as Omit<T, typeof keys[number]>;
 }
+
+export function windowExists() {
+    return typeof window !== 'undefined';
+}

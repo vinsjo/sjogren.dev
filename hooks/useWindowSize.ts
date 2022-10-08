@@ -1,24 +1,35 @@
 import { useState, useEffect, useCallback } from 'react';
 import useOrientation from './useOrientation';
 import { compareState } from '@utils/react';
+import { windowExists, pick } from '@utils/misc';
 
-const getWindowSize = () => {
-    if (typeof window === 'undefined') {
-        return {
-            innerWidth: 0,
-            innerHeight: 0,
-        };
-    }
-    const { innerWidth, innerHeight } = window;
-    return {
-        innerWidth,
-        innerHeight,
-    };
+export type WindowSize = {
+    innerWidth: number;
+    innerHeight: number;
+    outerWidth: number;
+    outerHeight: number;
+};
+
+const getWindowSize = (): WindowSize => {
+    return !windowExists()
+        ? {
+              innerWidth: 0,
+              innerHeight: 0,
+              outerWidth: 0,
+              outerHeight: 0,
+          }
+        : pick(
+              window,
+              'innerWidth',
+              'innerHeight',
+              'outerWidth',
+              'outerHeight'
+          );
 };
 
 const useWindowSize = () => {
     const orientation = useOrientation();
-    const [size, setSize] = useState(getWindowSize);
+    const [size, setSize] = useState(getWindowSize());
     const updateSize = useCallback(
         () => setSize((prev) => compareState(prev, getWindowSize())),
         []

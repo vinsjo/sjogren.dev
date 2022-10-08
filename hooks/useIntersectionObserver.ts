@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { compareState } from '@utils/react';
 import useElement from './useElement';
 import useDidMount from './useDidMount';
+import { windowExists } from '@utils/misc';
 
 const defaultOptions: IntersectionObserverInit = {
     threshold: 0,
@@ -19,6 +20,10 @@ const useIntersectionObserver = <T extends HTMLElement>(
     freezeOnceVisible = false
 ) => {
     const didMount = useDidMount();
+    const isSupported = useMemo(() => {
+        return didMount && windowExists() && 'ResizeObserver' in window;
+    }, [didMount]);
+
     const [options, setOptions] = useState<IntersectionObserverInit>(
         observerOptions || defaultOptions
     );
@@ -31,19 +36,13 @@ const useIntersectionObserver = <T extends HTMLElement>(
     }, []);
 
     const isVisible = useMemo(() => {
-        if (!didMount) return false;
-        if (!('ResizeObserver' in window)) return true;
-        return !!entry && (entry['isVisible'] || entry.isIntersecting);
-    }, [entry, didMount]);
+        if (!isSupported) return true;
+        return !!entry && entry.isIntersecting;
+    }, [entry, isSupported]);
 
     const execute = useMemo(() => {
-        return (
-            didMount &&
-            'ResizeObserver' in window &&
-            element &&
-            !(isVisible && freezeOnceVisible)
-        );
-    }, [didMount, element, isVisible, freezeOnceVisible]);
+        return isSupported && element && !(isVisible && freezeOnceVisible);
+    }, [isSupported, element, isVisible, freezeOnceVisible]);
 
     useEffect(() => {
         if (!(observerOptions instanceof Object)) return;
