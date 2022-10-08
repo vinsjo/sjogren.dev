@@ -18,14 +18,13 @@
     height: 100vh;
 }
 
-.main > .section:first-of-type {
+.section#start {
     display: grid;
     position: relative;
     grid-template-rows: 1fr;
     grid-template-columns: 1fr;
     justify-items: center;
     align-items: center;
-    overflow: hidden;
 }
 .caption,
 .blob-container {

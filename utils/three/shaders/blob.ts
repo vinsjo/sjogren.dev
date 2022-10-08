@@ -50,29 +50,38 @@ export type RandomLimits = {
     shader?: RandomLimitsShader;
 };
 
-export const DEFAULT_OPTIONS: BlobShaderOptions = {
-    alpha: 1,
-    lightThreshold: v3(0.2, 0.2, 0.2),
-    frequency: v3(5, 5, 5),
-    amplitude: v3(0.2, 0.2, 0.2),
-    distSpeed: v3(0.05, 0.05, 0.05),
-    colorMultiplier: v3(1.0, 1.0, 1.0),
-};
-
-export const DEFAULT_RAND_LIMITS: RandomLimits = {
-    mesh: {
-        scale: minmax(0.9, 1.1),
-        rotationSpeed: minmax(-0.005, 0.005),
-    },
-    shader: {
-        alpha: minmax(1, 1),
-        colorMultiplier: minmax(0.4, 1),
-        lightThreshold: minmax(0.05, 0.25),
-        frequency: minmax(0.5, 3),
-        amplitude: minmax(0.05, 0.3),
-        distSpeed: minmax(0.01, 0.2),
-    },
-};
+export const defaults = (() => {
+    const shaderOptions: BlobShaderOptions = {
+        alpha: 1,
+        lightThreshold: v3(0.2, 0.2, 0.2),
+        frequency: v3(5, 5, 5),
+        amplitude: v3(0.2, 0.2, 0.2),
+        distSpeed: v3(0.05, 0.05, 0.05),
+        colorMultiplier: v3(1.0, 1.0, 1.0),
+    };
+    const randomLimits: RandomLimits = {
+        mesh: {
+            scale: minmax(0.9, 1.1),
+            rotationSpeed: minmax(-0.005, 0.005),
+        },
+        shader: {
+            alpha: minmax(1, 1),
+            colorMultiplier: minmax(0.4, 1),
+            lightThreshold: minmax(0.05, 0.25),
+            frequency: minmax(0.5, 3),
+            amplitude: minmax(0.05, 0.3),
+            distSpeed: minmax(0.01, 0.2),
+        },
+    };
+    return {
+        get shaderOptions() {
+            return cloneObjRecursive(shaderOptions);
+        },
+        get randomLimits() {
+            return cloneObjRecursive(randomLimits);
+        },
+    };
+})();
 
 export function blobShader(options?: BlobShaderOptions | undefined) {
     const uniforms = initUniforms(options);
@@ -138,7 +147,7 @@ export function blobShader(options?: BlobShaderOptions | undefined) {
 export function initUniforms(
     options: BlobShaderOptions | undefined
 ): BlobUniforms {
-    const opt = cloneObjRecursive(DEFAULT_OPTIONS);
+    const opt = defaults.shaderOptions;
     if (isObj(options)) {
         if (isNum(options['alpha'])) opt.alpha = options['alpha'];
         Object.keys(opt).forEach((key) => {
@@ -158,7 +167,8 @@ export function initUniforms(
 }
 
 export function getRandomOptions(randomLimits?: RandomLimits): BlobOptions {
-    const limits = cloneObjRecursive(DEFAULT_RAND_LIMITS);
+    const defaultOptions = defaults.shaderOptions;
+    const limits = defaults.randomLimits;
     if (isObj(randomLimits)) {
         Object.keys(limits).forEach((key) => {
             if (!isObj(randomLimits[key])) return;
@@ -175,7 +185,7 @@ export function getRandomOptions(randomLimits?: RandomLimits): BlobOptions {
             [key]: Object.keys(section).reduce((output, secKey) => {
                 return {
                     ...output,
-                    [secKey]: isNum(DEFAULT_OPTIONS[secKey])
+                    [secKey]: isNum(defaultOptions[secKey])
                         ? rand(section[secKey].max, section[secKey].min)
                         : randomV3(section[secKey].min, section[secKey].max),
                 };

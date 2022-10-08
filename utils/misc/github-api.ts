@@ -1,6 +1,6 @@
 import axios from 'axios';
 import GitHubAPI from 'types/github-api';
-import { pickProps } from '.';
+import { pick } from '.';
 
 const repoProps: (keyof GitHubAPI.Repo)[] = [
     'name',
@@ -28,7 +28,7 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
                     visibility === 'public' && !fork && name !== 'VinSjo'
             )
             .map((repo) => {
-                return pickProps(repo, ...repoProps);
+                return pick(repo, ...repoProps);
             });
         return repos;
     } catch (err: Error | unknown) {

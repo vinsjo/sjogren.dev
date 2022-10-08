@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import useMatchMedia from './useMatchMedia';
+import useOrientation from './useOrientation';
 import { compareState } from '@utils/react';
 
 const getWindowSize = () => {
@@ -17,7 +17,7 @@ const getWindowSize = () => {
 };
 
 const useWindowSize = () => {
-    const portrait = useMatchMedia('(orientation: portait)');
+    const orientation = useOrientation();
     const [size, setSize] = useState(getWindowSize);
     const updateSize = useCallback(
         () => setSize((prev) => compareState(prev, getWindowSize())),
@@ -27,7 +27,7 @@ const useWindowSize = () => {
         updateSize();
         window.addEventListener('resize', updateSize);
         return () => window.removeEventListener('resize', updateSize);
-    }, [updateSize, portrait]);
+    }, [updateSize, orientation]);
     return size;
 };
 

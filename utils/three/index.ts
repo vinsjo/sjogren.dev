@@ -41,6 +41,13 @@ export function isV3<T = unknown>(v?: T) {
         : false;
 }
 
+export function maxV3(v: V3) {
+    return !isV3(v) ? 0 : Math.max(v.x, v.y, v.z);
+}
+export function minV3(v: V3) {
+    return !isV3(v) ? 0 : Math.min(v.x, v.y, v.z);
+}
+
 /** Create Vector3 with random x, y and z values, between min and max */
 export function randomV3(min = 0, max = 1) {
     const [x, y, z] = [...Array(3)].map(() => rand(max, min));

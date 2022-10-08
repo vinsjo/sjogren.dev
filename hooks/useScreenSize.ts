@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { compareState } from '@utils/react';
-import useDidMount from './useDidMount';
+import useOrientation from './useOrientation';
 
 const getScreenSize = () => {
     return typeof window === 'undefined'
@@ -9,12 +9,11 @@ const getScreenSize = () => {
 };
 
 const useScreenSize = () => {
-    const didMount = useDidMount();
+    const orientation = useOrientation();
     const [size, setSize] = useState(getScreenSize);
     useEffect(() => {
-        if (!didMount) return;
         setSize((prev) => compareState(prev, getScreenSize()));
-    }, [didMount]);
+    }, [orientation]);
     return size;
 };
 

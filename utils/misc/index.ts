@@ -118,7 +118,7 @@ export function cloneObjRecursive<T extends Object>(obj: T): T {
     return clone;
 }
 
-export function pickProps<
+export function pick<
     T extends Record<string | number | symbol, any>,
     K extends keyof T
 >(obj: T, ...keys: K[]) {
@@ -130,4 +130,18 @@ export function pickProps<
                   return { ...output, [key]: obj[key] };
               }, {})
     ) as Pick<T, typeof keys[number]>;
+}
+
+export function omit<
+    T extends Record<string | number | symbol, any>,
+    K extends keyof T
+>(obj: T, ...keys: K[]) {
+    return (
+        !(obj instanceof Object)
+            ? {}
+            : keys.reduce((output, key) => {
+                  if (!(key in obj)) return output;
+                  return { ...output, [key]: obj[key] };
+              }, {})
+    ) as Omit<T, typeof keys[number]>;
 }
