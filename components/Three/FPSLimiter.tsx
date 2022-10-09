@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 import { isNum } from 'x-is-type/callbacks';
+import { pick } from '@utils/misc';
 import useRefreshRate from '@hooks/useRefreshRate';
 
-/* source: 
+/* based on: 
     https://github.com/pmndrs/react-three-fiber/discussions/667#discussioncomment-3026830
 */
-
 function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
     const state = useThree(
-        useCallback(({ invalidate, clock, setFrameloop, frameloop }) => {
-            return { invalidate, clock, setFrameloop, frameloop };
+        useCallback((state) => {
+            return pick(
+                state,
+                'invalidate',
+                'clock',
+                'setFrameloop',
+                'frameloop'
+            );
         }, [])
     );
     const maxFPS = useRefreshRate(500);

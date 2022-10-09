@@ -1,10 +1,7 @@
 import { atom } from 'recoil';
+import type { ScreenSize } from '@utils/misc';
 
-export type ScreenSizeState = {
-    width: number;
-    height: number;
-};
-const screenSizeState = atom<ScreenSizeState>({
+const screenSizeState = atom<ScreenSize>({
     key: 'ScreenSizeState',
     default: { width: 0, height: 0 },
 });

@@ -68,12 +68,6 @@
     max-height: 80vh;
 }
 
-@media (orientation: landscape) {
-    .mobile .blob-container {
-        max-width: 80vw;
-    }
-}
-
 @media (hover: hover) {
     .caption:hover {
         cursor: pointer;

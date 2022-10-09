@@ -1,12 +1,7 @@
-import { selector } from 'recoil';
-import screenSizeState from '@recoil/screenSize';
+import { atom } from 'recoil';
 
-const screenOrientationState = selector({
-    key: 'ScreenOrientationState',
-    get: ({ get }) => {
-        const { width, height } = get(screenSizeState);
-        return width >= height ? 'landscape' : 'portrait';
-    },
-});
+const screenOrientationState = atom<OrientationType | 'portrait' | 'landscape'>(
+    { key: 'ScreenOrientationState', default: 'portrait' }
+);
 
 export default screenOrientationState;

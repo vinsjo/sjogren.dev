@@ -1,13 +1,7 @@
 import { atom } from 'recoil';
+import type { WindowSize } from '@utils/misc';
 
-export type WindowSizeState = {
-    innerWidth: number;
-    innerHeight: number;
-    outerWidth: number;
-    outerHeight: number;
-};
-
-const windowSizeState = atom<WindowSizeState>({
+const windowSizeState = atom<WindowSize>({
     key: 'WindowSizeState',
     default: { innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
 });

@@ -1,15 +1,7 @@
 import { atom } from 'recoil';
+import { DeviceType } from '@utils/misc';
 
-export type DeviceTypeState =
-    | null
-    | 'console'
-    | 'mobile'
-    | 'tablet'
-    | 'smarttv'
-    | 'wearable'
-    | 'embedded';
-
-const deviceTypeState = atom<DeviceTypeState>({
+const deviceTypeState = atom<DeviceType>({
     key: 'DeviceTypeState',
     default: null,
 });

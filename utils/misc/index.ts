@@ -149,3 +149,62 @@ export function omit<
 export function windowExists() {
     return typeof window !== 'undefined';
 }
+
+export function windowPropertyExists(...keys: string[]) {
+    if (!windowExists()) return false;
+    let prev: any = window;
+    for (const key of keys) {
+        if (!(key in prev)) return false;
+        prev = prev[key];
+    }
+    return true;
+}
+export type WindowSize = {
+    innerWidth: number;
+    innerHeight: number;
+    outerWidth: number;
+    outerHeight: number;
+};
+export function getWindowSize(): WindowSize {
+    return !windowExists()
+        ? {
+              innerWidth: 0,
+              innerHeight: 0,
+              outerWidth: 0,
+              outerHeight: 0,
+          }
+        : pick(
+              window,
+              'innerWidth',
+              'innerHeight',
+              'outerWidth',
+              'outerHeight'
+          );
+}
+export type ScreenSize = {
+    width: number;
+    height: number;
+};
+export function getScreenSize(): ScreenSize {
+    return !windowExists()
+        ? { width: 0, height: 0 }
+        : pick(window.screen, 'width', 'height');
+}
+
+export function getScreenOrientation(): null | OrientationType {
+    if (!windowPropertyExists('screen', 'orientation', 'type')) return null;
+    return window.screen.orientation.type;
+}
+export type DeviceType =
+    | null
+    | 'console'
+    | 'mobile'
+    | 'tablet'
+    | 'smarttv'
+    | 'wearable'
+    | 'embedded';
+export function getDeviceType(): DeviceType {
+    if (!windowExists()) return null;
+    const { type } = new UAParser(navigator.userAgent).getDevice();
+    return (type || null) as DeviceType;
+}

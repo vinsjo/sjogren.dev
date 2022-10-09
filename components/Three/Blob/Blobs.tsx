@@ -91,34 +91,36 @@ const Blobs = () => {
 
     const [cols, setCols] = useState(0);
     const [rows, setRows] = useState(0);
+    const [blobSize, setBlobSize] = useState(0);
     const [blobs, setBlobs] = useState<BlobProp[]>([]);
-
-    const blobSize = useMemo(() => {
-        const { width, height } = screenSize;
-        if (!width || !height) return 0;
-        return Math.round(Math.max(width, height) / 6);
-    }, [screenSize]);
-
-    const adjustedBlobs = useMemo<BlobProp[]>(() => {
-        if (!blobs.length) return [];
-        return fitBlobsInView(blobs, camera);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [blobs, camera, width, height]);
-
-    useEffect(() => {
-        if (!rows || !cols) return;
-        setBlobs(initBlobs(cols, rows, camera));
-    }, [rows, cols, camera, orientation]);
+    const [adjustedBlobs, setAdjustedBlobs] = useState<BlobProp[]>([]);
 
     useDebouncedEffect(
         () => {
-            if (!width || !height) return;
-            setCols(Math.ceil(width / blobSize));
-            setRows(Math.ceil(height / blobSize));
+            if (!rows || !cols) return;
+            const blobs = initBlobs(cols, rows, camera);
+            setBlobs(blobs);
         },
-        100,
-        [width, height, blobSize]
+        500,
+        [rows, cols, camera, orientation]
     );
+
+    useEffect(() => {
+        if (!blobs.length) return;
+        setAdjustedBlobs(fitBlobsInView(blobs, camera));
+    }, [blobs, camera]);
+
+    useEffect(() => {
+        const { width, height } = screenSize;
+        if (!width || !height) return;
+        setBlobSize(Math.round(Math.max(width, height) / 6));
+    }, [screenSize]);
+
+    useEffect(() => {
+        if (!width || !height) return;
+        setCols(Math.ceil(width / blobSize));
+        setRows(Math.ceil(height / blobSize));
+    }, [width, height, blobSize]);
 
     return (
         <group>
