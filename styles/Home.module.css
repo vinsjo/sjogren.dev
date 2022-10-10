@@ -56,11 +56,11 @@
     height: 100%;
     z-index: 0;
     opacity: 0;
-    transition: opacity 1s ease-in;
-    transition-delay: 0.2s;
 }
 
 .blob-container.loaded {
+    transition: opacity 0.5s ease-in-out;
+    transition-delay: 0.2s;
     opacity: 1;
 }
 

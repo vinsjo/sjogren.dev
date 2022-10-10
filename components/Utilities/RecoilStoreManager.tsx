@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useEffect } from 'react';
+import { useRecoilState, useSetRecoilState } from 'recoil';
 import windowSizeState from '@recoil/windowSize';
 import screenSizeState from '@recoil/screenSize';
 import orientationState from '@recoil/orientation';
@@ -11,61 +11,50 @@ import {
     getScreenSize,
     getDeviceType,
 } from '@utils/misc';
-import { compareState } from '@utils/react';
 import useMatchMedia from '@hooks/useMatchMedia';
+import { compareState } from '@utils/react';
+import useDidMount from '@hooks/useDidMount';
 
-const useWindowSizeEffect = () => {
+const RecoilStoreManager = () => {
+    const didMount = useDidMount();
     const setWindowSize = useSetRecoilState(windowSizeState);
     useEffect(() => {
+        if (!didMount) return;
         const updateWindowSize = () => {
             setWindowSize((prev) => compareState(prev, getWindowSize()));
         };
         updateWindowSize();
         window.addEventListener('resize', updateWindowSize);
         return () => window.removeEventListener('resize', updateWindowSize);
-    }, [setWindowSize]);
-};
+    }, [didMount, setWindowSize]);
 
-const useScreenSizeEffect = () => {
     const setScreenSize = useSetRecoilState(screenSizeState);
-    useEffect(
-        () => setScreenSize((prev) => compareState(prev, getScreenSize())),
-        [setScreenSize]
-    );
-};
+    useEffect(() => {
+        if (!didMount) return;
+        setScreenSize(getScreenSize());
+    }, [didMount, setScreenSize]);
 
-const useOrientationEffect = () => {
     const [orientation, setOrientation] = useRecoilState(orientationState);
     const portrait = useMatchMedia(
         '(orientation:portrait)',
         orientation === 'portrait'
     );
-    useEffect(
-        () => setOrientation(portrait ? 'portrait' : 'landscape'),
-        [portrait, setOrientation]
-    );
-};
+    useEffect(() => {
+        if (!didMount) return;
+        setOrientation(portrait ? 'portrait' : 'landscape');
+    }, [didMount, portrait, setOrientation]);
 
-const useScreenOrientationEffect = () => {
-    const orientation = useRecoilValue(orientationState);
     const setScreenOrientation = useSetRecoilState(screenOrientationState);
-    useEffect(
-        () => setScreenOrientation(getScreenOrientation() || orientation),
-        [orientation, setScreenOrientation]
-    );
-};
+    useEffect(() => {
+        if (!didMount) return;
+        setScreenOrientation(getScreenOrientation() || orientation);
+    }, [didMount, orientation, setScreenOrientation]);
 
-const useDeviceTypeEffect = () => {
     const setDeviceType = useSetRecoilState(deviceTypeState);
-    useEffect(() => setDeviceType(getDeviceType()), [setDeviceType]);
-};
-
-const RecoilStoreManager = () => {
-    useWindowSizeEffect();
-    useScreenSizeEffect();
-    useOrientationEffect();
-    useScreenOrientationEffect();
-    useDeviceTypeEffect();
+    useEffect(() => {
+        if (!didMount) return;
+        setDeviceType(getDeviceType());
+    }, [didMount, setDeviceType]);
     return null;
 };
 

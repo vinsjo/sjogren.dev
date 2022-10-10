@@ -15,11 +15,13 @@ export const useWindowSize = () => useRecoilValue(windowSizeState);
 export const useIsMobile = () => useRecoilValue(isMobileState);
 
 export const useIsRotating = (rotationDuration = 500) => {
+    const [isRotating, setIsRotating] = useState(false);
+
     const windowSize = useWindowSize();
-    const orientation = useOrientation();
+    const orientation = useScreenOrientation();
     const prevWindowSize = usePrev(windowSize);
     const prevOrientation = useRef(orientation);
-    const [isRotating, setIsRotating] = useState(false);
+
     const windowSizeDiff = useMemo(() => {
         if (!prevWindowSize) return 0;
         const { innerWidth: pW, innerHeight: pH } = prevWindowSize;
@@ -30,15 +32,17 @@ export const useIsRotating = (rotationDuration = 500) => {
         return diff;
     }, [windowSize, prevWindowSize]);
     useEffect(() => {
-        if (prevOrientation.current === orientation || !windowSizeDiff) return;
+        if (!windowSizeDiff || prevOrientation.current === orientation) return;
         setIsRotating(true);
+        prevOrientation.current = orientation;
     }, [orientation, prevOrientation, windowSizeDiff]);
     useEffect(() => {
         if (!isRotating) return;
         const timeout = setTimeout(() => {
             setIsRotating(false);
-            prevOrientation.current = orientation;
         }, rotationDuration);
         return () => clearTimeout(timeout);
     }, [rotationDuration, isRotating, setIsRotating, orientation]);
+
+    return isRotating;
 };

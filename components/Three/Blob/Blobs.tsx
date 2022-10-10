@@ -1,17 +1,16 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { PerspectiveCamera, Vector3, MathUtils } from 'three';
 import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/three';
 import { minmax, rand_neg } from '@utils/misc';
 import { useThree } from '@react-three/fiber';
-import { useOrientation, useScreenSize } from '@hooks/recoil';
+import { useScreenSize } from '@hooks/recoil';
 import Blob from './Blob';
-import useDebouncedEffect from '@hooks/useDebouncedEffect';
-import useIsMobile from '@hooks/useIsMobile';
+import { isNum } from 'x-is-type';
 
 type BlobProp = { position: Vector3; scale: Vector3 };
 
 const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
-    if (!cols || !rows) return [] as BlobProp[];
+    if (!cols || !rows || !isNum(rows, cols)) return [] as BlobProp[];
     const visible = visibleSizeAtZ(0, camera);
     const maxRad = Math.min(visible.x / cols / 2, visible.y / rows / 2);
     const radLimits = minmax(maxRad * 0.8, maxRad * 1.2);
@@ -25,11 +24,10 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
         for (let col = 0; col < cols; col++) {
             const x =
                 MathUtils.mapLinear(col, 0, cols - 1, -maxPos.x, maxPos.x) || 0;
-            const z = rand_neg(avgRad / 3);
             const position = v3(
                 x + rand_neg(avgRad / 2),
                 y + rand_neg(avgRad / 2),
-                z
+                rand_neg(avgRad / 2)
             ).lerp(center, Math.random() * 0.5);
             blobs.push({
                 position,
@@ -83,44 +81,31 @@ const fitBlobsInView = (blobs: BlobProp[], camera: PerspectiveCamera) => {
 
 const Blobs = () => {
     const screenSize = useScreenSize();
-    const orientation = useOrientation();
     const camera = useThree(
         useCallback(({ camera }) => camera as PerspectiveCamera, [])
     );
     const { width, height } = useThree(useCallback(({ size }) => size, []));
 
-    const [cols, setCols] = useState(0);
-    const [rows, setRows] = useState(0);
-    const [blobSize, setBlobSize] = useState(0);
-    const [blobs, setBlobs] = useState<BlobProp[]>([]);
-    const [adjustedBlobs, setAdjustedBlobs] = useState<BlobProp[]>([]);
-
-    useDebouncedEffect(
-        () => {
-            if (!rows || !cols) return;
-            const blobs = initBlobs(cols, rows, camera);
-            setBlobs(blobs);
-        },
-        500,
-        [rows, cols, camera, orientation]
-    );
-
-    useEffect(() => {
-        if (!blobs.length) return;
-        setAdjustedBlobs(fitBlobsInView(blobs, camera));
-    }, [blobs, camera]);
-
-    useEffect(() => {
+    const blobSize = useMemo(() => {
         const { width, height } = screenSize;
         if (!width || !height) return;
-        setBlobSize(Math.round(Math.max(width, height) / 6));
+        return Math.round(Math.max(width, height) / 5);
     }, [screenSize]);
 
-    useEffect(() => {
-        if (!width || !height) return;
-        setCols(Math.ceil(width / blobSize));
-        setRows(Math.ceil(height / blobSize));
+    const [cols, rows] = useMemo(() => {
+        if (!width || !height || !blobSize) return [0, 0];
+        return [Math.ceil(width / blobSize), Math.ceil(height / blobSize)];
     }, [width, height, blobSize]);
+
+    const blobs = useMemo(() => {
+        if (!rows || !cols) return [];
+        return initBlobs(cols, rows, camera);
+    }, [rows, cols, camera]);
+
+    const adjustedBlobs = useMemo(() => {
+        if (!blobs.length) return [];
+        return fitBlobsInView(blobs, camera);
+    }, [blobs, camera]);
 
     return (
         <group>
