@@ -3,7 +3,7 @@
     display: grid;
     align-content: center;
     justify-items: center;
-    grid-template-columns: repeat(auto-fit, minmax(40ch, 1fr));
-    grid-template-rows: repeat(auto-fill, minmax(10rem, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(30ch, 1fr));
+    grid-template-rows: auto;
+    gap: 0.5rem;
 }

@@ -1,16 +1,21 @@
-import { useWindowSize } from '@hooks/recoil';
+import { useIsMobile, useWindowSize } from '@hooks/recoil';
 import { classNames } from '@utils/react';
-import { HTMLProps } from 'react';
+import { HTMLProps, useMemo } from 'react';
 import styles from './Section.module.css';
 
-export type SectionProps = Omit<HTMLProps<HTMLDivElement>, 'style'>;
+export type SectionProps = HTMLProps<HTMLDivElement>;
 
 const Section = ({ children, className, ...props }: SectionProps) => {
-    const { innerWidth: width, innerHeight: height } = useWindowSize();
+    const mobile = useIsMobile();
+    const { innerWidth, innerHeight } = useWindowSize();
+    const maxSize = useMemo(() => {
+        if (!mobile || !innerWidth || !innerHeight) return null;
+        return { maxWidth: innerWidth, maxHeight: innerHeight };
+    }, [mobile, innerWidth, innerHeight]);
     return !children ? null : (
         <section
             className={classNames(styles.section, className)}
-            style={{ width: width || null, height: height || null }}
+            style={maxSize}
             {...props}
         >
             {children}

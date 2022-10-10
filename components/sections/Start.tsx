@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createSection } from './Section';
 import ClientRender from '@components/utilities/ClientRender';
 import { classNames } from '@utils/react';
 import dynamic from 'next/dynamic';
-import { useIsMobile } from '@hooks/recoil';
+import { useIsMobile, useWindowSize } from '@hooks/recoil';
 import styles from './Start.module.css';
 
 const BlobScene = dynamic(() => import('@components/three/BlobScene'), {
@@ -13,8 +13,8 @@ const BlobScene = dynamic(() => import('@components/three/BlobScene'), {
 
 const Start = createSection(
     () => {
-        const mobile = useIsMobile();
         const [loaded, setLoaded] = useState(false);
+        const mobile = useIsMobile();
         return (
             <>
                 <h1 className={styles.caption}>
@@ -34,7 +34,7 @@ const Start = createSection(
                         mobile && styles.mobile
                     )}
                 >
-                    <ClientRender withSuspense>
+                    <ClientRender withSuspense={true}>
                         <BlobScene onCreated={() => setLoaded(true)} />
                     </ClientRender>
                 </div>

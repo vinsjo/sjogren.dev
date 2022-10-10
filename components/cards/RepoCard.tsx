@@ -4,15 +4,12 @@ import { formatURL } from '@utils/misc';
 import styles from './RepoCard.module.css';
 
 const RepoCard = ({
+    package_name,
     name,
     description,
     html_url,
-    homepage,
     language,
 }: PartialRepo) => {
-    const homepageURL = useMemo(() => {
-        return !homepage ? null : formatURL(homepage);
-    }, [homepage]);
     return (
         <div className={styles.container}>
             <a
@@ -21,23 +18,10 @@ const RepoCard = ({
                 rel="noreferrer"
                 title="To Repository on GitHub"
             >
-                <h3 className={styles.name}>{name}</h3>
+                <h3 className={styles.title}>{package_name || name}</h3>
             </a>
             <code className={styles.description}>{description}</code>
-            {!homepage ? null : (
-                <a
-                    href={homepage}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={
-                        homepage.includes('npmjs.com')
-                            ? 'To npm package'
-                            : 'To homepage'
-                    }
-                >
-                    {homepageURL}
-                </a>
-            )}
+            <code className={styles.language}>{language}</code>
         </div>
     );
 };
