@@ -1,8 +1,12 @@
+@import 'fonts.css';
+
 :root {
     --pink: #fae3da;
     --red: #c8151e;
     --body-bg: var(--pink);
     --text-color: var(--red);
+    --main-font: 'Familjen Grotesk', Helvetica, sans-serif;
+    --mono-font: 'JetBrains Mono', monospace;
 }
 * {
     box-sizing: border-box;
@@ -13,10 +17,13 @@ body {
     color: var(--text-color);
     background-color: var(--body-bg);
     width: 100%;
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: var(--main-font);
 }
 
 a {
     color: inherit;
     text-decoration: none;
+}
+code {
+    font-family: var(--mono-font);
 }

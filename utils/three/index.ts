@@ -1,4 +1,4 @@
-import { MathUtils, PerspectiveCamera, Vector2, Vector3 } from 'three';
+import { PerspectiveCamera, Vector2, Vector3 } from 'three';
 import { isNum } from 'x-is-type';
 import { isObj } from 'x-is-type/callbacks';
 import { rand, WH } from '@utils/misc';

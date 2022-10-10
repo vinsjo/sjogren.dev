@@ -208,3 +208,13 @@ export function getDeviceType(): DeviceType {
     const { type } = new UAParser(navigator.userAgent).getDevice();
     return (type || null) as DeviceType;
 }
+
+export function formatURL(urlString: string) {
+    if (typeof urlString !== 'string') return null;
+    try {
+        const url = new URL(urlString);
+        return `${url.hostname}${url.pathname}`;
+    } catch (e) {
+        return null;
+    }
+}

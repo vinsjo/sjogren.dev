@@ -9,5 +9,7 @@ export function compareState<T = unknown>(prev: T, next: T) {
     return isEqual(prev, next) ? prev : next;
 }
 export function classNames(...names: unknown[]) {
-    return names.filter((n) => n && typeof n === 'string').join(' ');
+    return [
+        ...new Set(names.filter((n) => n && typeof n === 'string') as string[]),
+    ].join(' ');
 }

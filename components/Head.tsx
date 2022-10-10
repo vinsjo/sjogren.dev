@@ -1,22 +1,7 @@
 import React, { useMemo } from 'react';
-
 import { default as NextHead } from 'next/head';
 import { isArr, isStr } from 'x-is-type/callbacks';
 import { isStr as allIsStr } from 'x-is-type';
-
-const defaultTitle = 'sjogren.dev';
-const defaultKeywords = [
-    'Vincent Sjögren',
-    'Vincent',
-    'Sjögren',
-    'Developer',
-    'Front-end',
-    'Frontend',
-    'Javascript',
-    'React',
-    'Next.js',
-    'Stockholm',
-];
 
 const defaults = {
     title: 'sjogren.dev',
@@ -28,9 +13,11 @@ const defaults = {
         'Developer',
         'Front-end',
         'Frontend',
+        'Full-stack',
         'Javascript',
         'React',
         'Next.js',
+        'Three.js',
         'Stockholm',
     ],
 };
@@ -48,12 +35,12 @@ const getFaviconMime = (favicon: string) => {
     }
 };
 
-export type HeadProps = {
+export interface HeadProps {
     keywords?: string[];
     title?: string;
     faviconURL?: string;
     children?: React.ReactNode;
-};
+}
 
 const Head = (props: HeadProps) => {
     const keywords = useMemo(() => {
