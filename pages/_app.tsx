@@ -1,4 +1,4 @@
-import RecoilStoreManager from '@components/Utilities/RecoilStoreManager';
+import RecoilStoreManager from '@components/utilities/RecoilStoreManager';
 import { RecoilRoot } from 'recoil';
 import '../styles/globals.css';
 
