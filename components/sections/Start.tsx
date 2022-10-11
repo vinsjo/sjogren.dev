@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { createSection } from './Section';
-import ClientRender from '@components/Utilities/ClientRender';
+import ClientRender from '@components/utilities/ClientRender';
 import { classNames } from '@utils/react';
 import dynamic from 'next/dynamic';
 import { useIsMobile } from '@hooks/recoil';
 import styles from './Start.module.css';
 
-const BlobScene = dynamic(() => import('@components/Three/BlobScene'), {
+const BlobScene = dynamic(() => import('@components/three/BlobScene'), {
     ssr: false,
     suspense: true,
 });
