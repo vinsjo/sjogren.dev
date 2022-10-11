@@ -93,8 +93,13 @@ async function fetchPackageJSON(repo: Repo) {
     try {
         const { data } = await axios.get<PackageJSON>(url, config);
         return data;
-    } catch (err: Error | unknown) {
-        if (process.env.NODE_ENV !== 'production') console.error(err);
+    } catch (err: Error | any) {
+        if (
+            process.env.NODE_ENV !== 'production' &&
+            (!axios.isAxiosError(err) || err.response?.status !== 404)
+        ) {
+            console.error('message' in err ? err.message : err);
+        }
         return null;
     }
 }
@@ -104,17 +109,13 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
         const { data } = await octokit.rest.repos.listForAuthenticatedUser({
             visibility: 'public',
             affiliation: 'owner',
-            sort: 'pushed',
+            sort: 'created',
             direction: 'desc',
         });
         const repos = await Promise.all(
             data
                 .filter((repo) => {
                     return repo.description && repo.name !== 'vinsjo';
-                })
-                .sort((a, b) => {
-                    if (a.homepage && b.homepage) return 0;
-                    return a.homepage ? -1 : 1;
                 })
                 .map(async (repo) => {
                     const partial = pick(repo, ...repoPropKeys);
@@ -123,7 +124,7 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
                 })
         );
         return repos;
-    } catch (err: Error | unknown) {
+    } catch (err: Error | any) {
         console.error(err);
         return [];
     }
