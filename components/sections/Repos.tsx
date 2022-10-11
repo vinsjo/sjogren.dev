@@ -5,6 +5,7 @@ import styles from './Repos.module.css';
 
 const Repos = createSection(
     ({ repos }: { repos: PartialRepo[] }) => {
+        console.log(repos);
         return !repos || !repos.length ? null : (
             <div className={styles['card-grid']}>
                 {repos.map((repo) => {

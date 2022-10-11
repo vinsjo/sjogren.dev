@@ -2,12 +2,15 @@ import axios from 'axios';
 import { Octokit } from '@octokit/rest';
 import { pick } from '.';
 
+const { GH_AUTH, GH_UA } = process.env;
+
 const octokit = new Octokit({
-    auth: process.env.GH_AUTH,
+    auth: GH_AUTH,
+    userAgent: GH_UA,
 });
 
 export type Repo = Awaited<
-    ReturnType<typeof octokit['rest']['repos']['listForUser']>
+    ReturnType<typeof octokit['rest']['repos']['listForAuthenticatedUser']>
 >['data'][number] & { package_name?: string };
 
 export type Owner = Repo['owner'];
@@ -43,46 +46,64 @@ const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
     'license',
 ];
 
-type RepoContents = {
-    name: string;
-    path: string;
-    sha: string;
-    size: number;
-    url: string;
-    html_url: string;
-    git_url: string;
-    download_url: string;
-    type: string;
-    _links: {
-        self: string;
-        git: string;
-        html: string;
-    };
-};
+interface PackageJSON {
+    readonly name?: string;
+    readonly version?: string;
+    readonly description?: string;
+    readonly author?: string;
+    readonly license?: string;
+    readonly repository?: Record<string, string>;
+    readonly type?: string;
+    readonly source?: string;
+    readonly main?: string;
+    readonly module?: string;
+    readonly types?: string;
+    readonly exports?: string;
+    readonly files?: string[];
+    readonly browserslist?: string[];
+    readonly scripts?: Record<string, string>;
+    readonly devDependencies?: Record<string, string>;
+    readonly dependencies?: Record<string, string>;
+    readonly keywords?: string[];
+}
 
-async function getPackageJSON({ language, full_name, default_branch }: Repo) {
-    if (!['TypeScript', 'JavaScript'].includes(language)) return null;
-    const config = {
-        headers: {
-            'User-Agent': process.env.GH_UA,
-            Authorization: `Bearer ${process.env.GH_AUTH}`,
-        },
-    };
+function getPackageURL({ full_name, default_branch }: Repo) {
+    return !full_name || !default_branch
+        ? null
+        : `https://raw.githubusercontent.com/${full_name}/${default_branch}/package.json`;
+}
+
+async function fetchPackageJSON(repo: Repo) {
+    const url = getPackageURL(repo);
+    if (!url || !['TypeScript', 'JavaScript'].includes(repo.language)) {
+        return null;
+    }
+    const { GH_AUTH, GH_UA } = process.env;
+    const config =
+        !GH_AUTH || !GH_UA
+            ? {}
+            : {
+                  headers: {
+                      'User-Agent': GH_UA,
+                      Authorization: `Bearer ${GH_AUTH}`,
+                  },
+              };
     try {
-        const url = `https://raw.githubusercontent.com/${full_name}/${default_branch}/package.json`;
-        const { data } = await axios.get<Record<string, string>>(url, config);
+        const { data } = await axios.get<PackageJSON>(url, config);
         return data;
     } catch (err: Error | unknown) {
-        console.error(err);
+        if (process.env.NODE_ENV !== 'production') console.error(err);
         return null;
     }
 }
 
 export async function fetchRepos(): Promise<PartialRepo[]> {
     try {
-        const { data } = await octokit.rest.repos.listForUser({
-            username: 'vinsjo',
-            type: 'owner',
+        const { data } = await octokit.rest.repos.listForAuthenticatedUser({
+            visibility: 'public',
+            affiliation: 'owner',
+            sort: 'updated',
+            direction: 'desc',
         });
         const repos = await Promise.all(
             data
@@ -91,8 +112,8 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
                 })
                 .map(async (repo) => {
                     const partial = pick(repo, ...repoPropKeys);
-                    const pkg = await getPackageJSON(repo);
-                    return { ...partial, package_name: pkg?.name };
+                    const pkg = await fetchPackageJSON(repo);
+                    return { ...partial, package_name: pkg?.name || null };
                 })
         );
         return repos;

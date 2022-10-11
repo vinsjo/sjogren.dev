@@ -7,18 +7,26 @@ export type middleware = (
     next: middlewareResultHandler
 ) => void;
 
-const getParams = (req: NextApiRequest, paramAlias: string = 'params') =>
-    req.query[paramAlias] || [];
+export function getParams(req: NextApiRequest, paramAlias: string = 'params') {
+    return req.query[paramAlias] || [];
+}
 
-const runMiddleWare = (
+export function runMiddleWare(
     req: NextApiRequest,
     res: NextApiResponse,
     middleware: middleware
-) => {
+) {
     return new Promise((resolve, reject) => {
         middleware(req, res, (result) =>
             result instanceof Error ? reject(result) : resolve(result)
         );
     });
-};
-export { getParams, runMiddleWare };
+}
+
+export function jsonErrorResponse(
+    res: NextApiResponse,
+    status: number,
+    message: string
+) {
+    res.status(status).json({ error: message });
+}

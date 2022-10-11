@@ -1,6 +1,4 @@
 import type { PartialRepo } from '@utils/misc/github-api';
-import { useMemo } from 'react';
-import { formatURL } from '@utils/misc';
 import styles from './RepoCard.module.css';
 
 const RepoCard = ({
@@ -20,8 +18,10 @@ const RepoCard = ({
             >
                 <h3 className={styles.title}>{package_name || name}</h3>
             </a>
+            <p className={styles.language}>
+                <small>{language}</small>
+            </p>
             <code className={styles.description}>{description}</code>
-            <code className={styles.language}>{language}</code>
         </div>
     );
 };

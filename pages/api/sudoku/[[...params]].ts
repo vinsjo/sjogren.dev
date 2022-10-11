@@ -1,39 +1,49 @@
-import { getBoard, getStoredBoard } from '../../../utils/api/sudoku';
 import cors from 'cors';
-import { getParams, runMiddleWare } from '../../../utils/api';
-
+import { getApiResponse, getStoredBoard } from '@utils/api/sudoku';
+import { getParams, runMiddleWare, jsonErrorResponse } from '@utils/api';
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 
 const handler: NextApiHandler = async (
     req: NextApiRequest,
     res: NextApiResponse
 ) => {
-    await runMiddleWare(
-        req,
-        res,
-        cors({ methods: ['GET', 'HEAD'], origin: '*' })
-    );
-    const params = getParams(req);
-    if (!params[0]) {
-        return res.status(200).json({
-            endpoints: ['/get', '/get/:id'],
-        });
-    }
-    if (params[0] === 'get') {
-        const id = params[1];
-        if (!id) {
-            const board = await getBoard();
-            return res.status(200).json(board);
+    try {
+        await runMiddleWare(
+            req,
+            res,
+            cors({ methods: ['GET', 'HEAD'], origin: '*' })
+        );
+        const params = getParams(req);
+        if (!params[0]) {
+            return res.json({
+                endpoints: ['/get', '/get/:id'],
+            });
         }
-        const board = await getStoredBoard(id);
-        if (!board) {
-            return res
-                .status(404)
-                .json({ error: `File with id: '${id}' not found` });
+        if (params[0] === 'get') {
+            const id = params[1];
+            if (!id) {
+                const board = await getApiResponse();
+                return res.json(board);
+            }
+            const board = await getStoredBoard(id);
+            return !board
+                ? jsonErrorResponse(
+                      res,
+                      404,
+                      `Board with id: '${id}' not found`
+                  )
+                : res.json(board);
         }
-        return res.status(200).json(board);
+        jsonErrorResponse(res, 404, 'Not Found');
+    } catch (err: Error | any) {
+        jsonErrorResponse(
+            res,
+            500,
+            process.env.NODE_ENV !== 'production' && 'message' in err
+                ? err.message
+                : 'Internal Server error'
+        );
     }
-    res.status(404).end();
 };
 
 export default handler;
