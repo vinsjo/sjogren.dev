@@ -11,10 +11,10 @@ interface PageProps {
 export const getServerSideProps: GetServerSideProps<PageProps> = async ({
     res,
 }) => {
-    // res.setHeader(
-    //     'Cache-Control',
-    //     'public, s-maxage=1800, stale-while-revalidate=3600'
-    // );
+    res.setHeader(
+        'Cache-Control',
+        'public, s-maxage=1800, stale-while-revalidate=3600'
+    );
     const repos = await fetchRepos();
     return { props: { repos } };
 };

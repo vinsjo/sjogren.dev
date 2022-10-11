@@ -5,12 +5,15 @@ import styles from './Repos.module.css';
 
 const Repos = createSection(
     ({ repos }: { repos: PartialRepo[] }) => {
-        console.log(repos);
-        return !repos || !repos.length ? null : (
-            <div className={styles['card-grid']}>
-                {repos.map((repo) => {
-                    return <RepoCard key={`repo-${repo.id}`} {...repo} />;
-                })}
+        if (!repos || !repos.length) return null;
+        return (
+            <div className={styles.container}>
+                <h3 className={styles.title}>Projects on GitHub</h3>
+                <div className={styles['card-grid']}>
+                    {repos.map((repo) => {
+                        return <RepoCard key={`repo-${repo.id}`} {...repo} />;
+                    })}
+                </div>
             </div>
         );
     },

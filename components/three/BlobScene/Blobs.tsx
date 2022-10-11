@@ -40,7 +40,7 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
 
 const fitBlobsInView = (blobs: BlobProp[], camera: PerspectiveCamera) => {
     const aspect = MathUtils.clamp(camera.aspect, 0.5, 1.2);
-    const maxCover = 0.8;
+    const maxCover = 0.9;
     const center = v3(0, 0, 0);
     return blobs.map((blob) => {
         let s = blob.scale;
@@ -105,7 +105,8 @@ const Blobs = () => {
     const adjustedBlobs = useMemo(() => {
         if (!blobs.length) return [];
         return fitBlobsInView(blobs, camera);
-    }, [blobs, camera]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [blobs, camera, width, height]);
 
     return (
         <group>

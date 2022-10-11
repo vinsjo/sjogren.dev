@@ -30,6 +30,7 @@ export type PartialRepo = Pick<
     | 'language'
     | 'license'
     | 'package_name'
+    | 'homepage'
 >;
 
 const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
@@ -44,6 +45,7 @@ const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
     'pushed_at',
     'language',
     'license',
+    'homepage',
 ];
 
 interface PackageJSON {
@@ -102,13 +104,17 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
         const { data } = await octokit.rest.repos.listForAuthenticatedUser({
             visibility: 'public',
             affiliation: 'owner',
-            sort: 'updated',
+            sort: 'pushed',
             direction: 'desc',
         });
         const repos = await Promise.all(
             data
                 .filter((repo) => {
                     return repo.description && repo.name !== 'vinsjo';
+                })
+                .sort((a, b) => {
+                    if (a.homepage && b.homepage) return 0;
+                    return a.homepage ? -1 : 1;
                 })
                 .map(async (repo) => {
                     const partial = pick(repo, ...repoPropKeys);

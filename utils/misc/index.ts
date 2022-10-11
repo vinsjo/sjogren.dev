@@ -213,7 +213,11 @@ export function formatURL(urlString: string) {
     if (typeof urlString !== 'string') return null;
     try {
         const url = new URL(urlString);
-        return `${url.hostname}${url.pathname}`;
+        const output = `${url.hostname}${url.pathname}`;
+        if (output[output.length - 1] === '/') {
+            return output.slice(0, output.length - 1);
+        }
+        return output;
     } catch (e) {
         return null;
     }
