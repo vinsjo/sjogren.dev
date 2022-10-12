@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useRecoilState } from 'recoil';
 import orientationState from '@recoil/orientation';
 import screenSizeState from '@recoil/screenSize';
 import windowSizeState from '@recoil/windowSize';
 import isMobileState from '@recoil/isMobile';
+import currentSectionState from '@recoil/currentSection';
 import usePrev from '@hooks/usePrev';
 import screenOrientationState from '@recoil/screenOrientation';
 

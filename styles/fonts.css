@@ -26,3 +26,9 @@
         format('truetype-variations');
     font-weight: 100 800;
 }
+
+:root {
+    --mono-font: 'JetBrains Mono', monospace;
+    /* --main-font: 'Familjen Grotesk', Helvetica, sans-serif; */
+    --main-font: var(--mono-font);
+}

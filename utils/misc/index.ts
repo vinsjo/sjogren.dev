@@ -1,4 +1,4 @@
-import { isArr, isNum, isObj } from 'x-is-type/callbacks';
+import { isArr, isNum, isObj, isStr } from 'x-is-type/callbacks';
 import UAParser from 'ua-parser-js';
 
 export function rand(max = 1, min = 0) {
@@ -209,15 +209,47 @@ export function getDeviceType(): DeviceType {
     return (type || null) as DeviceType;
 }
 
-export function formatURL(urlString: string) {
+export function replaceAtEnd(
+    str: string,
+    searchValue: string,
+    replaceValue = ''
+) {
+    if (!str.length || !searchValue.length) return str;
+    const index = str.length - searchValue.length;
+    const slice = str.slice(index);
+    if (slice !== searchValue) return str;
+    return str.slice(0, index) + replaceValue;
+}
+
+export type FormatURLOptions = Partial<
+    Record<'protocol' | 'hostname' | 'pathname' | 'search' | 'www', boolean>
+>;
+
+export function formatURL(urlString: string, options?: FormatURLOptions) {
     if (typeof urlString !== 'string') return null;
+
     try {
         const url = new URL(urlString);
-        const output = `${url.hostname}${url.pathname}`;
-        if (output[output.length - 1] === '/') {
-            return output.slice(0, output.length - 1);
-        }
-        return output;
+        const defaultOptions: FormatURLOptions = {
+            protocol: false,
+            www: false,
+            hostname: true,
+            pathname: true,
+            search: true,
+        };
+        if (!(options instanceof Object)) options = defaultOptions;
+        else options = { ...defaultOptions, ...options };
+        let output = replaceAtEnd(
+            ['protocol', 'hostname', 'pathname', 'search']
+                .map((key) => {
+                    if (!options[key]) return '';
+                    return !options[key] ? '' : url[key];
+                })
+                .join(''),
+            '/',
+            ''
+        );
+        return !options.www ? output.replace('www.', '') : output;
     } catch (e) {
         return null;
     }

@@ -1,12 +1,15 @@
 .section {
+    height: 100vh;
     display: grid;
     position: relative;
     grid-template-rows: 1fr;
     grid-template-columns: 1fr;
     justify-items: center;
+    align-items: center;
     padding: 0;
 }
-.caption,
+
+.caption-container,
 .blob-container {
     min-width: 0;
     min-height: 0;
@@ -15,16 +18,29 @@
     position: relative;
 }
 
-.caption {
+.caption-container {
+    width: fit-content;
+    height: fit-content;
     z-index: 10;
-    cursor: default;
-    font-family: var(--mono-font);
-    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.caption {
+    --font-size: 1.5rem;
+    font-size: var(--font-size);
     font-weight: 800;
     color: white;
-    transition: transform 0.2s ease-in-out;
     text-align: center;
     text-decoration: none;
+    text-transform: lowercase;
+}
+
+.caption:not(:first-child) {
+    font-size: calc(var(--font-size) * 0.8);
 }
 
 .blob-container {
@@ -48,20 +64,8 @@
     max-height: 80vh;
 }
 
-@media (hover: hover) {
-    .caption:hover {
-        cursor: pointer;
-        transform: scale(1.02);
-    }
-}
-
-@media only screen and (min-width: 500px) {
+@media only screen and (min-width: 700px) {
     .caption {
-        font-size: 1.4rem;
-    }
-}
-@media only screen and (min-width: 900px) {
-    .caption {
-        font-size: 2rem;
+        --font-size: 2rem;
     }
 }

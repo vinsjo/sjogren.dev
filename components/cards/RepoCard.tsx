@@ -1,4 +1,4 @@
-import type { PartialRepo } from '@utils/misc/github-api';
+import type { PartialRepo } from '@utils/api/github-api';
 import { useMemo } from 'react';
 import { formatURL } from '@utils/misc';
 import styles from './RepoCard.module.css';
@@ -33,16 +33,16 @@ const RepoCard = ({
                 )}
             </div>
             <div className={styles.bottom}>
-                <code className={styles.description}>{description}</code>
+                <p className={styles.description}>{description}</p>
                 {homepage && homepageDisplay && (
                     <a
                         className={styles.homepage}
                         href={homepage}
                         target="_blank"
                         rel="noreferrer"
-                        title="To project homepage"
+                        title={`View project demo at ${homepage}`}
                     >
-                        <code>{homepageDisplay}</code>
+                        {homepageDisplay}
                     </a>
                 )}
             </div>

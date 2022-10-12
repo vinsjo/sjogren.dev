@@ -1,37 +1,63 @@
 @import 'fonts.css';
+@import 'colors.css';
 
-:root {
-    --pink: #fae3da;
-    --red: #c8151e;
-    --body-bg: var(--pink);
-    --text-color: var(--red);
-    --main-font: 'Familjen Grotesk', Helvetica, sans-serif;
-    --mono-font: 'JetBrains Mono', monospace;
-}
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
+
 body {
     color: var(--text-color);
     background-color: var(--body-bg);
     width: 100%;
     font-family: var(--main-font);
-    scroll-behavior: smooth;
+}
+
+button:not(:disabled),
+a {
+    cursor: pointer;
 }
 
 a {
+    --hover-transform: none;
+    --hover-opacity: 0.8;
+    --transition-duration: 0.1s;
+    --transition-timing-function: ease;
+    cursor: pointer;
     color: inherit;
-    transition: opacity 0.1s ease;
+    transition-property: opacity, transform;
+    transition-duration: var(--transition-duration);
+    transition-timing-function: var(--transition-timing-function);
 }
 
 code {
     font-family: var(--mono-font);
 }
 
+.title {
+    --font-size: 1.5rem;
+    font-size: var(--font-size);
+    font-weight: 800;
+}
+
+section > .title {
+    font-weight: 600;
+    font-size: calc(var(--font-size) * 0.8);
+}
+
 @media (hover: hover) {
     a:hover {
-        opacity: 0.8;
+        opacity: var(--hover-opacity);
+        transform: var(--hover-transform);
+    }
+}
+
+@media only screen and (min-width: 700px) {
+    .title {
+        --font-size: 2rem;
+    }
+    section > .title {
+        --font-size: 1.6rem;
     }
 }

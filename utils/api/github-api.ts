@@ -1,12 +1,10 @@
 import axios from 'axios';
 import { Octokit } from '@octokit/rest';
-import { pick } from '.';
-
-const { GH_AUTH, GH_UA } = process.env;
+import { pick } from '@utils/misc';
 
 const octokit = new Octokit({
-    auth: GH_AUTH,
-    userAgent: GH_UA,
+    auth: process.env.GH_AUTH,
+    userAgent: process.env.GH_UA,
 });
 
 export type Repo = Awaited<

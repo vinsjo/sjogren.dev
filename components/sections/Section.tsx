@@ -1,40 +1,37 @@
-import { useIsMobile, useWindowSize } from '@hooks/recoil';
+import { HTMLProps, useEffect, useRef } from 'react';
 import { classNames } from '@utils/react';
-import { HTMLProps, useMemo } from 'react';
 import styles from './Section.module.css';
+import type { SectionName } from '@recoil/currentSection';
+import currentSectionState from '@recoil/currentSection';
+import useIntersectionObserver from '@hooks/useIntersectionObserver';
+import { useSetRecoilState } from 'recoil';
+import useDidMount from '@hooks/useDidMount';
 
-export type SectionProps = HTMLProps<HTMLDivElement>;
+export type SectionProps = HTMLProps<HTMLDivElement> & { id: SectionName };
 
-const Section = ({ children, className, ...props }: SectionProps) => {
-    const mobile = useIsMobile();
-    const { innerWidth, innerHeight } = useWindowSize();
-    const maxSize = useMemo(() => {
-        if (!mobile || !innerWidth || !innerHeight) return null;
-        return { maxWidth: innerWidth, maxHeight: innerHeight };
-    }, [mobile, innerWidth, innerHeight]);
-    return !children ? null : (
+const observerOptions: IntersectionObserverInit = {
+    threshold: 0.8,
+};
+
+const Section = ({ id, children, className, ...props }: SectionProps) => {
+    const ref = useRef<HTMLDivElement>();
+    const didMount = useDidMount();
+    const setCurrentSection = useSetRecoilState(currentSectionState);
+    const { isVisible } = useIntersectionObserver(ref, observerOptions);
+    useEffect(() => {
+        if (!didMount || !isVisible) return;
+        setCurrentSection(id);
+    }, [didMount, id, isVisible, setCurrentSection]);
+    return (
         <section
+            ref={ref}
             className={classNames(styles.section, className)}
-            style={maxSize}
+            id={id}
             {...props}
         >
             {children}
         </section>
     );
 };
-export function createSection<T extends JSX.Element, P>(
-    Component: (props: P) => T,
-    sectionProps?: Omit<SectionProps, 'children'>
-) {
-    if (!sectionProps) sectionProps = {};
-    // eslint-disable-next-line react/display-name
-    return (props: P) => {
-        return (
-            <Section {...sectionProps}>
-                <Component {...props} />
-            </Section>
-        );
-    };
-}
 
 export default Section;
