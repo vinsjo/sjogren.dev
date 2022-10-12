@@ -1,15 +1,23 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { classNames } from '@utils/react';
-import currentSectionState, {
-    sections,
-    type SectionName,
-} from '@recoil/currentSection';
+import currentSectionState, { type SectionName } from '@recoil/currentSection';
 import { useRecoilState } from 'recoil';
 import styles from './Navigation.module.css';
+
+const links: { section: SectionName; text: string }[] = [
+    { section: 'contact', text: 'Contact' },
+    { section: 'projects', text: 'Projects' },
+    { section: 'start', text: 'To Start' },
+];
 
 const Navigation = () => {
     const [currentSection, setCurrentSection] =
         useRecoilState(currentSectionState);
+
+    const visibleLinks = useMemo(() => {
+        return links.filter(({ section }) => section !== currentSection);
+    }, [currentSection]);
+
     const handleClick = useCallback(
         (ev: React.MouseEvent<HTMLAnchorElement>) => {
             ev.preventDefault();
@@ -22,51 +30,25 @@ const Navigation = () => {
     );
     return (
         <>
-            <div
-                className={classNames(
-                    styles.container,
-                    styles.contact,
-                    currentSection === 'contact' && styles.current
-                )}
-            >
-                <a
-                    className={classNames('title', styles.link)}
-                    href="contact"
-                    onClick={handleClick}
-                >
-                    Contact
-                </a>
-            </div>
-            <div
-                className={classNames(
-                    styles.container,
-                    styles.projects,
-                    currentSection === 'projects' && styles.current
-                )}
-            >
-                <a
-                    className={classNames('title', styles.link)}
-                    href="projects"
-                    onClick={handleClick}
-                >
-                    Projects
-                </a>
-            </div>
-            <div
-                className={classNames(
-                    styles.container,
-                    styles.start,
-                    currentSection === 'start' && styles.current
-                )}
-            >
-                <a
-                    className={classNames('title', styles.link)}
-                    href="start"
-                    onClick={handleClick}
-                >
-                    To Start
-                </a>
-            </div>
+            {visibleLinks.map(({ section, text }) => {
+                return (
+                    <div
+                        key={`link-${section}`}
+                        className={classNames(
+                            styles.container,
+                            styles[section]
+                        )}
+                    >
+                        <a
+                            className={classNames('title', styles.link)}
+                            href={section}
+                            onClick={handleClick}
+                        >
+                            {text}
+                        </a>
+                    </div>
+                );
+            })}
         </>
     );
 };
