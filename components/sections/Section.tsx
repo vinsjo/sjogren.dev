@@ -10,7 +10,7 @@ import useDidMount from '@hooks/useDidMount';
 export type SectionProps = HTMLProps<HTMLDivElement> & { id: SectionName };
 
 const observerOptions: IntersectionObserverInit = {
-    threshold: 0.8,
+    threshold: 0.2,
 };
 
 const Section = ({ id, children, className, ...props }: SectionProps) => {
