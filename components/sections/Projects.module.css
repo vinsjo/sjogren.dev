@@ -8,3 +8,8 @@
     grid-auto-rows: 1fr;
     gap: 0.5rem;
 }
+
+.section {
+    height: fit-content;
+    min-height: 0;
+}

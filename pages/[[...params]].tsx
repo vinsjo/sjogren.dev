@@ -1,35 +1,38 @@
 import type { NextPage, GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
 import { useEffect, useMemo, useRef } from 'react';
+import { useRecoilValue } from 'recoil';
 
-import { fetchRepos, type PartialRepo } from '@utils/api/github-api';
+import currentPathState from '@recoil/currentPath';
+import { sections, type SectionName } from '@recoil/sections';
 
 import Navigation from '@components/navigation/Navigation';
-import { useRecoilState } from 'recoil';
-import currentSectionState, {
-    sections,
-    type SectionName,
-} from '@recoil/currentSection';
-import styles from 'styles';
-import useDidMount from '@hooks/useDidMount';
 import Head from '@components/Head';
 import { Start, Projects, Contact } from '@components/sections';
 
+import { windowExists } from '@utils/misc';
+import { fetchRepos, type PartialRepo } from '@utils/api/github-api';
+
+import styles from 'styles';
+
 interface PageProps {
     repos?: PartialRepo[];
-    route?: string;
 }
 
-export const getServerSideProps: GetServerSideProps<PageProps> = async ({
-    req,
-}) => {
+export const getServerSideProps: GetServerSideProps<PageProps> = async () => {
     const repos = await fetchRepos();
     return {
         props: {
             repos,
-            route: req.url,
         },
     };
+};
+
+const scrollToSection = (
+    section: HTMLDivElement,
+    scrollBehavior?: ScrollBehavior
+) => {
+    if (!windowExists() || !section) return;
+    section.scrollIntoView({ behavior: scrollBehavior || 'auto' });
 };
 
 const pathToSection = (path: string) => {
@@ -39,61 +42,55 @@ const pathToSection = (path: string) => {
         | undefined;
     return !sections.includes(section) ? 'start' : section;
 };
-const sectionToPath = (section: SectionName) => {
-    return !sections.includes(section) || section === 'start'
-        ? '/'
-        : `/${section}`;
-};
 
 const Home: NextPage = ({ repos }: PageProps) => {
-    const didMount = useDidMount();
-    const router = useRouter();
+    const currentPath = useRecoilValue(currentPathState);
 
-    const [currentSection, setCurrentSection] =
-        useRecoilState(currentSectionState);
-    const sectionRef = useRef(currentSection);
+    const startRef = useRef<HTMLDivElement>();
+    const projectsRef = useRef<HTMLDivElement>();
+    const contactRef = useRef<HTMLDivElement>();
 
-    const currentPath = useMemo(() => router.asPath, [router.asPath]);
-    const initialPath = useRef(currentPath);
+    const currentSection = useMemo(
+        () => pathToSection(currentPath),
+        [currentPath]
+    );
 
-    // Set currentSection from path, only on first render
+    const currentRef = useMemo(() => {
+        switch (currentSection) {
+            case 'projects':
+                return projectsRef;
+            case 'contact':
+                return contactRef;
+            default:
+                return startRef;
+        }
+    }, [currentSection]);
+
+    const prevRef = useRef(currentRef.current);
+
     useEffect(() => {
-        if (didMount) return;
-        let section = initialPath.current.split('/').filter((v) => v)[0] as
-            | SectionName
-            | undefined;
-        if (!sections.includes(section)) section = 'start';
-        if (section === currentSection) return;
-        setCurrentSection(section);
-    }, [didMount, initialPath, currentSection, setCurrentSection]);
-
-    // Scroll into view when section changes
-    useEffect(() => {
-        if (!currentSection || sectionRef.current === currentSection) return;
-        const section = document.querySelector(`#${currentSection}`);
-        if (!section) return setCurrentSection(sectionRef.current);
-        section.scrollIntoView(
-            !sectionRef.current ? undefined : { behavior: 'smooth' }
+        if (!currentRef.current || currentRef.current === prevRef.current) {
+            return;
+        }
+        scrollToSection(
+            currentRef.current,
+            !prevRef.current ? undefined : 'smooth'
         );
-        sectionRef.current = currentSection;
-    }, [currentSection, setCurrentSection, sectionRef]);
+        prevRef.current = currentRef.current;
+    }, [currentRef]);
 
-    // Push path to url when section changes, after first render
-    useEffect(() => {
-        if (!didMount) return;
-        const path = sectionToPath(currentSection);
-        if (path === currentPath) return;
-        router.push(path, undefined, { shallow: true });
-    }, [didMount, currentSection, currentPath, router]);
+    // useEffect(() => {
+    //     console.log(windowScroll);
+    // }, [windowScroll]);
 
     return (
         <div className={styles.container}>
             <Head />
             <main className={styles.main}>
                 <Navigation />
-                <Start />
-                <Projects repos={repos} />
-                <Contact />
+                <Start ref={startRef} />
+                <Projects ref={projectsRef} repos={repos} />
+                <Contact ref={contactRef} />
             </main>
         </div>
     );

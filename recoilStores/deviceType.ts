@@ -7,3 +7,4 @@ const deviceTypeState = atom<DeviceType>({
 });
 
 export default deviceTypeState;
+export type { DeviceType };

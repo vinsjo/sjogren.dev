@@ -1,4 +1,11 @@
 .section {
+    align-items: center;
+    justify-content: center;
+    max-height: 100vh;
+}
+
+.container {
+    width: 100vw;
     height: 100vh;
     display: grid;
     position: relative;

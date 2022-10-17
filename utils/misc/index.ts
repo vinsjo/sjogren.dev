@@ -181,14 +181,25 @@ export function getWindowSize(): WindowSize {
               'outerHeight'
           );
 }
-export type ScreenSize = {
-    width: number;
-    height: number;
-};
+export function isWindowSize(size: WindowSize | Record<string, any>) {
+    if (!(size instanceof Object)) return false;
+    return (
+        [
+            'innerWidth',
+            'innerHeight',
+            'outerWidth',
+            'outerHeight',
+        ] as (keyof WindowSize)[]
+    ).every((key) => {
+        return key in size && isNum(size[key]);
+    });
+}
+
+export type ScreenSize = WH;
 export function getScreenSize(): ScreenSize {
-    return !windowExists()
-        ? { width: 0, height: 0 }
-        : pick(window.screen, 'width', 'height');
+    if (!windowExists()) return wh(0, 0);
+    const { width, height } = window.screen;
+    return wh(width, height);
 }
 
 export function getScreenOrientation(): null | OrientationType {
@@ -207,6 +218,17 @@ export function getDeviceType(): DeviceType {
     if (!windowExists()) return null;
     const { type } = new UAParser(navigator.userAgent).getDevice();
     return (type || null) as DeviceType;
+}
+
+export interface WindowScroll {
+    x: number;
+    y: number;
+}
+
+export function getWindowScroll(): WindowScroll {
+    if (!windowExists()) return { x: 0, y: 0 };
+    const { scrollX: x, scrollY: y } = window;
+    return { x, y };
 }
 
 export function replaceAtEnd(

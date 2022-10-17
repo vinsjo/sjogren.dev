@@ -1,36 +1,26 @@
-import { useCallback, useMemo } from 'react';
 import { classNames } from '@utils/react';
-import currentSectionState, { type SectionName } from '@recoil/currentSection';
-import { useRecoilState } from 'recoil';
+import Link from 'next/link';
+import { useRecoilValue } from 'recoil';
 import styles from './Navigation.module.css';
+import currentPathState from '@recoil/currentPath';
+import type { SectionName } from '@recoil/sections';
+import { useMemo } from 'react';
 
-const links: { section: SectionName; text: string }[] = [
-    { section: 'contact', text: 'Contact' },
-    { section: 'projects', text: 'Projects' },
-    { section: 'start', text: 'To Start' },
+const links: { section: SectionName; href: string; text: string }[] = [
+    { section: 'contact', href: '/contact', text: 'Contact' },
+    { section: 'projects', href: '/projects', text: 'Projects' },
+    { section: 'start', href: '/', text: 'To Start' },
 ];
 
 const Navigation = () => {
-    const [currentSection, setCurrentSection] =
-        useRecoilState(currentSectionState);
-
-    const visibleLinks = useMemo(() => {
-        return links.filter(({ section }) => section !== currentSection);
-    }, [currentSection]);
-
-    const handleClick = useCallback(
-        (ev: React.MouseEvent<HTMLAnchorElement>) => {
-            ev.preventDefault();
-            const { href } = ev.currentTarget;
-            const section = href.slice(href.lastIndexOf('/') + 1);
-            if (section === currentSection) return;
-            setCurrentSection(section as SectionName);
-        },
-        [currentSection, setCurrentSection]
+    const currentPath = useRecoilValue(currentPathState);
+    const visibleLinks = useMemo(
+        () => links.filter(({ href }) => href !== currentPath),
+        [currentPath]
     );
     return (
         <>
-            {visibleLinks.map(({ section, text }) => {
+            {visibleLinks.map(({ href, text, section }) => {
                 return (
                     <div
                         key={`link-${section}`}
@@ -39,13 +29,11 @@ const Navigation = () => {
                             styles[section]
                         )}
                     >
-                        <a
-                            className={classNames('title', styles.link)}
-                            href={section}
-                            onClick={handleClick}
-                        >
-                            {text}
-                        </a>
+                        <Link href={href} shallow={true}>
+                            <a className={classNames('title', styles.link)}>
+                                {text}
+                            </a>
+                        </Link>
                     </div>
                 );
             })}
