@@ -3,12 +3,12 @@ import Link from 'next/link';
 import styles from './Navigation.module.css';
 import { useMemo } from 'react';
 import { useRouter } from 'next/router';
-import type { SectionName } from '@recoil/sections';
+import { paths, type SectionName } from '@recoil/sections';
 
 const links: { section: SectionName; href: string; text: string }[] = [
-    { section: 'contact', href: '/contact', text: 'Contact' },
-    { section: 'projects', href: '/projects', text: 'Projects' },
-    { section: 'start', href: '/', text: 'To Start' },
+    { section: 'contact', href: paths.contact, text: 'Contact' },
+    { section: 'projects', href: paths.projects, text: 'Projects' },
+    { section: 'start', href: paths.start, text: 'To Start' },
 ];
 
 const Navigation = () => {

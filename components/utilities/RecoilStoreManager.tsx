@@ -1,19 +1,12 @@
 import { useEffect } from 'react';
 import { useRecoilState, useSetRecoilState } from 'recoil';
-import { useRouter } from 'next/router';
 import {
     windowSizeState,
     screenSizeState,
     orientationState,
     screenOrientationState,
     deviceTypeState,
-    windowScrollState,
 } from 'recoilStores';
-// import windowSizeState from '@recoil/windowSize';
-// import screenSizeState from '@recoil/screenSize';
-// import orientationState from '@recoil/orientation';
-// import screenOrientationState from '@recoil/screenOrientation';
-// import deviceTypeState from '@recoil/deviceType';
 import {
     getWindowSize,
     getScreenOrientation,
@@ -23,37 +16,14 @@ import {
 import useMatchMedia from '@hooks/useMatchMedia';
 import useDidMount from '@hooks/useDidMount';
 
-// const useCurrentPathEffect = () => {
-//     const setCurrentPath = useSetRecoilState(currentPathState);
-//     const { asPath } = useRouter();
-//     useEffect(() => setCurrentPath(asPath), [asPath, setCurrentPath]);
-// };
-
-const useWindowScrollEffect = () => {
-    const setWindowScroll = useSetRecoilState(windowScrollState);
-    useEffect(() => {
-        const updateWindowScroll = () => {};
-    }, [setWindowScroll]);
-};
-
-const useWindowEffects = () => {
-    const setWindowScroll = useSetRecoilState(windowScrollState);
-    const [windowSize, setWindowSize] = useRecoilState(windowSizeState);
+const useWindowSizeEffect = () => {
+    const setWindowSize = useSetRecoilState(windowSizeState);
     useEffect(() => {
         const updateSize = () => setWindowSize(getWindowSize());
         updateSize();
         window.addEventListener('resize', updateSize);
         return () => window.removeEventListener('resize', updateSize);
     }, [setWindowSize]);
-    useEffect(() => {
-        const updateScroll = () => {
-            const { scrollX, scrollY } = window;
-            setWindowScroll({ scrollX, scrollY });
-        };
-        updateScroll();
-        window.addEventListener('scroll', updateScroll);
-        return () => window.removeEventListener('scroll', updateScroll);
-    }, [setWindowScroll, windowSize]);
 };
 
 const useScreenSizeEffect = () => {
@@ -88,9 +58,8 @@ const useDeviceTypeEffect = () => {
 };
 
 const RecoilStoreManager = () => {
-    // useCurrentPathEffect();
     useDeviceTypeEffect();
-    useWindowEffects();
+    useWindowSizeEffect();
     useScreenSizeEffect();
     useOrientationEffect();
 
