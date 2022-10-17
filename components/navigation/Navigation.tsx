@@ -2,7 +2,6 @@ import { classNames } from '@utils/react';
 import Link from 'next/link';
 import styles from './Navigation.module.css';
 import { useMemo } from 'react';
-import { useRouter } from 'next/router';
 import currentSectionState, { paths, type SectionName } from '@recoil/sections';
 import { useRecoilValue } from 'recoil';
 
