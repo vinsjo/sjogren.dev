@@ -1,6 +1,7 @@
-import type { PartialRepo } from '@utils/api/github-api';
 import { useMemo } from 'react';
 import { formatURL } from '@utils/misc';
+import type { PartialRepo } from '@utils/api/github-api';
+import Link from '@components/links/Link';
 import styles from './RepoCard.module.css';
 
 const RepoCard = ({
@@ -17,15 +18,14 @@ const RepoCard = ({
     return (
         <div className={styles.container}>
             <div className={styles.top}>
-                <a
+                <Link
                     className={styles.title}
                     href={html_url}
                     target="_blank"
-                    rel="noreferrer"
                     title="To GitHub Repository"
                 >
                     {package_name || name}
-                </a>
+                </Link>
                 {language && (
                     <p className={styles.language}>
                         <small>Written in {language}</small>
@@ -35,15 +35,14 @@ const RepoCard = ({
             <div className={styles.bottom}>
                 <p className={styles.description}>{description}</p>
                 {homepage && homepageDisplay && (
-                    <a
+                    <Link
                         className={styles.homepage}
                         href={homepage}
                         target="_blank"
-                        rel="noreferrer"
                         title={`View project demo at ${homepage}`}
                     >
                         {homepageDisplay}
-                    </a>
+                    </Link>
                 )}
             </div>
         </div>
