@@ -40,22 +40,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
     };
 };
 
-const useSectionRefs = () => {
-    const start = useRef<HTMLDivElement>();
-    const projects = useRef<HTMLDivElement>();
-    const contact = useRef<HTMLDivElement>();
-    return useMemo(
-        () => ({
-            start,
-            projects,
-            contact,
-        }),
-        [start, projects, contact]
-    );
-};
-
 const Home: NextPage = ({ repos, initialPath }: PageProps) => {
-    const refs = useSectionRefs();
     const didMount = useDidMount();
     const { asPath } = useRouter();
 
@@ -88,17 +73,17 @@ const Home: NextPage = ({ repos, initialPath }: PageProps) => {
     useEffect(() => {
         if (currentSection === prevSection.current) return;
         prevSection.current = currentSection;
-        scrollToElement(refs[currentSection].current, 'smooth');
-    }, [didMount, refs, currentSection, scrollToElement]);
+        scrollToElement(document.querySelector(`#${currentSection}`), 'smooth');
+    }, [didMount, currentSection, scrollToElement]);
 
     return (
         <div className={styles.container}>
             <Head />
             <main className={styles.main}>
                 <Navigation />
-                <Start ref={refs.start} />
-                <Projects ref={refs.projects} repos={repos} />
-                <Contact ref={refs.contact} />
+                <Start />
+                <Projects repos={repos} />
+                <Contact />
             </main>
         </div>
     );
