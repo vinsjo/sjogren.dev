@@ -1,23 +1,16 @@
-import { atom, selector } from 'recoil';
+import { atom } from 'recoil';
 
 export type SectionName = 'start' | 'projects' | 'contact';
 export const sections: SectionName[] = ['start', 'projects', 'contact'];
+export const paths: Record<SectionName, string> = {
+    start: '/',
+    contact: '/contact',
+    projects: '/projects',
+};
 
-const sectionState = atom<SectionName | null>({
-    key: 'SectionState',
+const currentSectionState = atom<SectionName | null>({
+    key: 'CurrentSectionState',
     default: null,
-});
-
-const currentSectionState = selector({
-    key: 'SectionStateSelector',
-    get: ({ get }) => {
-        return get(sectionState);
-    },
-    set: ({ get, set }, section: SectionName) => {
-        const prev = get(sectionState);
-        if (prev === section || !sections.includes(section)) return;
-        set(sectionState, section);
-    },
 });
 
 export default currentSectionState;

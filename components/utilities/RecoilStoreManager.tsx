@@ -7,7 +7,7 @@ import {
     orientationState,
     screenOrientationState,
     deviceTypeState,
-    currentPathState,
+    windowScrollState,
 } from 'recoilStores';
 // import windowSizeState from '@recoil/windowSize';
 // import screenSizeState from '@recoil/screenSize';
@@ -23,32 +23,48 @@ import {
 import useMatchMedia from '@hooks/useMatchMedia';
 import useDidMount from '@hooks/useDidMount';
 
-const useCurrentPathEffect = () => {
-    const setCurrentPath = useSetRecoilState(currentPathState);
-    const { asPath } = useRouter();
-    useEffect(() => setCurrentPath(asPath), [asPath, setCurrentPath]);
-};
+// const useCurrentPathEffect = () => {
+//     const setCurrentPath = useSetRecoilState(currentPathState);
+//     const { asPath } = useRouter();
+//     useEffect(() => setCurrentPath(asPath), [asPath, setCurrentPath]);
+// };
 
-const useWindowSizeEffect = (didMount?: boolean) => {
-    const setWindowSize = useSetRecoilState(windowSizeState);
+const useWindowScrollEffect = () => {
+    const setWindowScroll = useSetRecoilState(windowScrollState);
     useEffect(() => {
-        if (didMount === false) return;
-        const updateWindowSize = () => setWindowSize(getWindowSize());
-        updateWindowSize();
-        window.addEventListener('resize', updateWindowSize);
-        return () => window.removeEventListener('resize', updateWindowSize);
-    }, [didMount, setWindowSize]);
+        const updateWindowScroll = () => {};
+    }, [setWindowScroll]);
 };
 
-const useScreenSizeEffect = (didMount?: boolean) => {
+const useWindowEffects = () => {
+    const setWindowScroll = useSetRecoilState(windowScrollState);
+    const [windowSize, setWindowSize] = useRecoilState(windowSizeState);
+    useEffect(() => {
+        const updateSize = () => setWindowSize(getWindowSize());
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, [setWindowSize]);
+    useEffect(() => {
+        const updateScroll = () => {
+            const { scrollX, scrollY } = window;
+            setWindowScroll({ scrollX, scrollY });
+        };
+        updateScroll();
+        window.addEventListener('scroll', updateScroll);
+        return () => window.removeEventListener('scroll', updateScroll);
+    }, [setWindowScroll, windowSize]);
+};
+
+const useScreenSizeEffect = () => {
     const setScreenSize = useSetRecoilState(screenSizeState);
     useEffect(() => {
-        if (didMount === false) return;
         setScreenSize(getScreenSize());
-    }, [didMount, setScreenSize]);
+    }, [setScreenSize]);
 };
 
-const useOrientationEffect = (didMount?: boolean) => {
+const useOrientationEffect = () => {
+    const didMount = useDidMount();
     const [orientation, setOrientation] = useRecoilState(orientationState);
     const setScreenOrientation = useSetRecoilState(screenOrientationState);
     const portrait = useMatchMedia(
@@ -56,7 +72,7 @@ const useOrientationEffect = (didMount?: boolean) => {
         orientation === 'portrait'
     );
     useEffect(() => {
-        if (didMount === false) return;
+        if (!didMount) return;
         const orientation = portrait ? 'portrait' : 'landscape';
         const screenOrientation = getScreenOrientation() || orientation;
         setOrientation(orientation);
@@ -72,12 +88,11 @@ const useDeviceTypeEffect = () => {
 };
 
 const RecoilStoreManager = () => {
-    const didMount = useDidMount();
-    useCurrentPathEffect();
+    // useCurrentPathEffect();
     useDeviceTypeEffect();
-    useWindowSizeEffect(didMount);
-    useScreenSizeEffect(didMount);
-    useOrientationEffect(didMount);
+    useWindowEffects();
+    useScreenSizeEffect();
+    useOrientationEffect();
 
     return null;
 };

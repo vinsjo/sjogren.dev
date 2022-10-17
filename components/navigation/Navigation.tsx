@@ -1,10 +1,9 @@
 import { classNames } from '@utils/react';
 import Link from 'next/link';
-import { useRecoilValue } from 'recoil';
 import styles from './Navigation.module.css';
-import currentPathState from '@recoil/currentPath';
-import type { SectionName } from '@recoil/sections';
 import { useMemo } from 'react';
+import { useRouter } from 'next/router';
+import type { SectionName } from '@recoil/sections';
 
 const links: { section: SectionName; href: string; text: string }[] = [
     { section: 'contact', href: '/contact', text: 'Contact' },
@@ -13,10 +12,10 @@ const links: { section: SectionName; href: string; text: string }[] = [
 ];
 
 const Navigation = () => {
-    const currentPath = useRecoilValue(currentPathState);
+    const { asPath } = useRouter();
     const visibleLinks = useMemo(
-        () => links.filter(({ href }) => href !== currentPath),
-        [currentPath]
+        () => links.filter(({ href }) => href !== asPath),
+        [asPath]
     );
     return (
         <>

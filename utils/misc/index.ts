@@ -220,17 +220,6 @@ export function getDeviceType(): DeviceType {
     return (type || null) as DeviceType;
 }
 
-export interface WindowScroll {
-    x: number;
-    y: number;
-}
-
-export function getWindowScroll(): WindowScroll {
-    if (!windowExists()) return { x: 0, y: 0 };
-    const { scrollX: x, scrollY: y } = window;
-    return { x, y };
-}
-
 export function replaceAtEnd(
     str: string,
     searchValue: string,

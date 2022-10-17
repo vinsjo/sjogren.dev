@@ -1,9 +1,14 @@
 import type { NextPage, GetServerSideProps } from 'next';
-import { useEffect, useMemo, useRef } from 'react';
-import { useRecoilValue } from 'recoil';
-
-import currentPathState from '@recoil/currentPath';
-import { sections, type SectionName } from '@recoil/sections';
+import { useRouter } from 'next/router';
+import {
+    MutableRefObject,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import { sections, paths, type SectionName } from '@recoil/sections';
 
 import Navigation from '@components/navigation/Navigation';
 import Head from '@components/Head';
@@ -11,86 +16,165 @@ import { Start, Projects, Contact } from '@components/sections';
 
 import { windowExists } from '@utils/misc';
 import { fetchRepos, type PartialRepo } from '@utils/api/github-api';
+import { useWindowScroll, useWindowSize } from '@hooks/recoil';
+import useDidMount from '@hooks/useDidMount';
 
 import styles from 'styles';
 
 interface PageProps {
     repos?: PartialRepo[];
+    initialPath?: string;
 }
 
-export const getServerSideProps: GetServerSideProps<PageProps> = async () => {
+const pathToSection = (path: string): SectionName => {
+    if (!path || path === '/') return 'start';
+    return sections.find((section) => {
+        return path.indexOf(section) === 1;
+    });
+};
+
+export const getServerSideProps: GetServerSideProps<PageProps> = async ({
+    req,
+    res,
+}) => {
+    res.setHeader(
+        'Cache-Control',
+        'public, max-age=1800, stale-while-revalidate=3600'
+    );
     const repos = await fetchRepos();
     return {
         props: {
             repos,
+            initialPath: req.url,
         },
     };
 };
 
-const scrollToSection = (
-    section: HTMLDivElement,
-    scrollBehavior?: ScrollBehavior
-) => {
-    if (!windowExists() || !section) return;
-    section.scrollIntoView({ behavior: scrollBehavior || 'auto' });
-};
-
-const pathToSection = (path: string) => {
-    if (!path) return null;
-    const section = path.split('/').filter((v) => v)[0] as
-        | SectionName
-        | undefined;
-    return !sections.includes(section) ? 'start' : section;
-};
-
-const Home: NextPage = ({ repos }: PageProps) => {
-    const currentPath = useRecoilValue(currentPathState);
-
-    const startRef = useRef<HTMLDivElement>();
-    const projectsRef = useRef<HTMLDivElement>();
-    const contactRef = useRef<HTMLDivElement>();
-
-    const currentSection = useMemo(
-        () => pathToSection(currentPath),
-        [currentPath]
+const useSectionRefs = () => {
+    const start = useRef<HTMLDivElement>();
+    const projects = useRef<HTMLDivElement>();
+    const contact = useRef<HTMLDivElement>();
+    return useMemo(
+        () => ({
+            start,
+            projects,
+            contact,
+        }),
+        [start, projects, contact]
     );
+};
 
-    const currentRef = useMemo(() => {
-        switch (currentSection) {
-            case 'projects':
-                return projectsRef;
-            case 'contact':
-                return contactRef;
-            default:
-                return startRef;
-        }
-    }, [currentSection]);
-
-    const prevRef = useRef(currentRef.current);
+const useIsScrolling = () => {
+    const { scrollY } = useWindowScroll();
+    const [isScrolling, setIsScrolling] = useState(false);
+    useEffect(() => {
+        setIsScrolling(true);
+    }, [scrollY]);
 
     useEffect(() => {
-        if (!currentRef.current || currentRef.current === prevRef.current) {
-            return;
+        if (!isScrolling) return;
+        const timeout = setTimeout(() => {
+            setIsScrolling(false);
+        }, 10);
+        return () => clearTimeout(timeout);
+    }, [scrollY, isScrolling]);
+
+    return isScrolling;
+};
+
+const Home: NextPage = ({ repos, initialPath }: PageProps) => {
+    const refs = useSectionRefs();
+    const didMount = useDidMount();
+    const isScrolling = useIsScrolling();
+    const { innerHeight } = useWindowSize();
+    const { asPath, push } = useRouter();
+
+    const [currentSection, setCurrentSection] = useState(
+        pathToSection(asPath) || 'start'
+    );
+    const [visibleSection, setVisibleSection] = useState(currentSection);
+    const prevPath = useRef(asPath);
+    const prevSection = useRef(currentSection);
+    const updatingPath = useRef(false);
+
+    const scrollToElement = useCallback(
+        async (element: Element, scrollBehavior?: ScrollBehavior) => {
+            if (!element) return;
+            element.scrollIntoView(
+                !scrollBehavior ? undefined : { behavior: scrollBehavior }
+            );
+        },
+        []
+    );
+
+    useEffect(() => {
+        if (didMount) return;
+        const section = pathToSection(initialPath);
+        if (!section || section === 'start') return;
+        scrollToElement(document.querySelector(`#${section}`));
+    }, [didMount, initialPath, scrollToElement]);
+
+    useEffect(() => {
+        if (prevPath.current === asPath) return;
+        prevPath.current = asPath;
+        setCurrentSection(pathToSection(asPath));
+    }, [asPath]);
+
+    useEffect(() => {
+        if (currentSection === prevSection.current) return;
+        prevSection.current = currentSection;
+        scrollToElement(refs[currentSection].current, 'smooth');
+    }, [didMount, refs, currentSection, scrollToElement]);
+
+    useEffect(() => {
+        if (!didMount || isScrolling) return;
+        if (Object.keys(refs).some((key) => !refs[key].current)) return;
+        const margin = innerHeight * 0.5;
+        const getBottomDistance = (element: HTMLElement) => {
+            const { top, height } = element.getBoundingClientRect();
+            return top + height;
+        };
+        let section: SectionName;
+        for (let i = 0; i < sections.length; i++) {
+            section = sections[i];
+            if (i >= sections.length - 1) break;
+            const toBottom = getBottomDistance(refs[section].current);
+            if (toBottom >= margin) break;
         }
-        scrollToSection(
-            currentRef.current,
-            !prevRef.current ? undefined : 'smooth'
-        );
-        prevRef.current = currentRef.current;
-    }, [currentRef]);
+        setVisibleSection(section);
+    }, [didMount, refs, isScrolling, innerHeight, asPath, push]);
 
-    // useEffect(() => {
-    //     console.log(windowScroll);
-    // }, [windowScroll]);
-
+    useEffect(() => {
+        if (!didMount || currentSection === visibleSection) return;
+        const path = paths[visibleSection];
+        if (asPath === path) return;
+        const controller = new AbortController();
+        new Promise((resolve, reject) => {
+            controller.signal.addEventListener('abort', () =>
+                reject('aborted')
+            );
+            updatingPath.current = true;
+            push(path, undefined, { shallow: true })
+                .then(resolve)
+                .catch((err) => reject(err));
+        })
+            .catch((err) => {
+                if (process.env.NODE_ENV === 'production') return;
+                console.error(err);
+            })
+            .finally(() => {
+                updatingPath.current = false;
+            });
+        return () => controller.abort();
+    }, [didMount, currentSection, visibleSection, push, asPath]);
     return (
         <div className={styles.container}>
             <Head />
             <main className={styles.main}>
                 <Navigation />
-                <Start ref={startRef} />
-                <Projects ref={projectsRef} repos={repos} />
-                <Contact ref={contactRef} />
+                <Start ref={refs.start} />
+                <Projects ref={refs.projects} repos={repos} />
+                <Contact ref={refs.contact} />
             </main>
         </div>
     );
