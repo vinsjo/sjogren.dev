@@ -113,7 +113,11 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
         const repos = await Promise.all(
             data
                 .filter((repo) => {
-                    return repo.description && repo.name !== 'vinsjo';
+                    return (
+                        repo.description &&
+                        repo.name !== 'vinsjo' &&
+                        !repo.topics?.includes('school-assignment')
+                    );
                 })
                 .map(async (repo) => {
                     const partial = pick(repo, ...repoPropKeys);
