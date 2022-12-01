@@ -176,15 +176,11 @@ async function fetchPackageJSON(repo: Repo) {
         return null;
     }
 }
-/**
- * @param storedMaxAge max age of stored json-file, in seconds
- */
-export async function fetchRepos(
-    storedMaxAge?: number
-): Promise<PartialRepo[]> {
+
+export async function fetchRepos(): Promise<PartialRepo[]> {
     try {
-        const storedRepos = await getReposFromFile(storedMaxAge);
-        if (storedRepos) return storedRepos;
+        // const storedRepos = await getReposFromFile(storedMaxAge);
+        // if (storedRepos) return storedRepos;
 
         const octokit = new Octokit({
             auth: process.env.GH_AUTH,

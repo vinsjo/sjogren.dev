@@ -32,7 +32,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
         'Cache-Control',
         `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge + 100}`
     );
-    const repos = await fetchRepos(maxAge);
+    const repos = await fetchRepos();
     return {
         props: {
             repos,
