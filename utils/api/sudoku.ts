@@ -33,9 +33,6 @@ export declare namespace Sudoku {
 
 const DATA_DIR = path.join(path.resolve(), 'data/sudoku');
 
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-}
 export const config: Sudoku.Config = {
     DATA_DIR,
     BOARD_CELLS: 9 * 9,
@@ -213,15 +210,23 @@ export async function createBoard(
             return { ...unsolved, [name]: board };
         }, {}) as Sudoku.Unsolved;
         const board: Sudoku.Response = { id: uuidv4(), solution, unsolved };
+
         if (writeToFile) {
-            const json = safeJSON.encode(board);
-            await fs.promises.writeFile(
-                path.join(config.DATA_DIR, `${board.id}.json`),
-                json,
-                {
-                    encoding: 'utf-8',
+            try {
+                if (!fs.existsSync(DATA_DIR)) {
+                    fs.mkdirSync(DATA_DIR, { recursive: true });
                 }
-            );
+                const json = safeJSON.encode(board);
+                await fs.promises.writeFile(
+                    path.join(config.DATA_DIR, `${board.id}.json`),
+                    json,
+                    {
+                        encoding: 'utf-8',
+                    }
+                );
+            } catch (err) {
+                console.error(err instanceof Error ? err.message : err);
+            }
         }
         return board;
     } catch (e) {
@@ -234,6 +239,7 @@ export async function getStoredBoard(
     id: string
 ): Promise<Sudoku.Response | null> {
     try {
+        if (!fs.existsSync(DATA_DIR)) return null;
         const jsonPath = path.join(config.DATA_DIR, `${id}.json`);
         if (!fs.existsSync(jsonPath)) return null;
         const data = await fs.promises.readFile(jsonPath, {
@@ -248,6 +254,7 @@ export async function getStoredBoard(
 
 export async function getAllBoards(): Promise<Sudoku.Response[]> {
     try {
+        if (!fs.existsSync(DATA_DIR)) return null;
         const files = await fs.promises.readdir(config.DATA_DIR);
         const boards = await Promise.all<null | Sudoku.Response>(
             files.map(async (file) => {

@@ -7,9 +7,6 @@ import { isArr, isNum, isObj, isStr, isUndef } from 'x-is-type';
 import safeJSON from 'safe-json-decode';
 
 const DATA_DIR = path.join(path.resolve(), 'data');
-if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR);
-}
 const JSON_PATH = path.join(DATA_DIR, 'gh_repos.json');
 
 export type Repo = Awaited<
@@ -135,6 +132,7 @@ async function getReposFromFile(storedMaxAge?: number) {
 
 async function writeReposToFile(repos: PartialRepo[]) {
     try {
+        if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
         const json = safeJSON.encode(repos);
         await fs.promises.writeFile(JSON_PATH, json, { encoding: 'utf-8' });
     } catch (err) {
@@ -179,7 +177,7 @@ async function fetchPackageJSON(repo: Repo) {
 
 export async function fetchRepos(): Promise<PartialRepo[]> {
     try {
-        // const storedRepos = await getReposFromFile(storedMaxAge);
+        // const storedRepos = await getReposFromFile();
         // if (storedRepos) return storedRepos;
 
         const octokit = new Octokit({
