@@ -1,4 +1,4 @@
-import { isArr, isNum, isObj } from 'x-is-type';
+import { isArr, isNum, isObj, isStr } from 'x-is-type';
 import UAParser from 'ua-parser-js';
 
 export function rand(max = 1, min = 0) {
@@ -240,7 +240,7 @@ export function formatURL(
     urlString: string,
     formatOptions?: Partial<FormatURLOptions>
 ) {
-    if (typeof urlString !== 'string') return null;
+    if (!isStr(urlString)) return null;
     try {
         const url = new URL(urlString);
         const options: FormatURLOptions = {
@@ -256,7 +256,7 @@ export function formatURL(
                 options[key] = formatOptions[key];
             });
         }
-        let output = replaceAtEnd(
+        const output = replaceAtEnd(
             ['protocol', 'hostname', 'pathname', 'search']
                 .map((key) => {
                     return !options[key] ? '' : url[key];
@@ -265,7 +265,7 @@ export function formatURL(
             '/',
             ''
         );
-        return !formatOptions.www ? output.replace('www.', '') : output;
+        return !options.www ? output.replace('www.', '') : output;
     } catch (e) {
         return null;
     }

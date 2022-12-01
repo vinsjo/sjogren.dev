@@ -120,12 +120,10 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
                     );
                 })
                 .map(async (repo) => {
-                    const partial = pick(
-                        repo.name === 'sjogren.dev'
-                            ? { ...repo, description: 'This website' }
-                            : repo,
-                        ...repoPropKeys
-                    );
+                    const partial = pick(repo, ...repoPropKeys);
+                    if (partial.name === 'sjogren.dev') {
+                        partial.description = 'This website';
+                    }
                     const pkg = await fetchPackageJSON(repo);
                     return { ...partial, package_name: pkg?.name || null };
                 })

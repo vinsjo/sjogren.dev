@@ -12,9 +12,7 @@ const RepoCard = ({
     language,
     homepage,
 }: PartialRepo) => {
-    const homepageDisplay = useMemo(() => {
-        return !homepage ? null : formatURL(homepage);
-    }, [homepage]);
+    const homepageOutput = useMemo(() => formatURL(homepage), [homepage]);
     return (
         <div className={styles.container}>
             <div className={styles.top}>
@@ -34,14 +32,14 @@ const RepoCard = ({
             </div>
             <div className={styles.bottom}>
                 <p className={styles.description}>{description}</p>
-                {homepage && homepageDisplay && (
+                {!!homepageOutput && (
                     <Link
                         className={styles.homepage}
                         href={homepage}
                         target="_blank"
-                        title={`View project demo at ${homepage}`}
+                        title={`View project at ${homepage}`}
                     >
-                        {homepageDisplay}
+                        {homepageOutput}
                     </Link>
                 )}
             </div>
