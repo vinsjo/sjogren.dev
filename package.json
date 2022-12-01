@@ -1,7 +1,13 @@
 {
-    "name": "sjogren.dev-nextjs",
+    "name": "sjogren.dev",
     "version": "0.1.0",
     "private": true,
+    "author": "Vincent Sjögren",
+    "homepage": "https://sjogren.dev",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/vinsjo/sjogren.dev"
+    },
     "scripts": {
         "dev": "next dev --hostname 0.0.0.0",
         "build": "next build",
@@ -38,7 +44,6 @@
         "eslint": "8.23.0",
         "eslint-config-next": "12.2.5",
         "husky": "^8.0.0",
-        "microbundle": "^0.15.1",
         "prettier": "^2.7.1",
         "pretty-quick": "^3.1.3"
     }
