@@ -1,13 +1,18 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import { isInt } from 'x-is-type';
+import { isArr, isInt, isObj, isStr } from 'x-is-type';
 import { v4 as uuidv4 } from 'uuid';
 import safeJSON from 'safe-json-decode';
-import { rand_int, shuffle_arr } from '@utils/misc';
+import {
+    cloneArrayRecursive,
+    objectEntries,
+    rand_int,
+    shuffle_arr,
+} from '@utils/misc';
 
 export declare namespace Sudoku {
-    export type Level = 'easy' | 'medium' | 'hard' | 'master';
-    export interface Config {
+    type Level = 'easy' | 'medium' | 'hard' | 'master';
+    interface Config {
         readonly DATA_DIR: string;
         readonly BOARD_CELLS: number;
         readonly EMPTY_VALUE: 0;
@@ -15,32 +20,11 @@ export declare namespace Sudoku {
         readonly STORAGE_LIMIT: number;
         readonly LEVELS: Record<Level, number>;
     }
-    export type EmptyValue = 0;
-    export type Value =
-        | Config['EMPTY_VALUE']
-        | 1
-        | 2
-        | 3
-        | 4
-        | 5
-        | 6
-        | 7
-        | 8
-        | 9;
-    export type Row = [
-        Value,
-        Value,
-        Value,
-        Value,
-        Value,
-        Value,
-        Value,
-        Value,
-        Value
-    ];
-    export type Board = [Row, Row, Row, Row, Row, Row, Row, Row, Row];
-    export type Unsolved = Record<Level, Board>;
-    export interface Response {
+    type Value = Config['EMPTY_VALUE'] | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+    type Row = [Value, Value, Value, Value, Value, Value, Value, Value, Value];
+    type Board = [Row, Row, Row, Row, Row, Row, Row, Row, Row];
+    type Unsolved = Record<Level, Board>;
+    interface Response {
         id: string;
         solution: Board;
         unsolved: Unsolved;
@@ -64,6 +48,32 @@ export const config: Sudoku.Config = {
         hard: 42,
         master: 52,
     },
+};
+
+export const isSudokuBoard = (data: unknown): data is Sudoku.Board => {
+    if (!isArr(data)) return false;
+    return (
+        data.length === 9 &&
+        data.every(
+            (row) =>
+                isArr(row) &&
+                row.length === 9 &&
+                row.every((value) => isInt(value) && value >= 0 && value <= 9)
+        )
+    );
+};
+
+export const isUnsolvedBoards = (data: unknown): data is Sudoku.Unsolved => {
+    if (!isObj(data)) return false;
+    return objectEntries(data).every(
+        ([key, value]) => key in config.LEVELS && isSudokuBoard(value)
+    );
+};
+
+export const isSudokuResponse = (data: unknown): data is Sudoku.Response => {
+    if (!isObj(data)) return false;
+    const { id, solution, unsolved } = data;
+    return isStr(id) && isSudokuBoard(solution) && isUnsolvedBoards(unsolved);
 };
 
 function getBoxMin(row: number, col: number) {
@@ -106,8 +116,8 @@ function isSafe(
     return true;
 }
 
-function cloneBoard(board: Sudoku.Board) {
-    return board.map((row) => [...row]) as Sudoku.Board;
+function cloneBoard(board: Sudoku.Board): Sudoku.Board {
+    return cloneArrayRecursive(board);
 }
 
 function nextEmptyCell(board: Sudoku.Board) {
@@ -132,7 +142,7 @@ function fillBoard(
     const cell = nextEmptyCell(board);
     if (!cell) return board;
     const { row, col } = cell;
-    const numbers = shuffle_arr([1, 2, 3, 4, 5, 6, 7, 8, 9]) as Sudoku.Value[];
+    const numbers: Sudoku.Value[] = shuffle_arr([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     for (let i = 0; i < board.length; i++) {
         counter++;
         if (counter > config.MAX_RECURSIONS)
@@ -155,6 +165,7 @@ function randomCell(board: Sudoku.Board) {
         value: board[row][col],
     };
 }
+
 async function unsolveBoard(solvedBoard: Sudoku.Board, emptyCells: number = 0) {
     if (!Array.isArray(solvedBoard)) return solvedBoard;
     let unsolved = cloneBoard(solvedBoard);
@@ -186,9 +197,11 @@ export async function createBaseBoard(
     }
 }
 
-export async function createBoard(solution?: Sudoku.Board) {
+export async function createBoard(
+    writeToFile = true
+): Promise<Sudoku.Response | null> {
     try {
-        if (!solution) solution = await createBaseBoard();
+        const solution = await createBaseBoard();
         const unsolvedEntries = (await Promise.all(
             Object.entries(config.LEVELS).map(async ([name, emptyCells]) => {
                 const unsolved = await unsolveBoard(solution, emptyCells);
@@ -199,55 +212,59 @@ export async function createBoard(solution?: Sudoku.Board) {
         const unsolved = unsolvedEntries.reduce((unsolved, [name, board]) => {
             return { ...unsolved, [name]: board };
         }, {}) as Sudoku.Unsolved;
-        return { id: uuidv4(), solution, unsolved } as Sudoku.Response;
+        const board: Sudoku.Response = { id: uuidv4(), solution, unsolved };
+        if (writeToFile) {
+            const json = safeJSON.encode(board);
+            await fs.promises.writeFile(
+                path.join(config.DATA_DIR, `${board.id}.json`),
+                json,
+                {
+                    encoding: 'utf-8',
+                }
+            );
+        }
+        return board;
     } catch (e) {
         console.error(e);
         return null;
     }
 }
 
-export function getStoredFiles() {
-    return fs.promises.readdir(config.DATA_DIR);
-}
-
-export async function getApiResponse(): Promise<Sudoku.Response> {
+export async function getStoredBoard(
+    id: string
+): Promise<Sudoku.Response | null> {
     try {
-        const files = await getStoredFiles();
-        if (files.length >= config.STORAGE_LIMIT) {
-            const file = files[rand_int(files.length)];
-            const json = await fs.promises.readFile(
-                path.join(config.DATA_DIR, file),
-                { encoding: 'utf-8' }
-            );
-            const board = safeJSON.decode(json);
-            if (!board) throw new Error('Failed reading board from JSON');
-            return board as Sudoku.Response;
-        }
-        const board = await createBoard();
-        if (!board) throw new Error('Failed creating board');
-        const json = safeJSON.encode(board);
-        if (json === null) {
-            throw new Error('Failed creating board');
-        }
-        await fs.promises.writeFile(
-            path.join(config.DATA_DIR, `${board.id}.json`),
-            json,
-            {
-                encoding: 'utf-8',
-            }
-        );
-        return board;
-    } catch (err: Error | unknown) {
-        console.error(err);
+        const jsonPath = path.join(config.DATA_DIR, `${id}.json`);
+        if (!fs.existsSync(jsonPath)) return null;
+        const data = await fs.promises.readFile(jsonPath, {
+            encoding: 'utf-8',
+        });
+        const board = safeJSON.decode(data);
+        return !isSudokuResponse(board) ? null : board;
+    } catch (err) {
         return null;
     }
 }
 
-export async function getStoredBoard(id: string) {
-    const jsonPath = path.join(config.DATA_DIR, `${id}.json`);
-    if (!fs.existsSync(jsonPath)) return null;
-    const data = await fs.promises.readFile(jsonPath, {
-        encoding: 'utf-8',
-    });
-    return safeJSON.decode(data);
+export async function getAllBoards(): Promise<Sudoku.Response[]> {
+    try {
+        const files = await fs.promises.readdir(config.DATA_DIR);
+        const boards = await Promise.all<null | Sudoku.Response>(
+            files.map(async (file) => {
+                try {
+                    const json = await fs.promises.readFile(
+                        path.join(config.DATA_DIR, file),
+                        { encoding: 'utf-8' }
+                    );
+                    const board = safeJSON.decode(json);
+                    return !isSudokuResponse(board) ? null : board;
+                } catch (err) {
+                    return null;
+                }
+            })
+        );
+        return boards.filter((b) => !!b);
+    } catch (err) {
+        return [];
+    }
 }
