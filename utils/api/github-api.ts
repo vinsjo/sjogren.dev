@@ -1,14 +1,19 @@
 import axios from 'axios';
 import { Octokit } from '@octokit/rest';
 import { pick } from '@utils/misc';
+import path from 'path';
+import fs from 'fs';
+import { isArr, isNum, isObj, isStr, isUndef } from 'x-is-type';
+import safeJSON from 'safe-json-decode';
 
-const octokit = new Octokit({
-    auth: process.env.GH_AUTH,
-    userAgent: process.env.GH_UA,
-});
+const DATA_DIR = path.join(path.resolve(), 'data');
+if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR);
+}
+const JSON_PATH = path.join(DATA_DIR, 'gh_repos.json');
 
 export type Repo = Awaited<
-    ReturnType<typeof octokit['rest']['repos']['listForAuthenticatedUser']>
+    ReturnType<Octokit['rest']['repos']['listForAuthenticatedUser']>
 >['data'][number] & { package_name?: string };
 
 export type Owner = Repo['owner'];
@@ -26,7 +31,6 @@ export type PartialRepo = Pick<
     | 'updated_at'
     | 'pushed_at'
     | 'language'
-    | 'license'
     | 'package_name'
     | 'homepage'
 >;
@@ -42,9 +46,43 @@ const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
     'updated_at',
     'pushed_at',
     'language',
-    'license',
     'homepage',
 ];
+
+const isPartialRepo = (data: unknown): data is PartialRepo => {
+    if (!isObj(data)) return false;
+    const {
+        id,
+        name,
+        full_name,
+        description,
+        url,
+        html_url,
+        created_at,
+        updated_at,
+        pushed_at,
+        language,
+        package_name,
+        homepage,
+    } = data;
+
+    return (
+        isNum(id) &&
+        [
+            name,
+            full_name,
+            description,
+            url,
+            html_url,
+            created_at,
+            updated_at,
+            pushed_at,
+            language,
+            homepage,
+        ].every(isStr) &&
+        (isStr(package_name) || isUndef(package_name))
+    );
+};
 
 interface PackageJSON {
     readonly name?: string;
@@ -65,6 +103,39 @@ interface PackageJSON {
     readonly devDependencies?: Record<string, string>;
     readonly dependencies?: Record<string, string>;
     readonly keywords?: string[];
+}
+
+/**
+ * @param storedMaxAge max age of stored json-file, in seconds
+ */
+async function getReposFromFile(storedMaxAge?: number) {
+    try {
+        if (!fs.existsSync(JSON_PATH)) return null;
+        if (isNum(storedMaxAge)) {
+            const { mtimeMs } = await fs.promises.stat(JSON_PATH);
+            if (Date.now() - mtimeMs > storedMaxAge * 1000) {
+                throw 'Stored repos is outdated';
+            }
+        }
+        const json = await fs.promises.readFile(JSON_PATH, {
+            encoding: 'utf-8',
+        });
+        const repos = safeJSON.decode(json);
+        if (!isArr(repos) || !repos.every(isPartialRepo)) return null;
+        return repos;
+    } catch (err) {
+        console.error(err instanceof Error ? err.message : err);
+        return null;
+    }
+}
+
+async function writeReposToFile(repos: PartialRepo[]) {
+    try {
+        const json = safeJSON.encode(repos);
+        await fs.promises.writeFile(JSON_PATH, json, { encoding: 'utf-8' });
+    } catch (err) {
+        console.error(err instanceof Error ? err.message : err);
+    }
 }
 
 function getPackageURL({ full_name, default_branch }: Repo) {
@@ -101,15 +172,27 @@ async function fetchPackageJSON(repo: Repo) {
         return null;
     }
 }
-
-export async function fetchRepos(): Promise<PartialRepo[]> {
+/**
+ * @param storedMaxAge max age of stored json-file, in seconds
+ */
+export async function fetchRepos(
+    storedMaxAge?: number
+): Promise<PartialRepo[]> {
     try {
+        const storedRepos = await getReposFromFile(storedMaxAge);
+        if (storedRepos) return storedRepos;
+
+        const octokit = new Octokit({
+            auth: process.env.GH_AUTH,
+            userAgent: process.env.GH_UA,
+        });
         const { data } = await octokit.rest.repos.listForAuthenticatedUser({
             visibility: 'public',
             affiliation: 'owner',
             sort: 'created',
             direction: 'desc',
         });
+
         const repos = await Promise.all(
             data
                 .filter((repo) => {
@@ -119,18 +202,22 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
                         !repo.topics?.includes('school-assignment')
                     );
                 })
-                .map(async (repo) => {
-                    const partial = pick(repo, ...repoPropKeys);
-                    if (partial.name === 'sjogren.dev') {
-                        partial.description = 'This website';
+                .map(async (fullRepo) => {
+                    const repo: PartialRepo = pick(fullRepo, ...repoPropKeys);
+                    if (repo.name === 'sjogren.dev') {
+                        repo.description = 'This website';
+                        delete repo.homepage;
                     }
-                    const pkg = await fetchPackageJSON(repo);
-                    return { ...partial, package_name: pkg?.name || null };
+                    const pkg = await fetchPackageJSON(fullRepo);
+                    if (pkg?.name) repo.package_name = pkg.name;
+                    return repo;
                 })
         );
-        return repos.sort((a, b) =>
+        repos.sort((a, b) =>
             a.name === 'sjogren.dev' ? 1 : b.name === 'sjogren.dev' ? -1 : 0
         );
+        await writeReposToFile(repos);
+        return repos;
     } catch (err: Error | any) {
         console.error(err);
         return [];

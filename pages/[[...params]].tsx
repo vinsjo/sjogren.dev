@@ -27,11 +27,12 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
     req,
     res,
 }) => {
+    const maxAge = 7200;
     res.setHeader(
         'Cache-Control',
-        'public, max-age=1800, stale-while-revalidate=3600'
+        `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge + 100}`
     );
-    const repos = await fetchRepos();
+    const repos = await fetchRepos(maxAge);
     return {
         props: {
             repos,
