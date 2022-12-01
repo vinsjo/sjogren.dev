@@ -112,9 +112,13 @@ async function getReposFromFile(storedMaxAge?: number) {
     try {
         if (!fs.existsSync(JSON_PATH)) return null;
         if (isNum(storedMaxAge)) {
-            const { mtimeMs } = await fs.promises.stat(JSON_PATH);
-            if (Date.now() - mtimeMs > storedMaxAge * 1000) {
-                throw 'Stored repos is outdated';
+            const mtimeMs = await new Promise<number>((resolve) => {
+                fs.stat(JSON_PATH, (err, stats) => {
+                    resolve(err ? 0 : stats.mtimeMs);
+                });
+            });
+            if (!mtimeMs || Date.now() - mtimeMs > storedMaxAge * 1000) {
+                return null;
             }
         }
         const json = await fs.promises.readFile(JSON_PATH, {
