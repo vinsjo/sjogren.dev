@@ -9,8 +9,14 @@ import { isNum } from 'x-is-type';
 
 type BlobProp = { position: Vector3; scale: Vector3 };
 
-const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
-    if (!cols || !rows || !isNum(rows, cols)) return [] as BlobProp[];
+const initBlobs = (
+    cols: number,
+    rows: number,
+    camera: PerspectiveCamera
+): BlobProp[] => {
+    if (!cols || !rows || ![cols, rows].every(isNum)) {
+        return [];
+    }
     const visible = visibleSizeAtZ(0, camera);
     const maxRad = Math.min(visible.x / cols / 2, visible.y / rows / 2);
     const radLimits = minmax(maxRad * 0.8, maxRad * 1.2);
@@ -38,7 +44,10 @@ const initBlobs = (cols: number, rows: number, camera: PerspectiveCamera) => {
     return blobs;
 };
 
-const fitBlobsInView = (blobs: BlobProp[], camera: PerspectiveCamera) => {
+const fitBlobsInView = (
+    blobs: BlobProp[],
+    camera: PerspectiveCamera
+): BlobProp[] => {
     const aspect = MathUtils.clamp(camera.aspect, 0.5, 1.2);
     const maxCover = 0.9;
     const center = v3(0, 0, 0);

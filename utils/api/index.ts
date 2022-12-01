@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
 
 export type middlewareResultHandler = (result: Error | any) => void;
 export type middleware = (
@@ -29,4 +29,23 @@ export function jsonErrorResponse(
     message: string
 ) {
     res.status(status).json({ error: message });
+}
+
+export function createApiHandler(handler: NextApiHandler): NextApiHandler {
+    return async (req, res) => {
+        const allowedMethods = res.getHeader('access-control-allow-methods');
+        if (
+            typeof allowedMethods === 'string' &&
+            req.method &&
+            !allowedMethods.includes(req.method)
+        ) {
+            return jsonErrorResponse(
+                res,
+                405,
+                `method '${req.method}' not allowed`
+            );
+        }
+        await handler(req, res);
+        if (!res.writableEnded) res.end();
+    };
 }

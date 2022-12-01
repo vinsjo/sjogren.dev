@@ -1,5 +1,5 @@
 import { Vector3, ShaderMaterial } from 'three';
-import { isObj, isNum } from 'x-is-type/callbacks';
+import { isObj, isNum } from 'x-is-type';
 import { minmax, isMinMax, cloneObjRecursive, rand, MinMax } from '@utils/misc';
 import {
     v3,

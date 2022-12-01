@@ -17,7 +17,6 @@ const Start = createSection(
         const { innerWidth, innerHeight } = useWindowSize();
         const maxSize = useMemo(() => {
             if (!mobile || !innerWidth || !innerHeight) return null;
-            console.log(innerWidth, innerHeight);
             return { maxWidth: innerWidth, maxHeight: innerHeight };
         }, [mobile, innerWidth, innerHeight]);
         const [loaded, setLoaded] = useState(false);

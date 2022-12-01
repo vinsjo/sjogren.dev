@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { default as NextHead } from 'next/head';
-import { isArr, isStr } from 'x-is-type/callbacks';
-import { isStr as allIsStr } from 'x-is-type';
+import { isStr } from 'x-is-type';
 
 const defaults = {
     title: 'sjogren.dev',
@@ -45,7 +44,7 @@ export interface HeadProps {
 const Head = (props: HeadProps) => {
     const keywords = useMemo(() => {
         return (
-            !isArr(props.keywords) || !allIsStr(...props.keywords)
+            !props.keywords
                 ? defaults.keywords
                 : [...new Set([...defaults.keywords, ...props.keywords])]
         ).join(', ');

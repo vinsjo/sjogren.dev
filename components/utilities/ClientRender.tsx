@@ -1,26 +1,24 @@
 import React, { Suspense } from 'react';
 import useDidMount from '@hooks/useDidMount';
 
-const ClientRender = ({
-    children,
-    fallback,
-    withSuspense,
-}: {
+type Props = {
     children: React.ReactNode;
     fallback?: React.ReactNode;
     withSuspense?: boolean;
-}) => {
+};
+
+const ClientRender = ({
+    children,
+    fallback = null,
+    withSuspense = false,
+}: Props) => {
     const didMount = useDidMount();
-    return (
+    return !withSuspense ? (
+        <>{!didMount ? fallback : children}</>
+    ) : (
         <>
-            {!didMount ? (
-                withSuspense ? null : (
-                    fallback || null
-                )
-            ) : withSuspense ? (
+            {!didMount ? null : (
                 <Suspense fallback={fallback}>{children}</Suspense>
-            ) : (
-                children
             )}
         </>
     );

@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { isFn } from 'x-is-type';
-function useMatchMedia(mediaQuery: string): boolean;
-function useMatchMedia(mediaQuery: string, initialState: boolean): boolean;
-function useMatchMedia<T>(
+function useMatchMedia(mediaQuery: string, initialState?: boolean): boolean;
+function useMatchMedia<T = boolean>(
     mediaQuery: string,
-    initialState: boolean,
-    outputCallback: (matches: boolean) => T
+    initialState?: boolean,
+    outputCallback?: (matches: boolean) => T
 ): T;
-function useMatchMedia(
+function useMatchMedia<T = boolean>(
     mediaQuery: string,
     initialState = false,
-    outputCallback?: <T>(matches: boolean) => T
+    outputCallback?: (matches: boolean) => T
 ) {
     const [matches, setMatches] = useState(initialState);
 
@@ -26,11 +25,7 @@ function useMatchMedia(
     }, [mediaQuery, handler]);
 
     return useMemo(() => {
-        return isFn(outputCallback) ? outputCallback(matches) : matches;
-    }, [matches, outputCallback]) as typeof outputCallback extends (
-        matches: boolean
-    ) => infer R
-        ? R
-        : boolean;
+        return !isFn(outputCallback) ? matches : outputCallback(matches);
+    }, [matches, outputCallback]);
 }
 export default useMatchMedia;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { isNum } from 'x-is-type/callbacks';
+import { isNum } from 'x-is-type';
 
 /**
  * inspired by:

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
-import { isNum } from 'x-is-type/callbacks';
+import { isNum } from 'x-is-type';
 import { pick } from '@utils/misc';
 import useRefreshRate from '@hooks/useRefreshRate';
 

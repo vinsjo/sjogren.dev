@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { isArr } from 'x-is-type/callbacks';
+import { isArr } from 'x-is-type';
 import { ResizeObserver as ObserverPolyfill } from '@juggle/resize-observer';
 import useMatchMedia from './useMatchMedia';
 import useElement from './useElement';
@@ -36,17 +36,14 @@ const useResizeObserver = <T extends HTMLElement>(
         const observer = new ResizeObserver(([entry]) => {
             if (!entry) return;
             let width: number, height: number;
-            if (!('contentBoxSize' in entry)) {
-                width = entry.contentRect.width;
-                height = entry.contentRect.height;
-            } else {
-                const cbs = entry.contentBoxSize;
-                const { inlineSize, blockSize } = (
-                    isArr(cbs) ? cbs[0] : cbs
-                ) as ResizeObserverSize;
-                width = inlineSize;
-                height = blockSize;
-            }
+            const cbs = entry.contentBoxSize;
+            const size = (isArr(cbs) ? cbs[0] : cbs) as ResizeObserverSize;
+            const { inlineSize, blockSize } = size || {
+                inlineSize: entry.contentRect.width,
+                blockSize: entry.contentRect.height,
+            };
+            width = inlineSize;
+            height = blockSize;
             updateSize(width, height);
         });
         observer.observe(element);

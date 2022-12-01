@@ -1,17 +1,18 @@
 import cors from 'cors';
 import { getApiResponse, getStoredBoard } from '@utils/api/sudoku';
-import { getParams, runMiddleWare, jsonErrorResponse } from '@utils/api';
-import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
+import {
+    createApiHandler,
+    getParams,
+    runMiddleWare,
+    jsonErrorResponse,
+} from '@utils/api';
 
-const handler: NextApiHandler = async (
-    req: NextApiRequest,
-    res: NextApiResponse
-) => {
+export default createApiHandler(async (req, res) => {
     try {
         await runMiddleWare(
             req,
             res,
-            cors({ methods: ['GET', 'HEAD'], origin: '*' })
+            cors({ methods: ['GET', 'HEAD', 'OPTIONS'], origin: '*' })
         );
         const params = getParams(req);
         if (!params[0]) {
@@ -44,6 +45,4 @@ const handler: NextApiHandler = async (
                 : 'Internal Server error'
         );
     }
-};
-
-export default handler;
+});

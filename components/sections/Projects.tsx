@@ -2,8 +2,6 @@ import { PartialRepo } from '@utils/api/github-api';
 import { createSection } from './Section';
 import RepoCard from '@components/cards/RepoCard';
 import styles from './Projects.module.css';
-import { classNames } from '@utils/react';
-import React from 'react';
 
 interface ProjectsProps {
     repos: PartialRepo[];

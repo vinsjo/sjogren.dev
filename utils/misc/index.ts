@@ -1,4 +1,4 @@
-import { isArr, isNum, isObj, isStr } from 'x-is-type/callbacks';
+import { isArr, isNum, isObj } from 'x-is-type';
 import UAParser from 'ua-parser-js';
 
 export function rand(max = 1, min = 0) {
@@ -19,6 +19,31 @@ export function shuffle_arr<T>(arr: T[]): T[] {
     }
     return arr;
 }
+
+export function objectKeys<
+    K extends keyof T,
+    T = Record<string | number | symbol, unknown>
+>(obj: T) {
+    if (!isObj(obj)) return [];
+    return Object.keys(obj) as K[];
+}
+
+export function objectEntries<
+    K extends keyof T,
+    T = Record<string | number | symbol, unknown>
+>(obj: T) {
+    if (!isObj(obj)) return [];
+    return Object.entries(obj) as [K, T[K]][];
+}
+
+export function objectValues<
+    K extends keyof T,
+    T = Record<string | number | symbol, unknown>
+>(obj: T) {
+    if (!isObj(obj)) return [];
+    return Object.values(obj) as T[K][];
+}
+
 /**
  * ternary operator function
  * if condition is true or is a function that returns true a is returned otherwise b is returned.
@@ -69,61 +94,45 @@ export function wh(width?: number, height?: number) {
 
 export type WH = ReturnType<typeof wh>;
 
-export function isWH<T = unknown>(x?: T) {
-    return (isObj(x) && isNum(x['width']) && isNum(x['height'])) as T extends {
-        width: number;
-        height: number;
-    }
-        ? true
-        : false;
+export function isWH(x: unknown): x is WH {
+    if (!isObj(x)) return false;
+    const { width, height } = x;
+    return [width, height].every(isNum);
 }
 
-export function cloneArrayRecursive(arr: any[]) {
+export function cloneArrayRecursive<T extends unknown[]>(arr: T): T {
     if (!isArr(arr)) return arr;
-    const clone = [...arr];
-    for (let i = 0; i < clone.length; i++) {
-        if (clone[i] === arr) {
-            clone[i] = clone;
-            continue;
-        }
-        if (isArr(clone[i])) {
-            clone[i] = cloneArrayRecursive(clone[i]);
-            continue;
-        }
-        if (isObj(clone[i])) {
-            clone[i] = cloneObjRecursive(clone[i]);
-            continue;
-        }
-    }
-    return clone;
+    return [...arr].map((value, i, clone) => {
+        if (value === arr) return clone;
+        if (isArr(value)) return cloneArrayRecursive(value);
+        if (isObj(value)) return cloneObjRecursive(value);
+        return value;
+    }) as T;
 }
 
-export function cloneObjRecursive<T extends Object>(obj: T): T {
-    if (!(obj instanceof Object)) return obj;
+export function cloneObjRecursive<
+    T extends Record<string | number | symbol, unknown>
+>(obj: T): T {
+    if (!isObj(obj)) return obj;
     const clone = { ...obj };
-    for (const key of Object.keys(clone)) {
-        if (clone[key] === obj) {
+    objectEntries(clone).forEach(([key, value]) => {
+        if (obj === value) {
             clone[key] === clone;
-            continue;
+        } else if (isArr(value)) {
+            clone[key] = cloneArrayRecursive(value);
+        } else if (isObj(value)) {
+            clone[key] = cloneObjRecursive(value);
         }
-        if (Array.isArray(clone[key])) {
-            clone[key] = cloneArrayRecursive(clone[key]);
-            continue;
-        }
-        if (clone[key] instanceof Object) {
-            clone[key] = cloneObjRecursive(clone[key]);
-            continue;
-        }
-    }
+    });
     return clone;
 }
 
 export function pick<
-    T extends Record<string | number | symbol, any>,
-    K extends keyof T
+    K extends keyof T,
+    T = Record<string | number | symbol, unknown>
 >(obj: T, ...keys: K[]) {
     return (
-        !(obj instanceof Object)
+        !isObj(obj)
             ? {}
             : keys.reduce((output, key) => {
                   if (!(key in obj)) return output;
@@ -133,11 +142,11 @@ export function pick<
 }
 
 export function omit<
-    T extends Record<string | number | symbol, any>,
-    K extends keyof T
+    K extends keyof T,
+    T = Record<string | number | symbol, unknown>
 >(obj: T, ...keys: K[]) {
     return (
-        !(obj instanceof Object)
+        !isObj(obj)
             ? {}
             : keys.reduce((output, key) => {
                   if (!(key in obj)) return output;
@@ -152,13 +161,9 @@ export function windowExists() {
 
 export function windowPropertyExists(...keys: string[]) {
     if (!windowExists()) return false;
-    let prev: any = window;
-    for (const key of keys) {
-        if (!(key in prev)) return false;
-        prev = prev[key];
-    }
-    return true;
+    return keys.every((key) => key in window);
 }
+
 export type WindowSize = {
     innerWidth: number;
     innerHeight: number;
@@ -166,36 +171,30 @@ export type WindowSize = {
     outerHeight: number;
 };
 export function getWindowSize(): WindowSize {
-    return !windowExists()
-        ? {
-              innerWidth: 0,
-              innerHeight: 0,
-              outerWidth: 0,
-              outerHeight: 0,
-          }
-        : pick(
-              window,
-              'innerWidth',
-              'innerHeight',
-              'outerWidth',
-              'outerHeight'
-          );
+    if (!windowExists()) {
+        return {
+            innerWidth: 0,
+            innerHeight: 0,
+            outerWidth: 0,
+            outerHeight: 0,
+        };
+    }
+    return pick(
+        window,
+        'innerWidth',
+        'innerHeight',
+        'outerWidth',
+        'outerHeight'
+    );
 }
-export function isWindowSize(size: WindowSize | Record<string, any>) {
-    if (!(size instanceof Object)) return false;
-    return (
-        [
-            'innerWidth',
-            'innerHeight',
-            'outerWidth',
-            'outerHeight',
-        ] as (keyof WindowSize)[]
-    ).every((key) => {
-        return key in size && isNum(size[key]);
-    });
+export function isWindowSize(size: unknown): size is WindowSize {
+    if (!isObj(size)) return false;
+    const { innerWidth, innerHeight, outerWidth, outerHeight } = size;
+    return [innerWidth, innerHeight, outerWidth, outerHeight].every(isNum);
 }
 
 export type ScreenSize = WH;
+
 export function getScreenSize(): ScreenSize {
     if (!windowExists()) return wh(0, 0);
     const { width, height } = window.screen;
@@ -232,35 +231,41 @@ export function replaceAtEnd(
     return str.slice(0, index) + replaceValue;
 }
 
-export type FormatURLOptions = Partial<
-    Record<'protocol' | 'hostname' | 'pathname' | 'search' | 'www', boolean>
+export type FormatURLOptions = Record<
+    'protocol' | 'hostname' | 'pathname' | 'search' | 'www',
+    boolean
 >;
 
-export function formatURL(urlString: string, options?: FormatURLOptions) {
+export function formatURL(
+    urlString: string,
+    formatOptions?: Partial<FormatURLOptions>
+) {
     if (typeof urlString !== 'string') return null;
-
     try {
         const url = new URL(urlString);
-        const defaultOptions: FormatURLOptions = {
+        const options: FormatURLOptions = {
             protocol: false,
             www: false,
             hostname: true,
             pathname: true,
             search: true,
         };
-        if (!(options instanceof Object)) options = defaultOptions;
-        else options = { ...defaultOptions, ...options };
+        if (isObj(formatOptions)) {
+            objectKeys(options).forEach((key) => {
+                if (!(key in formatOptions)) return;
+                options[key] = formatOptions[key];
+            });
+        }
         let output = replaceAtEnd(
             ['protocol', 'hostname', 'pathname', 'search']
                 .map((key) => {
-                    if (!options[key]) return '';
                     return !options[key] ? '' : url[key];
                 })
                 .join(''),
             '/',
             ''
         );
-        return !options.www ? output.replace('www.', '') : output;
+        return !formatOptions.www ? output.replace('www.', '') : output;
     } catch (e) {
         return null;
     }

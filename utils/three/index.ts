@@ -1,6 +1,5 @@
 import { PerspectiveCamera, Vector2, Vector3 } from 'three';
-import { isNum } from 'x-is-type';
-import { isObj } from 'x-is-type/callbacks';
+import { isNum, isObj } from 'x-is-type';
 import { rand, WH } from '@utils/misc';
 
 export type UniformV3 = {
@@ -21,24 +20,20 @@ export function v2(x?: number, y?: number) {
     return new Vector2(x, y);
 }
 /** Check if variable is a valid 2d vector */
-export function isV2<T = unknown>(v?: T) {
-    return (!!v &&
-        (v instanceof Vector2 ||
-            (isObj(v) && isNum(v['x'], v['y'])))) as typeof v extends V2
-        ? true
-        : false;
+export function isV2(v: unknown): v is V2 {
+    if (!isObj(v)) return false;
+    const { x, y } = v;
+    return [x, y].every(isNum);
 }
 /** Create Vector3 with equal x, y and z values */
 export function equalV3(xyz?: number) {
     return v3(xyz, xyz, xyz);
 }
 /** Check if variable is a valid 3d vector */
-export function isV3<T = unknown>(v?: T) {
-    return (!!v &&
-        (v instanceof Vector3 ||
-            (isObj(v) && isNum(v['x'], v['y'], v['z'])))) as typeof v extends V3
-        ? true
-        : false;
+export function isV3(v: unknown): v is V3 {
+    if (!isObj(v)) return false;
+    const { x, y, z } = v;
+    return [x, y, z].every(isNum);
 }
 
 export function maxV3(v: V3) {

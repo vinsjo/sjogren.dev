@@ -2,7 +2,7 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { SphereGeometry, ShaderMaterial, Mesh } from 'three';
 import { MeshProps, ThreeEvent, useFrame } from '@react-three/fiber';
-import { isNum } from 'x-is-type/callbacks';
+import { isNum } from 'x-is-type';
 import { blobShader, getRandomOptions } from './blob-shader';
 
 export type ShaderBlobProps = Omit<

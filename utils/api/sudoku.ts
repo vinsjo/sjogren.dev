@@ -85,7 +85,9 @@ function isSafe(
     col: number,
     num: Sudoku.Value
 ) {
-    if (!isInt(row, col)) throw `Invalid row or col: ${col}, ${row}`;
+    if (!isInt(row) || !isInt(col)) {
+        throw `Invalid row or col: ${col}, ${row}`;
+    }
     //Row Clash
     for (let c = 0; c < board.length; c++) {
         if (board[row][c] === num) return false;
