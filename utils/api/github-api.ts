@@ -32,6 +32,27 @@ export type PartialRepo = Pick<
     | 'homepage'
 >;
 
+interface PackageJSON {
+    readonly name?: string;
+    readonly version?: string;
+    readonly description?: string;
+    readonly author?: string;
+    readonly license?: string;
+    readonly repository?: Record<string, string>;
+    readonly type?: string;
+    readonly source?: string;
+    readonly main?: string;
+    readonly module?: string;
+    readonly types?: string;
+    readonly exports?: string;
+    readonly files?: string[];
+    readonly browserslist?: string[];
+    readonly scripts?: Record<string, string>;
+    readonly devDependencies?: Record<string, string>;
+    readonly dependencies?: Record<string, string>;
+    readonly keywords?: string[];
+}
+
 const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
     'id',
     'name',
@@ -81,69 +102,21 @@ const isPartialRepo = (data: unknown): data is PartialRepo => {
     );
 };
 
-interface PackageJSON {
-    readonly name?: string;
-    readonly version?: string;
-    readonly description?: string;
-    readonly author?: string;
-    readonly license?: string;
-    readonly repository?: Record<string, string>;
-    readonly type?: string;
-    readonly source?: string;
-    readonly main?: string;
-    readonly module?: string;
-    readonly types?: string;
-    readonly exports?: string;
-    readonly files?: string[];
-    readonly browserslist?: string[];
-    readonly scripts?: Record<string, string>;
-    readonly devDependencies?: Record<string, string>;
-    readonly dependencies?: Record<string, string>;
-    readonly keywords?: string[];
-}
-
-/**
- * @param storedMaxAge max age of stored json-file, in seconds
- */
-async function getReposFromFile(storedMaxAge?: number) {
-    try {
-        if (!fs.existsSync(JSON_PATH)) return null;
-        if (isNum(storedMaxAge)) {
-            const mtimeMs = await new Promise<number>((resolve) => {
-                fs.stat(JSON_PATH, (err, stats) => {
-                    resolve(err ? 0 : stats.mtimeMs);
-                });
-            });
-            if (!mtimeMs || Date.now() - mtimeMs > storedMaxAge * 1000) {
-                return null;
-            }
-        }
-        const json = await fs.promises.readFile(JSON_PATH, {
-            encoding: 'utf-8',
-        });
-        const repos = safeJSON.decode(json);
-        if (!isArr(repos) || !repos.every(isPartialRepo)) return null;
-        return repos;
-    } catch (err) {
-        console.error(err instanceof Error ? err.message : err);
-        return null;
-    }
-}
-
-async function writeReposToFile(repos: PartialRepo[]) {
-    try {
-        if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
-        const json = safeJSON.encode(repos);
-        await fs.promises.writeFile(JSON_PATH, json, { encoding: 'utf-8' });
-    } catch (err) {
-        console.error(err instanceof Error ? err.message : err);
-    }
-}
-
 function getPackageURL({ full_name, default_branch }: Repo) {
     return !full_name || !default_branch
         ? null
         : `https://raw.githubusercontent.com/${full_name}/${default_branch}/package.json`;
+}
+
+function filterRepos(repos: Repo[]) {
+    return repos.filter((repo) => {
+        return (
+            repo.description &&
+            /(\w+(\s)+){2,}\w+/.test(repo.description) &&
+            repo.name !== 'vinsjo' &&
+            !repo.topics?.includes('school-assignment')
+        );
+    });
 }
 
 async function fetchPackageJSON(repo: Repo) {
@@ -175,11 +148,38 @@ async function fetchPackageJSON(repo: Repo) {
     }
 }
 
+function getPartialRepos(repos: Repo[]): Promise<PartialRepo[]> {
+    return Promise.all(
+        repos
+            .filter((repo) => {
+                return (
+                    // Exclude repos missing description
+                    repo.description &&
+                    // Only include repos with at least three words
+                    /([\w.-@/!?&%]+(\s)+){2,}[\w.-@/!?&%]+/.test(
+                        repo.description
+                    ) &&
+                    // Exclude "profile repo"
+                    repo.name !== 'vinsjo' &&
+                    // Exclude school assignments
+                    !repo.topics?.includes('school-assignment')
+                );
+            })
+            .map(async (repo) => {
+                const partial: PartialRepo = pick(repo, ...repoPropKeys);
+                if (partial.name === 'sjogren.dev') {
+                    partial.description = 'This website';
+                    partial.homepage = partial.html_url;
+                }
+                const pkg = await fetchPackageJSON(repo);
+                if (pkg?.name) partial.package_name = pkg.name;
+                return partial;
+            })
+    );
+}
+
 export async function fetchRepos(): Promise<PartialRepo[]> {
     try {
-        // const storedRepos = await getReposFromFile();
-        // if (storedRepos) return storedRepos;
-
         const octokit = new Octokit({
             auth: process.env.GH_AUTH,
             userAgent: process.env.GH_UA,
@@ -190,32 +190,10 @@ export async function fetchRepos(): Promise<PartialRepo[]> {
             sort: 'created',
             direction: 'desc',
         });
-
-        const repos = await Promise.all(
-            data
-                .filter((repo) => {
-                    return (
-                        repo.description &&
-                        repo.name !== 'vinsjo' &&
-                        !repo.topics?.includes('school-assignment')
-                    );
-                })
-                .map(async (fullRepo) => {
-                    const repo: PartialRepo = pick(fullRepo, ...repoPropKeys);
-                    if (repo.name === 'sjogren.dev') {
-                        repo.description = 'This website';
-                        delete repo.homepage;
-                    }
-                    const pkg = await fetchPackageJSON(fullRepo);
-                    if (pkg?.name) repo.package_name = pkg.name;
-                    return repo;
-                })
-        );
-        repos.sort((a, b) =>
+        const repos = await getPartialRepos(data);
+        return repos.sort((a, b) =>
             a.name === 'sjogren.dev' ? 1 : b.name === 'sjogren.dev' ? -1 : 0
         );
-        await writeReposToFile(repos);
-        return repos;
     } catch (err: Error | any) {
         console.error(err);
         return [];
