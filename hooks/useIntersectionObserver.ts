@@ -25,7 +25,7 @@ const useIntersectionObserver = <T extends HTMLElement>(
     const [options, setOptions] = useState<IntersectionObserverInit>(
         observerOptions || defaultOptions
     );
-    const element = useElement(target);
+    const element = useElement<T>(target);
     const [entry, setEntry] = useState<IntersectionObserverEntry>();
     const [isSupported, setIsSupported] = useState(true);
     const [shouldExecute, setShouldExecute] = useState(true);
@@ -46,7 +46,7 @@ const useIntersectionObserver = <T extends HTMLElement>(
     }, [observerOptions]);
 
     useEffect(() => {
-        if (!shouldExecute) return;
+        if (!shouldExecute || !element) return;
         const observer = new IntersectionObserver(updateEntry, options);
         observer.observe(element);
         return () => observer.disconnect();

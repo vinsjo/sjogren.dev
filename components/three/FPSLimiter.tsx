@@ -3,23 +3,24 @@ import { useThree } from '@react-three/fiber';
 import { isNum } from 'x-is-type';
 
 import useRefreshRate from '@hooks/useRefreshRate';
-import { createSelectors } from '@utils/three/createSelectors';
+// import { createSelectors } from '@utils/three/createSelectors';
 
-const selectors = createSelectors(
-    'invalidate',
-    'clock',
-    'setFrameloop',
-    'frameloop'
-);
+// const selectors = createSelectors(
+//     'invalidate',
+//     'clock',
+//     'setFrameloop',
+//     'frameloop'
+// );
 
 /* based on: 
     https://github.com/pmndrs/react-three-fiber/discussions/667#discussioncomment-3026830
 */
 function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
-    const frameloop = useThree(selectors.frameloop);
-    const setFrameloop = useThree(selectors.setFrameloop);
-    const clock = useThree(selectors.clock);
-    const invalidate = useThree(selectors.invalidate);
+    const { frameloop, setFrameloop, clock, invalidate } = useThree();
+    // const frameloop = useThree(selectors.frameloop);
+    // const setFrameloop = useThree(selectors.setFrameloop);
+    // const clock = useThree(selectors.clock);
+    // const invalidate = useThree(selectors.invalidate);
 
     const maxFPS = useRefreshRate(500);
 
@@ -35,11 +36,14 @@ function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
 
     useEffect(() => {
         if (limit === null) return;
-        if (limit === 0) {
-            if (frameloop !== 'never') setFrameloop('never');
-            return;
+        if (typeof setFrameloop === 'function') {
+            if (limit === 0) {
+                if (frameloop !== 'never') setFrameloop?.('never');
+                return;
+            }
+            if (frameloop !== 'demand') setFrameloop?.('demand');
         }
-        if (frameloop !== 'demand') setFrameloop('demand');
+
         const interval = 1 / limit;
 
         let delta = 0;

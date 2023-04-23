@@ -26,10 +26,12 @@ const Navigation = () => {
                         )}
                         hidden={section === currentSection}
                     >
-                        <Link href={href} shallow={true}>
-                            <a className={classNames('title', styles.link)}>
-                                {text}
-                            </a>
+                        <Link
+                            href={href}
+                            shallow={true}
+                            className={classNames('title', styles.link)}
+                        >
+                            {text}
                         </Link>
                     </div>
                 );

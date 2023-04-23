@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import { Canvas, Props } from '@react-three/fiber';
-import { useIntersectionObserver } from 'usehooks-ts';
+// import { useIntersectionObserver } from 'usehooks-ts';
 import FPSLimiter from './FPSLimiter';
-// import useIntersectionObserver from '@hooks/useIntersectionObserver';
+import useIntersectionObserver from '@hooks/useIntersectionObserver';
 
 export type ThreeSceneProps = Props &
     React.HTMLAttributes<HTMLDivElement> & { fpsLimit?: number };
@@ -17,12 +17,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({
     ...props
 }: ThreeSceneProps) => {
     const canvasRef = useRef();
-    const entry = useIntersectionObserver(canvasRef, observerOptions);
+    const { isVisible } = useIntersectionObserver(canvasRef, observerOptions);
+
     return (
         <Canvas {...props} ref={canvasRef}>
-            <FPSLimiter limit={entry?.isIntersecting ? fpsLimit : 0}>
-                {children}
-            </FPSLimiter>
+            <FPSLimiter limit={isVisible ? fpsLimit : 0}>{children}</FPSLimiter>
         </Canvas>
     );
 };

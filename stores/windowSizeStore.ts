@@ -1,7 +1,8 @@
 import { WH, WindowSize, getScreenSize, getWindowSize } from '@utils/misc';
 import { createStoreSelectors } from '@utils/zustand/createStoreSelectors';
-import { isShallowEqual } from 'x-is-equal';
+
 import { create } from 'zustand';
+import { shallow } from 'zustand/shallow';
 
 export interface WindowSizeStore {
     windowSize: WindowSize;
@@ -15,17 +16,19 @@ export const useWindowSizeStore = create<WindowSizeStore>((set, get) => ({
     screenSize: getScreenSize(),
     setWindowSize: (windowSize) => {
         const prevSize = get().windowSize;
-        if (isShallowEqual(windowSize, prevSize)) return;
+        if (shallow(windowSize, prevSize)) return;
         set({ windowSize });
     },
     setScreenSize: (screenSize) => {
         const prevSize = get().screenSize;
-        if (isShallowEqual(screenSize, prevSize)) return;
+        if (shallow(screenSize, prevSize)) return;
         set({ screenSize });
     },
 }));
 
 export const selectors = createStoreSelectors(useWindowSizeStore);
 
-export const useWindowSize = () => useWindowSizeStore(selectors.windowSize);
-export const useScreenSize = () => useWindowSizeStore(selectors.screenSize);
+export const useWindowSize = () =>
+    useWindowSizeStore(selectors.windowSize, shallow);
+export const useScreenSize = () =>
+    useWindowSizeStore(selectors.screenSize, shallow);

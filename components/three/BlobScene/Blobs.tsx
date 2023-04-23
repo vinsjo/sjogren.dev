@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { isNum } from 'x-is-type';
 import { PerspectiveCamera, Vector3, MathUtils } from 'three';
 import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/three';
-import { WH, minmax, rand_neg } from '@utils/misc';
-import { useThree } from '@react-three/fiber';
+import { minmax, rand_neg } from '@utils/misc';
+import { RootState, useThree } from '@react-three/fiber';
+import { shallow } from 'zustand/shallow';
 import Blob from './Blob';
 
-import { WindowSizeStore, useWindowSizeStore } from 'stores/windowSizeStore';
-import { createSelectors } from '@utils/three/createSelectors';
+import { useScreenSize } from 'stores/windowSizeStore';
 
 type BlobProp = { position: Vector3; scale: Vector3 };
 
@@ -91,20 +91,16 @@ const fitBlobsInView = (
     });
 };
 
-const selectors = createSelectors('camera', 'size');
-
-const isEqualSize = (a: WH, b: WH) => {
-    return (['width', 'height'] satisfies Array<keyof WH>).every(
-        (key) => a[key] === b[key]
-    );
-};
-
-const screenSizeSelector = (state: WindowSizeStore) => state.screenSize;
+const selector = ({ size: { width, height }, camera }: RootState) => ({
+    width,
+    height,
+    camera: camera as PerspectiveCamera,
+});
 
 const Blobs = () => {
-    const screenSize = useWindowSizeStore(screenSizeSelector, isEqualSize);
-    const camera = useThree(selectors.camera) as PerspectiveCamera;
-    const { width, height } = useThree(selectors.size, isEqualSize);
+    const screenSize = useScreenSize();
+
+    const { width, height, camera } = useThree(selector, shallow);
 
     const [blobSize, setBlobSize] = useState(0);
     const [blobs, setBlobs] = useState<BlobProp[]>([]);
