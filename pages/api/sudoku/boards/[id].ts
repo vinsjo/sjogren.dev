@@ -1,4 +1,4 @@
-import { createApiHandler, jsonErrorResponse } from '@utils/api';
+import { createApiHandler } from '@utils/api';
 import ApiError from '@utils/api/ApiError';
 import { getStoredBoard } from '@utils/api/sudoku';
 import { isStr } from 'x-is-type';

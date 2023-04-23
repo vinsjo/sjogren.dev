@@ -9,7 +9,7 @@ export type middleware = (
     next: middlewareResultHandler
 ) => void;
 
-export function getParams(req: NextApiRequest, paramAlias: string = 'params') {
+export function getParams(req: NextApiRequest, paramAlias = 'params') {
     return req.query[paramAlias] || [];
 }
 

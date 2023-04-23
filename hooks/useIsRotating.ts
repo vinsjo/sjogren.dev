@@ -1,15 +1,21 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
-import windowSizeState from '@recoil/windowSize';
-import screenOrientationState from '@recoil/screenOrientation';
 import usePrev from '@hooks/usePrev';
 import useDebouncedEffect from '@hooks/useDebouncedEffect';
+import {
+    useWindowSizeStore,
+    selectors as windowSizeSelectors,
+} from 'stores/windowSizeStore';
+import {
+    useOrientationStore,
+    selectors as orientationSelectors,
+} from 'stores/orientationStore';
 
 export const useIsRotating = (rotationDuration = 500): boolean => {
     const [isRotating, setIsRotating] = useState(false);
 
-    const windowSize = useRecoilValue(windowSizeState);
-    const orientation = useRecoilValue(screenOrientationState);
+    const windowSize = useWindowSizeStore(windowSizeSelectors.windowSize);
+    const orientation = useOrientationStore(orientationSelectors.orientation);
+
     const prevWindowSize = usePrev(windowSize);
     const prevOrientation = usePrev(orientation);
 

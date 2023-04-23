@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { useUpdateEffect } from 'usehooks-ts';
 import { isNum } from 'x-is-type';
 
 /**
@@ -40,34 +41,27 @@ async function getAverageFPS(
 const MAX_STORED_MEASUREMENTS = 20;
 /**
  *
- * @param measurementLength How long each measurement should take, in milliseconds
+ * @param measurementDuration How long each measurement should take, in milliseconds
  * @param measurementCount Maximum amount of measurements, or undefined if measurements should continue indefinitely
  */
 const useRefreshRate = (
-    measurementLength = 1000,
+    measurementDuration = 1000,
     measurementCount?: number
 ) => {
     const [measurements, setMeasurements] = useState<number[]>([]);
     const [error, setError] = useState<Error | unknown | null>(null);
-    const execute = useMemo(() => {
-        return (
-            !error &&
-            (!measurementCount ||
-                (isNum(measurementCount) &&
-                    measurements.length < measurementCount))
-        );
-    }, [error, measurements, measurementCount]);
+    const [shouldExecute, setShouldExecute] = useState(true);
+    const [averageFPS, setAverageFPS] = useState(0);
 
     useEffect(() => {
-        if (!execute) return;
+        if (!shouldExecute) return;
         const controller = new AbortController();
-        getAverageFPS(measurementLength, controller)
-            .then((fps) => {
-                if (!fps || !isNum(fps) || !isFinite(fps)) return;
+        getAverageFPS(measurementDuration, controller)
+            .then((fps) =>
                 setMeasurements((prev) => {
                     return [...prev, fps].slice(MAX_STORED_MEASUREMENTS - 1);
-                });
-            })
+                })
+            )
             .catch((err) => {
                 if (err !== 'canceled') {
                     setError(err);
@@ -75,15 +69,27 @@ const useRefreshRate = (
                 }
             });
         return () => controller.abort();
-    }, [measurementLength, measurements, execute]);
+    }, [measurementDuration, measurements, shouldExecute]);
 
-    return useMemo(() => {
-        if (!measurements.length) return 0;
+    useUpdateEffect(
+        () =>
+            setShouldExecute(
+                !error &&
+                    (!measurementCount ||
+                        measurements.length < measurementCount)
+            ),
+        [error, measurementCount, measurements.length]
+    );
+
+    useUpdateEffect(() => {
         const sum = measurements.reduce((sum, fps) => sum + fps, 0);
-        if (!sum) return 0;
-        const avg = Math.round(sum / measurements.length);
-        return !avg || !isFinite(avg) || !isNum(avg) ? 0 : avg;
+        if (!sum) return;
+        const average = Math.round(sum / measurements.length);
+        if (!isFinite(average)) return;
+        setAverageFPS(average);
     }, [measurements]);
+
+    return averageFPS;
 };
 
 export default useRefreshRate;

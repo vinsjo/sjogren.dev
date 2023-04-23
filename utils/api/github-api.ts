@@ -1,13 +1,8 @@
 import axios from 'axios';
 import { Octokit } from '@octokit/rest';
 import { pick } from '@utils/misc';
-import path from 'path';
-import fs from 'fs';
-import { isArr, isNum, isObj, isStr, isUndef } from 'x-is-type';
-import safeJSON from 'safe-json-decode';
 
-const DATA_DIR = path.join(path.resolve(), 'data');
-const JSON_PATH = path.join(DATA_DIR, 'gh_repos.json');
+// import { isNum, isObj, isStr, isUndef } from 'x-is-type';
 
 export type Repo = Awaited<
     ReturnType<Octokit['rest']['repos']['listForAuthenticatedUser']>
@@ -67,40 +62,40 @@ const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
     'homepage',
 ];
 
-const isPartialRepo = (data: unknown): data is PartialRepo => {
-    if (!isObj(data)) return false;
-    const {
-        id,
-        name,
-        full_name,
-        description,
-        url,
-        html_url,
-        created_at,
-        updated_at,
-        pushed_at,
-        language,
-        package_name,
-        homepage,
-    } = data;
+// const isPartialRepo = (data: unknown): data is PartialRepo => {
+//     if (!isObj(data)) return false;
+//     const {
+//         id,
+//         name,
+//         full_name,
+//         description,
+//         url,
+//         html_url,
+//         created_at,
+//         updated_at,
+//         pushed_at,
+//         language,
+//         package_name,
+//         homepage,
+//     } = data;
 
-    return (
-        isNum(id) &&
-        [
-            name,
-            full_name,
-            description,
-            url,
-            html_url,
-            created_at,
-            updated_at,
-            pushed_at,
-            language,
-            homepage,
-        ].every(isStr) &&
-        (isStr(package_name) || isUndef(package_name))
-    );
-};
+//     return (
+//         isNum(id) &&
+//         [
+//             name,
+//             full_name,
+//             description,
+//             url,
+//             html_url,
+//             created_at,
+//             updated_at,
+//             pushed_at,
+//             language,
+//             homepage,
+//         ].every(isStr) &&
+//         (isStr(package_name) || isUndef(package_name))
+//     );
+// };
 
 function getPackageURL({ full_name, default_branch }: Repo) {
     return !full_name || !default_branch
@@ -108,16 +103,16 @@ function getPackageURL({ full_name, default_branch }: Repo) {
         : `https://raw.githubusercontent.com/${full_name}/${default_branch}/package.json`;
 }
 
-function filterRepos(repos: Repo[]) {
-    return repos.filter((repo) => {
-        return (
-            repo.description &&
-            /(\w+(\s)+){2,}\w+/.test(repo.description) &&
-            repo.name !== 'vinsjo' &&
-            !repo.topics?.includes('school-assignment')
-        );
-    });
-}
+// function filterRepos(repos: Repo[]) {
+//     return repos.filter((repo) => {
+//         return (
+//             repo.description &&
+//             /(\w+(\s)+){2,}\w+/.test(repo.description) &&
+//             repo.name !== 'vinsjo' &&
+//             !repo.topics?.includes('school-assignment')
+//         );
+//     });
+// }
 
 async function fetchPackageJSON(repo: Repo) {
     const url = getPackageURL(repo);

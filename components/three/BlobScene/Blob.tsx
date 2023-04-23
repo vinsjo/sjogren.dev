@@ -24,6 +24,7 @@ const ShaderBlob = ({
     ...meshProps
 }: ShaderBlobProps) => {
     const [options, setOptions] = useState(getRandomOptions);
+
     const randomize = useCallback(
         () => setOptions(getRandomOptions()),
         [setOptions]
@@ -63,7 +64,7 @@ const ShaderBlob = ({
     });
 
     useEffect(() => {
-        if (!randomRefresh || !isNum(randomRefresh)) return;
+        if (!randomRefresh) return;
         const timeout = setTimeout(
             () => randomize(),
             Math.floor(Math.random() * randomRefresh)
@@ -74,7 +75,7 @@ const ShaderBlob = ({
     return (
         <mesh
             ref={mesh}
-            scale={scale || options.mesh.scale}
+            scale={scale ?? options.mesh.scale}
             geometry={sphere.current}
             material={material}
             onClick={handleClick}

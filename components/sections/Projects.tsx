@@ -4,7 +4,7 @@ import RepoCard from '@components/cards/RepoCard';
 import styles from './Projects.module.css';
 
 interface ProjectsProps {
-    repos: PartialRepo[];
+    repos?: PartialRepo[];
 }
 
 const Projects = createSection(

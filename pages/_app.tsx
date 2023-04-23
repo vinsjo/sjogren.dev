@@ -1,13 +1,12 @@
-import RecoilStoreManager from '@components/utilities/RecoilStoreManager';
-import { RecoilRoot } from 'recoil';
+import StoreManager from '@components/utilities/StoreManager';
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
     return (
-        <RecoilRoot>
-            <RecoilStoreManager />
+        <>
+            <StoreManager />
             <Component {...pageProps} />
-        </RecoilRoot>
+        </>
     );
 }
 

@@ -1,12 +1,11 @@
+import React from 'react';
 import { HTMLProps, useEffect, useRef } from 'react';
 import { classNames } from '@utils/react';
 import styles from './Section.module.css';
-import type { SectionName } from '@recoil/sections';
-import React from 'react';
-import { useSetRecoilState } from 'recoil';
-import currentSectionState from '@recoil/sections';
+
 import useIntersectionObserver from '@hooks/useIntersectionObserver';
 import useDidMount from '@hooks/useDidMount';
+import { useSectionsStore, SectionName } from 'stores/sectionsStore';
 
 export type SectionProps = HTMLProps<HTMLDivElement> & { id: SectionName };
 
@@ -14,15 +13,16 @@ const observerOptions: IntersectionObserverInit = {
     threshold: 0.1,
 };
 
+const { setCurrentSection } = useSectionsStore.getState();
+
 const Section = ({ id, children, className, ...props }: SectionProps) => {
     const ref = useRef<HTMLDivElement>();
     const didMount = useDidMount();
-    const setCurrentSection = useSetRecoilState(currentSectionState);
     const { isVisible } = useIntersectionObserver(ref, observerOptions);
     useEffect(() => {
         if (!didMount || !isVisible) return;
         setCurrentSection(id);
-    }, [didMount, id, isVisible, setCurrentSection]);
+    }, [didMount, id, isVisible]);
     return (
         <section
             ref={ref}
@@ -35,18 +35,18 @@ const Section = ({ id, children, className, ...props }: SectionProps) => {
     );
 };
 
-export function createSection<P = {}>(
-    Component: (props: P) => JSX.Element,
+export function createSection<P = Record<string, never>>(
+    Component: React.FC<P>,
     sectionProps: SectionProps
-) {
+): React.FC<P> {
     // eslint-disable-next-line react/display-name
-    return React.forwardRef<HTMLDivElement, P>((props, ref) => {
+    return (props) => {
         return (
-            <Section {...sectionProps} ref={ref}>
+            <Section {...sectionProps}>
                 <Component {...props} />
             </Section>
         );
-    });
+    };
 }
 
 export default Section;

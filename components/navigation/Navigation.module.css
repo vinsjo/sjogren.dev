@@ -6,6 +6,10 @@
     z-index: 100;
 }
 
+.container.hidden {
+    visibility: hidden;
+}
+
 .link {
     font-weight: 600;
     text-transform: lowercase;

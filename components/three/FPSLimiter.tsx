@@ -1,24 +1,26 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useThree } from '@react-three/fiber';
 import { isNum } from 'x-is-type';
-import { pick } from '@utils/misc';
+
 import useRefreshRate from '@hooks/useRefreshRate';
+import { createSelectors } from '@utils/three/createSelectors';
+
+const selectors = createSelectors(
+    'invalidate',
+    'clock',
+    'setFrameloop',
+    'frameloop'
+);
 
 /* based on: 
     https://github.com/pmndrs/react-three-fiber/discussions/667#discussioncomment-3026830
 */
 function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
-    const state = useThree(
-        useCallback((state) => {
-            return pick(
-                state,
-                'invalidate',
-                'clock',
-                'setFrameloop',
-                'frameloop'
-            );
-        }, [])
-    );
+    const frameloop = useThree(selectors.frameloop);
+    const setFrameloop = useThree(selectors.setFrameloop);
+    const clock = useThree(selectors.clock);
+    const invalidate = useThree(selectors.invalidate);
+
     const maxFPS = useRefreshRate(500);
 
     const limit = useMemo<number | null>(() => {
@@ -34,24 +36,24 @@ function FPSLimiter(props: { limit?: number; children?: React.ReactNode }) {
     useEffect(() => {
         if (limit === null) return;
         if (limit === 0) {
-            if (state.frameloop !== 'never') state.setFrameloop('never');
+            if (frameloop !== 'never') setFrameloop('never');
             return;
         }
-        if (state.frameloop !== 'demand') state.setFrameloop('demand');
+        if (frameloop !== 'demand') setFrameloop('demand');
         const interval = 1 / limit;
 
         let delta = 0;
         let animationID = 0;
         function update() {
             animationID = requestAnimationFrame(update);
-            delta += state.clock.getDelta();
+            delta += clock.getDelta();
             if (delta <= interval) return;
-            state.invalidate();
+            invalidate();
             delta = delta % interval;
         }
         update();
         return () => cancelAnimationFrame(animationID);
-    }, [limit, state, props.children]);
+    }, [limit, frameloop, clock, invalidate, setFrameloop, props.children]);
 
     return !props.children ? null : <>{props.children}</>;
 }

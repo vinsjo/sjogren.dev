@@ -152,16 +152,16 @@ export function blobShader(options?: BlobShaderOptions | undefined) {
 }
 
 export function initUniforms(
-    options: BlobShaderOptions | undefined
+    options: Partial<BlobShaderOptions> = {}
 ): BlobUniforms {
     const opt = defaults.shaderOptions;
-    if (isObj(options)) {
-        if (isNum(options['alpha'])) opt.alpha = options['alpha'];
-        Object.keys(opt).forEach((key) => {
-            if (!isV3(options[key])) return;
-            opt[key] = options[key];
-        });
-    }
+    if (options.alpha) opt.alpha = options['alpha'];
+
+    Object.keys(opt).forEach((key) => {
+        if (!isV3(options[key])) return;
+        opt[key] = options[key];
+    });
+
     return {
         uTime: uValue(0.0),
         uAlpha: uValue(opt.alpha),
@@ -173,19 +173,20 @@ export function initUniforms(
     };
 }
 
-export function getRandomOptions(randomLimits?: RandomLimits): BlobOptions {
+export function getRandomOptions(
+    randomLimits: Partial<RandomLimits> = {}
+): BlobOptions {
     const defaultOptions = defaults.shaderOptions;
     const limits = defaults.randomLimits;
-    if (isObj(randomLimits)) {
-        Object.keys(limits).forEach((key) => {
-            if (!isObj(randomLimits[key])) return;
-            const section = randomLimits[key];
-            Object.keys(limits[key]).forEach((secKey) => {
-                if (!isMinMax(section[secKey])) return;
-                limits[key][secKey] = section[secKey];
-            });
+    Object.keys(limits).forEach((key) => {
+        if (!isObj(randomLimits[key])) return;
+        const section = randomLimits[key];
+        Object.keys(limits[key]).forEach((secKey) => {
+            if (!isMinMax(section[secKey])) return;
+            limits[key][secKey] = section[secKey];
         });
-    }
+    });
+
     return Object.entries(limits).reduce((output, [key, section]) => {
         return {
             ...output,

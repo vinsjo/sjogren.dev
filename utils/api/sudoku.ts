@@ -10,6 +10,7 @@ import {
     shuffle_arr,
 } from '@utils/misc';
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export declare namespace Sudoku {
     type Level = 'easy' | 'medium' | 'hard' | 'master';
     interface Config {
@@ -132,10 +133,7 @@ function createEmptyBoard(): Sudoku.Board {
         Array(9).fill(config.EMPTY_VALUE)
     ) as Sudoku.Board;
 }
-function fillBoard(
-    board: Sudoku.Board,
-    counter: number = 0
-): Sudoku.Board | false {
+function fillBoard(board: Sudoku.Board, counter = 0): Sudoku.Board | false {
     const cell = nextEmptyCell(board);
     if (!cell) return board;
     const { row, col } = cell;
@@ -145,7 +143,7 @@ function fillBoard(
         if (counter > config.MAX_RECURSIONS)
             throw 'Exceeded maximum recursions';
         if (!isSafe(board, row, col, numbers[i])) continue;
-        let clone = cloneBoard(board);
+        const clone = cloneBoard(board);
         clone[row][col] = numbers[i];
         const filled = fillBoard(clone, counter);
         if (!filled) continue;
@@ -163,7 +161,7 @@ function randomCell(board: Sudoku.Board) {
     };
 }
 
-async function unsolveBoard(solvedBoard: Sudoku.Board, emptyCells: number = 0) {
+async function unsolveBoard(solvedBoard: Sudoku.Board, emptyCells = 0) {
     if (!Array.isArray(solvedBoard)) return solvedBoard;
     let unsolved = cloneBoard(solvedBoard);
     let removedCount = 0;
@@ -180,8 +178,8 @@ async function unsolveBoard(solvedBoard: Sudoku.Board, emptyCells: number = 0) {
 }
 
 export async function createBaseBoard(
-    maxTries: number = 5,
-    tries: number = 1
+    maxTries = 5,
+    tries = 1
 ): Promise<Sudoku.Board> {
     try {
         const empty = createEmptyBoard();

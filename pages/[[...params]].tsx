@@ -1,7 +1,7 @@
 import type { NextPage, GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { sections, type SectionName } from '@recoil/sections';
+import { useEffect, useRef, useState } from 'react';
+import { sections, type SectionName } from 'stores/sectionsStore';
 
 import Navigation from '@components/navigation/Navigation';
 import Head from '@components/Head';
@@ -21,6 +21,13 @@ const pathToSection = (path: string): SectionName => {
     return sections.find((section) => {
         return path.indexOf(section) === 1;
     });
+};
+
+const scrollToElement = (element: Element, scrollBehavior?: ScrollBehavior) => {
+    if (!element) return;
+    element.scrollIntoView(
+        !scrollBehavior ? undefined : { behavior: scrollBehavior }
+    );
 };
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async ({
@@ -50,22 +57,12 @@ const Home: NextPage = ({ repos, initialPath }: PageProps) => {
     );
     const prevSection = useRef(currentSection);
 
-    const scrollToElement = useCallback(
-        async (element: Element, scrollBehavior?: ScrollBehavior) => {
-            if (!element) return;
-            element.scrollIntoView(
-                !scrollBehavior ? undefined : { behavior: scrollBehavior }
-            );
-        },
-        []
-    );
-
     useEffect(() => {
         if (didMount) return;
         const section = pathToSection(initialPath);
         if (!section || section === 'start') return;
         scrollToElement(document.querySelector(`#${section}`));
-    }, [didMount, initialPath, scrollToElement]);
+    }, [didMount, initialPath]);
 
     useEffect(() => {
         setCurrentSection(pathToSection(asPath));
@@ -75,7 +72,7 @@ const Home: NextPage = ({ repos, initialPath }: PageProps) => {
         if (currentSection === prevSection.current) return;
         prevSection.current = currentSection;
         scrollToElement(document.querySelector(`#${currentSection}`), 'smooth');
-    }, [didMount, currentSection, scrollToElement]);
+    }, [didMount, currentSection]);
 
     return (
         <div className={styles.container}>

@@ -1,9 +1,8 @@
 import { classNames } from '@utils/react';
 import Link from 'next/link';
 import styles from './Navigation.module.css';
-import { useMemo } from 'react';
-import currentSectionState, { paths, type SectionName } from '@recoil/sections';
-import { useRecoilValue } from 'recoil';
+
+import { SectionName, paths, useCurrentSection } from 'stores/sectionsStore';
 
 const links: { section: SectionName; href: string; text: string }[] = [
     { section: 'contact', href: paths.contact, text: 'Contact' },
@@ -12,21 +11,20 @@ const links: { section: SectionName; href: string; text: string }[] = [
 ];
 
 const Navigation = () => {
-    const currentSection = useRecoilValue(currentSectionState);
-    const visibleLinks = useMemo(
-        () => links.filter(({ section }) => section !== currentSection),
-        [currentSection]
-    );
+    const currentSection = useCurrentSection();
+
     return (
         <>
-            {visibleLinks.map(({ href, text, section }) => {
+            {links.map(({ href, text, section }) => {
                 return (
                     <div
                         key={`link-${section}`}
                         className={classNames(
                             styles.container,
-                            styles[section]
+                            styles[section],
+                            { hidden: section === currentSection }
                         )}
+                        hidden={section === currentSection}
                     >
                         <Link href={href} shallow={true}>
                             <a className={classNames('title', styles.link)}>

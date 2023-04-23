@@ -3,8 +3,9 @@ import { createSection } from './Section';
 import ClientRender from '@components/utilities/ClientRender';
 import { classNames } from '@utils/react';
 import dynamic from 'next/dynamic';
-import { useIsMobile, useWindowSize } from '@hooks/recoil';
+import { useIsMobile } from 'stores/deviceType';
 import styles from './Start.module.css';
+import { useWindowSize } from 'stores/windowSizeStore';
 
 const BlobScene = dynamic(() => import('@components/three/BlobScene'), {
     ssr: false,
@@ -13,12 +14,16 @@ const BlobScene = dynamic(() => import('@components/three/BlobScene'), {
 
 const Start = createSection(
     () => {
-        const mobile = useIsMobile();
         const { innerWidth, innerHeight } = useWindowSize();
-        const maxSize = useMemo(() => {
-            if (!mobile || !innerWidth || !innerHeight) return null;
+        const isMobile = useIsMobile();
+        const maxSize = useMemo<{
+            maxWidth: number;
+            maxHeight: number;
+        } | null>(() => {
+            if (!isMobile || !innerWidth || !innerHeight) return null;
             return { maxWidth: innerWidth, maxHeight: innerHeight };
-        }, [mobile, innerWidth, innerHeight]);
+        }, [isMobile, innerWidth, innerHeight]);
+
         const [loaded, setLoaded] = useState(false);
         return (
             <div className={styles.container} style={maxSize}>
@@ -31,11 +36,10 @@ const Start = createSection(
                     </h3>
                 </div>
                 <div
-                    className={classNames(
-                        styles['blob-container'],
-                        loaded && styles.loaded,
-                        mobile && styles.mobile
-                    )}
+                    className={classNames(styles['blob-container'], {
+                        [styles.loaded]: loaded,
+                        [styles.mobile]: isMobile,
+                    })}
                 >
                     <ClientRender withSuspense={true}>
                         <BlobScene onCreated={() => setLoaded(true)} />

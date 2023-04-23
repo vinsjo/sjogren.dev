@@ -3,6 +3,7 @@ import { compareState } from '@utils/react';
 import useElement from './useElement';
 import useDidMount from './useDidMount';
 import { windowExists } from '@utils/misc';
+import { useIsomorphicLayoutEffect, useUpdateEffect } from 'usehooks-ts';
 
 const defaultOptions: IntersectionObserverInit = {
     threshold: 0,
@@ -20,15 +21,14 @@ const useIntersectionObserver = <T extends HTMLElement>(
     freezeOnceVisible = false
 ) => {
     const didMount = useDidMount();
-    const isSupported = useMemo(() => {
-        return didMount && windowExists() && 'ResizeObserver' in window;
-    }, [didMount]);
 
     const [options, setOptions] = useState<IntersectionObserverInit>(
         observerOptions || defaultOptions
     );
     const element = useElement(target);
     const [entry, setEntry] = useState<IntersectionObserverEntry>();
+    const [isSupported, setIsSupported] = useState(true);
+    const [shouldExecute, setShouldExecute] = useState(true);
 
     const updateEntry = useCallback(([entry]: IntersectionObserverEntry[]) => {
         if (!entry) return;
@@ -40,25 +40,29 @@ const useIntersectionObserver = <T extends HTMLElement>(
         return !!entry && entry.isIntersecting;
     }, [entry, isSupported]);
 
-    const execute = useMemo(() => {
-        return isSupported && element && !(isVisible && freezeOnceVisible);
-    }, [isSupported, element, isVisible, freezeOnceVisible]);
-
     useEffect(() => {
         if (!(observerOptions instanceof Object)) return;
         setOptions((prev) => compareState(prev, observerOptions));
     }, [observerOptions]);
 
     useEffect(() => {
-        if (!execute) return;
+        if (!shouldExecute) return;
         const observer = new IntersectionObserver(updateEntry, options);
         observer.observe(element);
         return () => observer.disconnect();
-    }, [options, element, updateEntry, execute]);
+    }, [options, element, updateEntry, shouldExecute]);
 
-    return useMemo(() => {
-        return { entry, isVisible };
-    }, [isVisible, entry]);
+    useIsomorphicLayoutEffect(() => {
+        setIsSupported(windowExists() && 'ResizeObserver' in window);
+    }, [didMount]);
+
+    useUpdateEffect(() => {
+        setShouldExecute(
+            isSupported && element && (!isVisible || !freezeOnceVisible)
+        );
+    }, [isSupported, element, isVisible, freezeOnceVisible]);
+
+    return useMemo(() => ({ isVisible, entry }), [isVisible, entry]);
 };
 
 export default useIntersectionObserver;

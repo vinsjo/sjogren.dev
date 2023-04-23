@@ -1,4 +1,14 @@
 {
-    "extends": "next/core-web-vitals",
-    "rules": { "react/displayname": [0], "react/no-unknown-property": "off" }
+    "extends": [
+        "next/core-web-vitals",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
+    "rules": {
+        "react/displayname": [0],
+        "react/no-unknown-property": "off",
+        "no-console": ["error", { "allow": ["warn", "error"] }],
+        "@typescript-eslint/no-unused-vars": "error"
+    }
 }

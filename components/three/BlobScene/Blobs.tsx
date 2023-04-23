@@ -1,11 +1,13 @@
-import { useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { isNum } from 'x-is-type';
 import { PerspectiveCamera, Vector3, MathUtils } from 'three';
 import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/three';
-import { minmax, rand_neg } from '@utils/misc';
+import { WH, minmax, rand_neg } from '@utils/misc';
 import { useThree } from '@react-three/fiber';
-import { useScreenSize } from '@hooks/recoil';
 import Blob from './Blob';
-import { isNum } from 'x-is-type';
+
+import { WindowSizeStore, useWindowSizeStore } from 'stores/windowSizeStore';
+import { createSelectors } from '@utils/three/createSelectors';
 
 type BlobProp = { position: Vector3; scale: Vector3 };
 
@@ -54,6 +56,7 @@ const fitBlobsInView = (
     return blobs.map((blob) => {
         let s = blob.scale;
         let p = blob.position;
+        // eslint-disable-next-line prefer-const
         let { x, y, z } = p;
         const visible = visibleSizeAtZ(z, camera);
         const maxRadius = Math.max(s.x, s.y, s.z);
@@ -88,34 +91,50 @@ const fitBlobsInView = (
     });
 };
 
-const Blobs = () => {
-    const screenSize = useScreenSize();
-    const camera = useThree(
-        useCallback(({ camera }) => camera as PerspectiveCamera, [])
+const selectors = createSelectors('camera', 'size');
+
+const isEqualSize = (a: WH, b: WH) => {
+    return (['width', 'height'] satisfies Array<keyof WH>).every(
+        (key) => a[key] === b[key]
     );
-    const { width, height } = useThree(useCallback(({ size }) => size, []));
+};
 
-    const blobSize = useMemo(() => {
-        const { width, height } = screenSize;
-        if (!width || !height) return;
-        return Math.round(Math.max(width, height) / 5);
-    }, [screenSize]);
+const screenSizeSelector = (state: WindowSizeStore) => state.screenSize;
 
-    const [cols, rows] = useMemo(() => {
-        if (!width || !height || !blobSize) return [0, 0];
-        return [Math.ceil(width / blobSize), Math.ceil(height / blobSize)];
-    }, [width, height, blobSize]);
+const Blobs = () => {
+    const screenSize = useWindowSizeStore(screenSizeSelector, isEqualSize);
+    const camera = useThree(selectors.camera) as PerspectiveCamera;
+    const { width, height } = useThree(selectors.size, isEqualSize);
 
-    const blobs = useMemo(() => {
-        if (!rows || !cols) return [];
-        return initBlobs(cols, rows, camera);
-    }, [rows, cols, camera]);
+    const [blobSize, setBlobSize] = useState(0);
+    const [blobs, setBlobs] = useState<BlobProp[]>([]);
+    const [{ cols, rows }, setColsAndRows] = useState({ cols: 0, rows: 0 });
 
     const adjustedBlobs = useMemo(() => {
         if (!blobs.length) return [];
         return fitBlobsInView(blobs, camera);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [blobs, camera, width, height]);
+
+    useEffect(() => {
+        const { width, height } = screenSize;
+        if (!width || !height) return;
+        setBlobSize(Math.round(Math.max(width, height) / 5));
+    }, [screenSize]);
+
+    useEffect(() => {
+        if (!rows || !cols) return;
+        setBlobs(initBlobs(cols, rows, camera));
+    }, [cols, rows, camera]);
+
+    useEffect(() => {
+        if (!width || !height || !blobSize) return;
+        const cols = Math.ceil(width / blobSize);
+        const rows = Math.ceil(height / blobSize);
+        setColsAndRows((prev) =>
+            prev.cols === cols && prev.rows === rows ? prev : { cols, rows }
+        );
+    }, [width, height, blobSize]);
 
     return (
         <group>

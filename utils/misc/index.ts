@@ -1,4 +1,4 @@
-import { isArr, isNum, isObj, isStr } from 'x-is-type';
+import { isArr, isNum, isObj } from 'x-is-type';
 import UAParser from 'ua-parser-js';
 
 export function rand(max = 1, min = 0) {
@@ -85,14 +85,17 @@ export function isMinMax<T = unknown>(x?: T) {
         : false;
 }
 
-export function wh(width?: number, height?: number) {
+export interface WH {
+    width: number;
+    height: number;
+}
+
+export function wh(width?: number, height?: number): WH {
     return {
         width: isNum(width) ? width : 0,
         height: isNum(height) ? height : 0,
     };
 }
-
-export type WH = ReturnType<typeof wh>;
 
 export function isWH(x: unknown): x is WH {
     if (!isObj(x)) return false;
@@ -138,7 +141,7 @@ export function pick<
                   if (!(key in obj)) return output;
                   return { ...output, [key]: obj[key] };
               }, {})
-    ) as Pick<T, typeof keys[number]>;
+    ) as Pick<T, (typeof keys)[number]>;
 }
 
 export function omit<
@@ -152,7 +155,7 @@ export function omit<
                   if (!(key in obj)) return output;
                   return { ...output, [key]: obj[key] };
               }, {})
-    ) as Omit<T, typeof keys[number]>;
+    ) as Omit<T, (typeof keys)[number]>;
 }
 
 export function windowExists() {
@@ -201,7 +204,7 @@ export function getScreenSize(): ScreenSize {
     return wh(width, height);
 }
 
-export function getScreenOrientation(): null | OrientationType {
+export function getScreenOrientation(): OrientationType | null {
     if (!windowPropertyExists('screen', 'orientation', 'type')) return null;
     return window.screen.orientation.type;
 }
@@ -237,25 +240,23 @@ export type FormatURLOptions = Record<
 >;
 
 export function formatURL(
-    urlString: string,
-    formatOptions?: Partial<FormatURLOptions>
+    urlString?: string,
+    formatOptions: Partial<FormatURLOptions> = {}
 ) {
-    if (!isStr(urlString)) return null;
+    if (!urlString) return null;
     try {
         const url = new URL(urlString);
-        const options: FormatURLOptions = {
-            protocol: false,
-            www: false,
-            hostname: true,
-            pathname: true,
-            search: true,
-        };
-        if (isObj(formatOptions)) {
-            objectKeys(options).forEach((key) => {
-                if (!(key in formatOptions)) return;
-                options[key] = formatOptions[key];
-            });
-        }
+        const options: FormatURLOptions = Object.assign(
+            {
+                protocol: false,
+                www: false,
+                hostname: true,
+                pathname: true,
+                search: true,
+            },
+            formatOptions
+        );
+
         const output = replaceAtEnd(
             ['protocol', 'hostname', 'pathname', 'search']
                 .map((key) => {

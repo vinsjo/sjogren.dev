@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useThree } from '@react-three/fiber';
+import { RootState, useThree } from '@react-three/fiber';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 export type OrbitControllerOptions = {
@@ -29,20 +29,29 @@ export type OrbitControllerOptions = {
     minZoom?: number;
 };
 
-const OrbitController = (props: { options: OrbitControllerOptions }) => {
-    const { options } = props;
-    const { camera, gl } = useThree();
+interface Props {
+    options: OrbitControllerOptions;
+}
+
+const cameraSelector = (state: RootState) => state.camera;
+const glElementSelector = (state: RootState) => state.gl.domElement;
+
+const OrbitController: React.FC<Props> = ({ options }) => {
+    const camera = useThree(cameraSelector);
+
+    const domElement = useThree(glElementSelector);
 
     useEffect(() => {
-        const controls = new OrbitControls(camera, gl.domElement);
-        Object.entries(options).forEach(([key, value]) => {
-            if (controls[key] === undefined) return;
-            controls[key] = value;
-        });
+        const controls = new OrbitControls(camera, domElement);
+        Object.entries(options)
+            .filter(([key]) => key in controls)
+            .forEach(([key, value]) => {
+                controls[key] = value;
+            });
         return () => controls.dispose();
-    }, [options, camera, gl]);
+    }, [options, camera, domElement]);
 
-    return null;
+    return <></>;
 };
 
 export default OrbitController;
