@@ -157,7 +157,8 @@ function getPartialRepos(repos: Repo[]): Promise<PartialRepo[]> {
                     // Exclude "profile repo"
                     repo.name !== 'vinsjo' &&
                     // Exclude school assignments
-                    !repo.topics?.includes('school-assignment')
+                    !repo.topics?.includes('school-assignment') &&
+                    !repo.fork
                 );
             })
             .map(async (repo) => {
