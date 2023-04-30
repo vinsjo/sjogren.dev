@@ -1,31 +1,48 @@
-import { createStoreSelectors } from '@utils/zustand/createStoreSelectors';
 import { create } from 'zustand';
+import { shallow } from 'zustand/shallow';
+import { createStoreSelectors } from '@utils/zustand/createStoreSelectors';
+import { windowExists } from '@utils/misc';
 
-export type SectionName = 'start' | 'projects' | 'contact';
-export const sections: SectionName[] = ['start', 'projects', 'contact'];
-export const paths: Record<SectionName, string> = {
-    start: '/',
-    contact: '/contact',
-    projects: '/projects',
-};
+export enum SectionName {
+    Start = 'start',
+    Projects = 'projects',
+    Contact = 'contact',
+}
 
-export interface SectionStore {
-    currentSection: SectionName;
-    currentPath: string;
-    setCurrentSection: (section: SectionName) => void;
+export const sections = Object.values(SectionName);
+
+export const sectionPaths = {
+    [SectionName.Start]: '/',
+    [SectionName.Contact]: '/contact',
+    [SectionName.Projects]: '/projects',
+} satisfies Record<SectionName, string>;
+
+export interface SectionStore extends Record<SectionName, boolean> {
+    setVisible: (section: SectionName, visible?: boolean) => void;
 }
 
 export const useSectionsStore = create<SectionStore>((set, get) => ({
-    currentSection: 'start',
-    currentPath: paths['start'],
-    setCurrentSection: (currentSection) => {
-        if (get().currentSection === currentSection) return;
-        set({ currentSection, currentPath: paths[currentSection] });
+    [SectionName.Start]: false,
+    [SectionName.Projects]: false,
+    [SectionName.Contact]: false,
+    currentSection: SectionName.Start,
+    setVisible: (section, visible = true) => {
+        if (get()[section] === visible) return;
+        set({ [section]: visible });
+        if (visible === true && windowExists()) {
+            window.location.hash =
+                section === SectionName.Start ? '' : `#${section}`;
+        }
     },
 }));
 
 export const selectors = createStoreSelectors(useSectionsStore);
 
-export const useCurrentSection = () =>
-    useSectionsStore(selectors.currentSection);
-export const useCurrentPath = () => useSectionsStore(selectors.currentPath);
+const visibleSectionsSelector = (state: SectionStore) => {
+    const visibleSections = {} as Record<SectionName, boolean>;
+    sections.forEach((section) => (visibleSections[section] = state[section]));
+    return visibleSections;
+};
+
+export const useVisibleSections = () =>
+    useSectionsStore(visibleSectionsSelector, shallow);

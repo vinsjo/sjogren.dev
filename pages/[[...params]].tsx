@@ -1,37 +1,26 @@
 import type { NextPage, GetServerSideProps } from 'next';
-import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
-import { sections, type SectionName } from 'stores/sectionsStore';
 
 import Navigation from '@components/navigation/Navigation';
 import Head from '@components/Head';
 import { Start, Projects, Contact } from '@components/sections';
 import { fetchRepos, type PartialRepo } from '@utils/api/github-api';
-import useDidMount from '@hooks/useDidMount';
 
 import styles from 'styles';
 
 interface PageProps {
-    repos?: PartialRepo[];
-    initialPath?: string;
+    repos: PartialRepo[];
 }
 
-const pathToSection = (path: string): SectionName => {
-    if (!path || path === '/') return 'start';
-    return sections.find((section) => {
-        return path.indexOf(section) === 1;
-    });
-};
+// const getSectionFromPath = (path: string): SectionName | undefined => {
+//     const trimmed = path.split('/').filter(Boolean)[0]?.trim();
+//     return sections.find((name) => name === trimmed);
+// };
 
-const scrollToElement = (element: Element, scrollBehavior?: ScrollBehavior) => {
-    if (!element) return;
-    element.scrollIntoView(
-        !scrollBehavior ? undefined : { behavior: scrollBehavior }
-    );
-};
+// const scrollToElement = (element: Element, smooth = false) => {
+//     element?.scrollIntoView(!smooth ? undefined : { behavior: 'smooth' });
+// };
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async ({
-    req,
     res,
 }) => {
     const maxAge = 7200;
@@ -42,38 +31,12 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
     const repos = await fetchRepos();
     return {
         props: {
-            repos,
-            initialPath: req.url,
+            repos: repos ?? [],
         },
     };
 };
 
-const Home: NextPage = ({ repos, initialPath }: PageProps) => {
-    const didMount = useDidMount();
-    const { asPath } = useRouter();
-
-    const [currentSection, setCurrentSection] = useState(
-        pathToSection(asPath) || 'start'
-    );
-    const prevSection = useRef(currentSection);
-
-    useEffect(() => {
-        if (didMount) return;
-        const section = pathToSection(initialPath);
-        if (!section || section === 'start') return;
-        scrollToElement(document.querySelector(`#${section}`));
-    }, [didMount, initialPath]);
-
-    useEffect(() => {
-        setCurrentSection(pathToSection(asPath));
-    }, [asPath]);
-
-    useEffect(() => {
-        if (currentSection === prevSection.current) return;
-        prevSection.current = currentSection;
-        scrollToElement(document.querySelector(`#${currentSection}`), 'smooth');
-    }, [didMount, currentSection]);
-
+const Home: NextPage = ({ repos }: PageProps) => {
     return (
         <div className={styles.container}>
             <Head />

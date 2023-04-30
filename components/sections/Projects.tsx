@@ -2,6 +2,7 @@ import { PartialRepo } from '@utils/api/github-api';
 import { createSection } from './Section';
 import RepoCard from '@components/cards/RepoCard';
 import styles from './Projects.module.css';
+import { SectionName } from 'stores/sectionsStore';
 
 interface ProjectsProps {
     repos?: PartialRepo[];
@@ -20,7 +21,7 @@ const Projects = createSection(
             </>
         );
     },
-    { id: 'projects', className: styles.section }
+    { id: SectionName.Projects, className: styles.section }
 );
 
 export default Projects;

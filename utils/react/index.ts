@@ -15,9 +15,7 @@ export function classNames(...names: unknown[]) {
     names.filter(Boolean).forEach((value) => {
         if (isStr(value)) return output.add(value);
         if (isObj(value)) {
-            Object.keys(value)
-                .filter((key) => value[key])
-                .forEach((key) => output.add(key));
+            Object.keys(value).forEach((key) => value[key] && output.add(key));
         }
     });
     return [...output].join(' ');
