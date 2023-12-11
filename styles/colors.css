@@ -1,11 +1,11 @@
 :root {
-    --pink: #fae3da;
-    --red: #c8151e;
-    --light-gray: rgb(180, 180, 180);
-    --dark-gray: rgb(80, 80, 80);
-    --translucent: rgba(255, 255, 255, 0.05);
-    --body-bg: var(--light-gray);
-    --text-color: white;
+  --pink: #fae3da;
+  --red: #c8151e;
+  --light-gray: rgb(180, 180, 180);
+  --dark-gray: rgb(80, 80, 80);
+  --translucent: rgba(255, 255, 255, 0.05);
+  --body-bg: var(--light-gray);
+  --text-color: white;
 }
 
 /* @media (prefers-color-scheme: dark) {

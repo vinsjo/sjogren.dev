@@ -2,5 +2,5 @@
 import { createApiHandler } from '@utils/api';
 
 export default createApiHandler((req, res) => {
-    res.status(200).json({ endpoints: ['/sudoku'] });
+  res.status(200).json({ endpoints: ['/sudoku'] });
 });

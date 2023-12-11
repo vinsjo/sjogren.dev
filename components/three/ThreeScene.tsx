@@ -5,25 +5,25 @@ import FPSLimiter from './FPSLimiter';
 import useIntersectionObserver from '@hooks/useIntersectionObserver';
 
 export type ThreeSceneProps = Props &
-    React.HTMLAttributes<HTMLDivElement> & { fpsLimit?: number };
+  React.HTMLAttributes<HTMLDivElement> & { fpsLimit?: number };
 
 const observerOptions: IntersectionObserverInit = {
-    threshold: 0.1,
+  threshold: 0.1,
 };
 
 const ThreeScene: React.FC<ThreeSceneProps> = ({
-    children,
-    fpsLimit,
-    ...props
+  children,
+  fpsLimit,
+  ...props
 }: ThreeSceneProps) => {
-    const canvasRef = useRef();
-    const { isVisible } = useIntersectionObserver(canvasRef, observerOptions);
+  const canvasRef = useRef();
+  const { isVisible } = useIntersectionObserver(canvasRef, observerOptions);
 
-    return (
-        <Canvas {...props} ref={canvasRef}>
-            <FPSLimiter limit={isVisible ? fpsLimit : 0}>{children}</FPSLimiter>
-        </Canvas>
-    );
+  return (
+    <Canvas {...props} ref={canvasRef}>
+      <FPSLimiter limit={isVisible ? fpsLimit : 0}>{children}</FPSLimiter>
+    </Canvas>
+  );
 };
 
 export default ThreeScene;

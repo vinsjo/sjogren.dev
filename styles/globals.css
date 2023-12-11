@@ -2,68 +2,68 @@
 @import 'colors.css';
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html,
 body {
-    overflow-x: hidden;
-    scroll-behavior: smooth;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
-    color: var(--text-color);
-    background-color: var(--body-bg);
-    width: 100%;
-    font-family: var(--main-font);
+  color: var(--text-color);
+  background-color: var(--body-bg);
+  width: 100%;
+  font-family: var(--main-font);
 }
 
 button:not(:disabled),
 a {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 a {
-    --hover-transform: none;
-    --hover-opacity: 0.8;
-    --transition-duration: 0.1s;
-    --transition-timing-function: ease;
-    cursor: pointer;
-    color: inherit;
-    transition-property: opacity, transform;
-    transition-duration: var(--transition-duration);
-    transition-timing-function: var(--transition-timing-function);
+  --hover-transform: none;
+  --hover-opacity: 0.8;
+  --transition-duration: 0.1s;
+  --transition-timing-function: ease;
+  cursor: pointer;
+  color: inherit;
+  transition-property: opacity, transform;
+  transition-duration: var(--transition-duration);
+  transition-timing-function: var(--transition-timing-function);
 }
 
 code {
-    font-family: var(--mono-font);
+  font-family: var(--mono-font);
 }
 
 .title {
-    --font-size: 1.5rem;
-    font-size: var(--font-size);
-    font-weight: 800;
+  --font-size: 1.5rem;
+  font-size: var(--font-size);
+  font-weight: 800;
 }
 
 section > .title {
-    font-weight: 600;
-    font-size: calc(var(--font-size) * 0.8);
+  font-weight: 600;
+  font-size: calc(var(--font-size) * 0.8);
 }
 
 @media (hover: hover) {
-    a:hover {
-        opacity: var(--hover-opacity);
-        transform: var(--hover-transform);
-    }
+  a:hover {
+    opacity: var(--hover-opacity);
+    transform: var(--hover-transform);
+  }
 }
 
 @media only screen and (min-width: 700px) {
-    .title {
-        --font-size: 2rem;
-    }
-    section > .title {
-        --font-size: 1.6rem;
-    }
+  .title {
+    --font-size: 2rem;
+  }
+  section > .title {
+    --font-size: 1.6rem;
+  }
 }

@@ -9,55 +9,55 @@ import { useSectionsStore, SectionName } from 'stores/sectionsStore';
 import { useIntersectionObserver } from 'usehooks-ts';
 
 export type SectionProps = Omit<HTMLProps<HTMLDivElement>, 'ref'> & {
-    id: SectionName;
+  id: SectionName;
 };
 
 const observerOptions: IntersectionObserverInit = {
-    threshold: Array(9)
-        .fill(0)
-        .map((_, i) => 0.1 * (i + 1)),
+  threshold: Array(9)
+    .fill(0)
+    .map((_, i) => 0.1 * (i + 1)),
 };
 
 const { setVisible } = useSectionsStore.getState();
 
 const Section = ({ id, children, className, ...props }: SectionProps) => {
-    const ref = useRef<HTMLDivElement>();
-    const entry = useIntersectionObserver(ref, observerOptions);
+  const ref = useRef<HTMLDivElement>();
+  const entry = useIntersectionObserver(ref, observerOptions);
 
-    const coverage = useMemo(() => {
-        if (!entry?.intersectionRect?.height || !entry?.rootBounds?.height)
-            return 0;
-        const height = entry.intersectionRect.height;
-        const rootHeight = entry.rootBounds.height;
-        return height / rootHeight;
-    }, [entry?.rootBounds?.height, entry?.intersectionRect?.height]);
+  const coverage = useMemo(() => {
+    if (!entry?.intersectionRect?.height || !entry?.rootBounds?.height)
+      return 0;
+    const height = entry.intersectionRect.height;
+    const rootHeight = entry.rootBounds.height;
+    return height / rootHeight;
+  }, [entry?.rootBounds?.height, entry?.intersectionRect?.height]);
 
-    useEffect(() => setVisible(id, coverage >= 0.6), [id, coverage]);
+  useEffect(() => setVisible(id, coverage >= 0.6), [id, coverage]);
 
-    return (
-        <section
-            ref={ref}
-            className={classNames(styles.section, className)}
-            id={id}
-            {...props}
-        >
-            {children}
-        </section>
-    );
+  return (
+    <section
+      ref={ref}
+      className={classNames(styles.section, className)}
+      id={id}
+      {...props}
+    >
+      {children}
+    </section>
+  );
 };
 
 export function createSection<P = Record<string, never>>(
-    Component: React.FC<P>,
-    sectionProps: SectionProps
+  Component: React.FC<P>,
+  sectionProps: SectionProps
 ): React.FC<P> {
-    // eslint-disable-next-line react/display-name
-    return (props) => {
-        return (
-            <Section {...sectionProps}>
-                <Component {...props} />
-            </Section>
-        );
-    };
+  // eslint-disable-next-line react/display-name
+  return (props) => {
+    return (
+      <Section {...sectionProps}>
+        <Component {...props} />
+      </Section>
+    );
+  };
 }
 
 export default Section;

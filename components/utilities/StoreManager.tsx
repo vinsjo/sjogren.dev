@@ -12,31 +12,31 @@ const { setOrientation } = useOrientationStore.getState();
 const { setDeviceType } = useDeviceTypeStore.getState();
 
 const StoreManager: React.FC = () => {
-    const [currentWindowSize, setCurrentWindowSize] = useState(getWindowSize);
+  const [currentWindowSize, setCurrentWindowSize] = useState(getWindowSize);
 
-    const debouncedWindowSize = useDebounce(currentWindowSize);
+  const debouncedWindowSize = useDebounce(currentWindowSize);
 
-    const handleResize = useCallback(
-        () => setCurrentWindowSize(getWindowSize()),
-        []
-    );
+  const handleResize = useCallback(
+    () => setCurrentWindowSize(getWindowSize()),
+    []
+  );
 
-    const isPortrait = useMediaQuery('(orientation:portrait)');
+  const isPortrait = useMediaQuery('(orientation:portrait)');
 
-    useEventListener('resize', handleResize);
+  useEventListener('resize', handleResize);
 
-    useEffect(
-        () => setOrientation(isPortrait ? 'portrait' : 'landscape'),
-        [isPortrait]
-    );
+  useEffect(
+    () => setOrientation(isPortrait ? 'portrait' : 'landscape'),
+    [isPortrait]
+  );
 
-    useEffect(handleResize, [handleResize]);
-    useEffect(() => setWindowSize(debouncedWindowSize), [debouncedWindowSize]);
+  useEffect(handleResize, [handleResize]);
+  useEffect(() => setWindowSize(debouncedWindowSize), [debouncedWindowSize]);
 
-    useEffect(() => setScreenSize(getScreenSize()), []);
-    useEffect(() => setDeviceType(getDeviceType()), []);
+  useEffect(() => setScreenSize(getScreenSize()), []);
+  useEffect(() => setDeviceType(getDeviceType()), []);
 
-    return <></>;
+  return <></>;
 };
 
 export default StoreManager;

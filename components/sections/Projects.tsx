@@ -5,23 +5,23 @@ import styles from './Projects.module.css';
 import { SectionName } from 'stores/sectionsStore';
 
 interface ProjectsProps {
-    repos?: PartialRepo[];
+  repos?: PartialRepo[];
 }
 
 const Projects = createSection(
-    ({ repos }: ProjectsProps) => {
-        return !repos?.length ? null : (
-            <>
-                <h3 className="title">Projects on GitHub</h3>
-                <div className={styles['card-grid']}>
-                    {repos.map((repo) => {
-                        return <RepoCard key={`repo-${repo.id}`} {...repo} />;
-                    })}
-                </div>
-            </>
-        );
-    },
-    { id: SectionName.Projects, className: styles.section }
+  ({ repos }: ProjectsProps) => {
+    return !repos?.length ? null : (
+      <>
+        <h3 className="title">Projects on GitHub</h3>
+        <div className={styles['card-grid']}>
+          {repos.map((repo) => {
+            return <RepoCard key={`repo-${repo.id}`} {...repo} />;
+          })}
+        </div>
+      </>
+    );
+  },
+  { id: SectionName.Projects, className: styles.section }
 );
 
 export default Projects;
