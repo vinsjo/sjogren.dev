@@ -4,7 +4,7 @@ import { pick } from 'utils/misc';
 
 export type Repo = Awaited<
   ReturnType<Octokit['rest']['repos']['listForAuthenticatedUser']>
->['data'][number] & { package_name?: string };
+>['data'][number];
 
 export type Owner = Repo['owner'];
 export type License = Repo['license'];
@@ -23,10 +23,9 @@ const repoPropKeys = [
   'homepage',
 ] as const satisfies Array<Omit<keyof Repo, 'package_name'>>;
 
-export type PartialRepo = Pick<
-  Repo,
-  (typeof repoPropKeys)[number] | 'package_name'
->;
+export type PartialRepo = Pick<Repo, (typeof repoPropKeys)[number]> & {
+  package_name: Nullable<string>;
+};
 
 type PackageJSON = Readonly<{
   name: string;
@@ -125,14 +124,14 @@ function filterRepos(repos: Repo[]) {
 }
 
 async function createPartialRepo(repo: Repo): Promise<PartialRepo> {
-  const partialRepo: PartialRepo = pick(repo, ...repoPropKeys);
+  const partialRepo: PartialRepo = {
+    ...pick(repo, ...repoPropKeys),
+    package_name: await getPackageJsonName(repo),
+  };
 
   if (partialRepo.name === THIS_REPO_NAME) {
     partialRepo.description = 'This website';
     partialRepo.homepage = partialRepo.html_url;
-  } else {
-    partialRepo.package_name =
-      (await getPackageJsonName(repo)) || partialRepo.package_name;
   }
 
   return partialRepo;
