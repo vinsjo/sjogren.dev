@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { formatURL } from '@utils/misc';
-import type { PartialRepo } from '@utils/api/github-api';
-import Link from '@components/links/Link';
+import { formatURL } from '@/utils/misc';
+import type { PartialRepo } from '@/utils/api/github-api';
+import { Link } from '@/components/links/Link';
 import styles from './RepoCard.module.css';
 
-const RepoCard = ({
+export const RepoCard = ({
   package_name,
   name,
   description,
@@ -46,5 +46,3 @@ const RepoCard = ({
     </div>
   );
 };
-
-export default RepoCard;

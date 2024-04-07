@@ -1,4 +1,4 @@
-import StoreManager from '@components/utilities/StoreManager';
+import { StoreManager } from '@/components/utilities/StoreManager';
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {

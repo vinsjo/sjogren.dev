@@ -1,39 +1,46 @@
-import React, { Suspense } from 'react';
-import useDidMount from '@hooks/useDidMount';
+import React, { Suspense, useEffect, useState } from 'react';
 
-type Props = {
+export type ClientRenderProps = {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   withSuspense?: boolean;
 };
 
-const ClientRender = ({
+export const ClientRender: React.FC<ClientRenderProps> = ({
   children,
   fallback = null,
   withSuspense = false,
-}: Props) => {
-  const didMount = useDidMount();
-  return !withSuspense ? (
-    <>{!didMount ? fallback : children}</>
-  ) : (
-    <>
-      {!didMount ? null : <Suspense fallback={fallback}>{children}</Suspense>}
-    </>
-  );
+}) => {
+  const [didMount, setDidMount] = useState(false);
+
+  useEffect(() => {
+    setDidMount(true);
+  }, []);
+
+  if (withSuspense) {
+    return didMount ? (
+      <Suspense fallback={fallback}>{children}</Suspense>
+    ) : null;
+  }
+
+  return <>{didMount ? children : fallback}</>;
 };
 
-export function clientRender<P, T extends JSX.Element>(
-  Component: (props: P) => T,
-  fallback?: React.ReactNode
+export function withClientRender<P>(
+  Component: React.ComponentType<P>,
+  clientRenderProps?: Omit<ClientRenderProps, 'children'>
 ) {
-  // eslint-disable-next-line react/display-name
-  return (props: P) => {
-    return (
-      <ClientRender fallback={fallback}>
-        <Component {...props} />
-      </ClientRender>
-    );
-  };
-}
+  const { fallback, withSuspense } = clientRenderProps ?? {};
 
-export default ClientRender;
+  const WithClientRender: React.FC<P> = (props) => (
+    <ClientRender fallback={fallback} withSuspense={withSuspense}>
+      <Component {...props} />
+    </ClientRender>
+  );
+
+  if (Component.displayName) {
+    WithClientRender.displayName = `ClientRender_${Component.displayName}`;
+  }
+
+  return WithClientRender;
+}

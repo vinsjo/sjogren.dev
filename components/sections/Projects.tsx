@@ -1,14 +1,16 @@
-import { PartialRepo } from '@utils/api/github-api';
+import { type PartialRepo } from '@/utils/api/github-api';
+
+import { RepoCard } from '@/components/cards/RepoCard';
+import { PageSection } from '@/stores/sectionsStore';
+
 import { createSection } from './Section';
-import RepoCard from '@components/cards/RepoCard';
 import styles from './Projects.module.css';
-import { SectionName } from 'stores/sectionsStore';
 
 interface ProjectsProps {
   repos?: PartialRepo[];
 }
 
-const Projects = createSection(
+export const Projects = createSection(
   ({ repos }: ProjectsProps) => {
     return !repos?.length ? null : (
       <>
@@ -21,7 +23,5 @@ const Projects = createSection(
       </>
     );
   },
-  { id: SectionName.Projects, className: styles.section }
+  { id: PageSection.Projects, className: styles.section }
 );
-
-export default Projects;

@@ -2,7 +2,7 @@ import type { HTMLProps } from 'react';
 
 export type LinkProps = HTMLProps<HTMLAnchorElement>;
 
-const Link = ({ children, target, rel, ...props }: LinkProps) => {
+export const Link = ({ children, target, rel, ...props }: LinkProps) => {
   return (
     <a
       target={target}
@@ -13,5 +13,3 @@ const Link = ({ children, target, rel, ...props }: LinkProps) => {
     </a>
   );
 };
-
-export default Link;

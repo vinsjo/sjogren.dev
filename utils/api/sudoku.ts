@@ -3,9 +3,9 @@ import fs from 'node:fs';
 import { isArr, isInt, isObj, isStr } from 'x-is-type';
 import { v4 as uuidv4 } from 'uuid';
 import safeJSON from 'safe-json-decode';
-import { cloneArrayRecursive, objectEntries, shuffle_arr } from '@utils/misc';
+import { cloneArrayRecursive, objectEntries, shuffle_arr } from '@/utils/misc';
 
-import { rand_int } from '@utils/math';
+import { rand_int } from '@/utils/math';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export declare namespace Sudoku {

@@ -40,7 +40,7 @@ export interface HeadProps {
   children?: React.ReactNode;
 }
 
-const Head = (props: HeadProps) => {
+export const Head = (props: HeadProps) => {
   const keywords = useMemo(() => {
     return (
       !props.keywords
@@ -71,5 +71,3 @@ const Head = (props: HeadProps) => {
     </NextHead>
   );
 };
-
-export default Head;

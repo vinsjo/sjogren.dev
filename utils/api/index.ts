@@ -1,12 +1,14 @@
 import cors from 'cors';
 import type { NextApiRequest, NextApiResponse, NextApiHandler } from 'next';
+
 import ApiError from './ApiError';
 
-export type middlewareResultHandler = (result: Error | any) => void;
-export type middleware = (
+export type MiddlewareResultHandler = (result: unknown) => void;
+
+export type Middleware = (
   req: NextApiRequest,
   res: NextApiResponse,
-  next: middlewareResultHandler
+  next: MiddlewareResultHandler
 ) => void;
 
 export function getParams(req: NextApiRequest, paramAlias = 'params') {
@@ -16,7 +18,7 @@ export function getParams(req: NextApiRequest, paramAlias = 'params') {
 export function runMiddleWare(
   req: NextApiRequest,
   res: NextApiResponse,
-  middleware: middleware
+  middleware: Middleware
 ) {
   return new Promise((resolve, reject) => {
     middleware(req, res, (result) =>
@@ -25,13 +27,11 @@ export function runMiddleWare(
   });
 }
 
-export function jsonErrorResponse(
-  res: NextApiResponse,
-  status: number,
-  message: string
-) {
-  res.status(status).json({ error: message });
-}
+export const createInternalServerError: (err: unknown) => ApiError =
+  process.env.NODE_ENV === 'production'
+    ? () => new ApiError(500)
+    : (err) =>
+        new ApiError(500, err instanceof Error ? err.message : undefined);
 
 export function createApiHandler(
   handler: NextApiHandler,
@@ -45,7 +45,7 @@ export function createApiHandler(
         req.method &&
         !allowedMethods.includes(req.method)
       ) {
-        throw new ApiError(405, `method '${req.method}' not allowed`);
+        throw new ApiError(405, `Method '${req.method}' not allowed`);
       }
       if (useCors) {
         await runMiddleWare(req, res, cors({ origin: '*' }));
@@ -53,13 +53,9 @@ export function createApiHandler(
       await handler(req, res);
       if (!res.writableEnded) res.end();
     } catch (err) {
-      if (err instanceof ApiError) return err.send(res);
-      new ApiError(
-        500,
-        process.env.NODE_ENV !== 'production' && 'message' in err
-          ? err.message
-          : 'Internal Server error'
-      ).send(res);
+      (err instanceof ApiError ? err : createInternalServerError(err)).send(
+        res
+      );
     }
   };
 }

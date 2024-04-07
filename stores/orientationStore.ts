@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { getScreenOrientation } from '@utils/misc';
-import { createStoreSelectors } from '@utils/zustand/createStoreSelectors';
+import { getScreenOrientation } from '@/utils/misc';
+import { createStoreSelectors } from '@/utils/zustand/createStoreSelectors';
 
 export type WindowOrientation = 'portrait' | 'landscape';
 export type ScreenOrientation = OrientationType | WindowOrientation;
@@ -31,7 +31,3 @@ export const useOrientationStore = create<OrientationStore>((set, get) => ({
 }));
 
 export const selectors = createStoreSelectors(useOrientationStore);
-
-export const useOrientation = () => useOrientationStore(selectors.orientation);
-export const useScreenOrientation = () =>
-  useOrientationStore(selectors.screenOrientation);

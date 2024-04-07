@@ -1,6 +1,6 @@
-import { createApiHandler } from '@utils/api';
-import ApiError from '@utils/api/ApiError';
-import { createBoard } from '@utils/api/sudoku';
+import { createApiHandler } from '@/utils/api';
+import ApiError from '@/utils/api/ApiError';
+import { createBoard } from '@/utils/api/sudoku';
 
 export default createApiHandler(async (req, res) => {
   const board = await createBoard();

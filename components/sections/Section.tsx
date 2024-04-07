@@ -1,15 +1,13 @@
 import React, { useMemo } from 'react';
 import { HTMLProps, useEffect, useRef } from 'react';
-import { classNames } from '@utils/react';
+import { classNames } from '@/utils/react';
 import styles from './Section.module.css';
 
-// import useIntersectionObserver from '@hooks/useIntersectionObserver';
-
-import { useSectionsStore, SectionName } from 'stores/sectionsStore';
+import { useSectionsStore, PageSection } from 'stores/sectionsStore';
 import { useIntersectionObserver } from 'usehooks-ts';
 
 export type SectionProps = Omit<HTMLProps<HTMLDivElement>, 'ref'> & {
-  id: SectionName;
+  id: PageSection;
 };
 
 const observerOptions: IntersectionObserverInit = {
@@ -20,7 +18,12 @@ const observerOptions: IntersectionObserverInit = {
 
 const { setVisible } = useSectionsStore.getState();
 
-const Section = ({ id, children, className, ...props }: SectionProps) => {
+export const Section = ({
+  id,
+  children,
+  className,
+  ...props
+}: SectionProps) => {
   const ref = useRef<HTMLDivElement>();
   const entry = useIntersectionObserver(ref, observerOptions);
 
@@ -59,5 +62,3 @@ export function createSection<P = Record<string, never>>(
     );
   };
 }
-
-export default Section;

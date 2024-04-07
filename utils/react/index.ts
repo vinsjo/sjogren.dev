@@ -1,6 +1,12 @@
 import { isDeepEqual } from 'x-is-equal';
 import { isNum, isObj, isStr } from 'x-is-type';
 
+export function resolveElementRef<T extends Element>(
+  ref: Maybe<React.RefObject<T> | T>
+): T | null {
+  return !ref ? null : 'current' in ref ? ref.current : ref;
+}
+
 /**
  * @param prev Previous state
  * @param next Next state

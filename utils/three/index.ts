@@ -1,7 +1,7 @@
 import { PerspectiveCamera, Vector2, Vector3 } from 'three';
 import { isNum, isObj } from 'x-is-type';
-import { WH } from '@utils/misc';
-import { rand } from '@utils/math';
+import { WH } from '@/utils/misc';
+import { rand } from '@/utils/math';
 
 export type UniformV3 = {
   value: Vector3;

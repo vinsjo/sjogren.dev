@@ -1,36 +1,35 @@
 import { create } from 'zustand';
 import { shallow } from 'zustand/shallow';
-import { createStoreSelectors } from '@utils/zustand/createStoreSelectors';
-import { windowExists } from '@utils/misc';
+import { createStoreSelectors } from '@/utils/zustand/createStoreSelectors';
 
-export enum SectionName {
+export enum PageSection {
   Start = 'start',
   Projects = 'projects',
   Contact = 'contact',
 }
 
-export const sections = Object.values(SectionName);
+export const sections = Object.values(PageSection);
 
 export const sectionPaths = {
-  [SectionName.Start]: '/',
-  [SectionName.Contact]: '/contact',
-  [SectionName.Projects]: '/projects',
-} satisfies Record<SectionName, string>;
+  [PageSection.Start]: '/',
+  [PageSection.Contact]: '/contact',
+  [PageSection.Projects]: '/projects',
+} satisfies Record<PageSection, string>;
 
-export interface SectionStore extends Record<SectionName, boolean> {
-  setVisible: (section: SectionName, visible?: boolean) => void;
+export interface SectionStore extends Record<PageSection, boolean> {
+  setVisible: (section: PageSection, visible?: boolean) => void;
 }
 
 export const useSectionsStore = create<SectionStore>((set, get) => ({
-  [SectionName.Start]: false,
-  [SectionName.Projects]: false,
-  [SectionName.Contact]: false,
-  currentSection: SectionName.Start,
+  [PageSection.Start]: false,
+  [PageSection.Projects]: false,
+  [PageSection.Contact]: false,
+  currentSection: PageSection.Start,
   setVisible: (section, visible = true) => {
     if (get()[section] === visible) return;
     set({ [section]: visible });
-    if (visible === true && windowExists()) {
-      window.location.hash = section === SectionName.Start ? '' : `#${section}`;
+    if (visible === true && typeof window !== 'undefined') {
+      window.location.hash = section === PageSection.Start ? '' : `#${section}`;
     }
   },
 }));
@@ -38,7 +37,7 @@ export const useSectionsStore = create<SectionStore>((set, get) => ({
 export const selectors = createStoreSelectors(useSectionsStore);
 
 const visibleSectionsSelector = (state: SectionStore) => {
-  const visibleSections = {} as Record<SectionName, boolean>;
+  const visibleSections = {} as Record<PageSection, boolean>;
   sections.forEach((section) => (visibleSections[section] = state[section]));
   return visibleSections;
 };

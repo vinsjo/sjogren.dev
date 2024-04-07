@@ -1,9 +1,11 @@
 import { createSection } from './Section';
-import { Link, IconLink } from '@components/links';
-import styles from './Contact.module.css';
-import { SectionName } from 'stores/sectionsStore';
+import { Link, IconLink } from '@/components/links';
 
-const Contact = createSection(
+import { PageSection } from '@/stores/sectionsStore';
+
+import styles from './Contact.module.css';
+
+export const Contact = createSection(
   () => {
     return (
       <>
@@ -44,7 +46,5 @@ const Contact = createSection(
       </>
     );
   },
-  { id: SectionName.Contact, className: styles.section }
+  { id: PageSection.Contact, className: styles.section }
 );
-
-export default Contact;

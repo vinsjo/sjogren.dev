@@ -1,10 +1,12 @@
-import { objectKeys } from '@utils/misc';
-import { StoreApi, UseBoundStore } from 'zustand';
+import { StoreApi } from 'zustand';
+import { objectKeys } from '@/utils/misc';
 
-export const createStoreSelectors = <T extends object>(
-  store: StoreApi<T> | UseBoundStore<StoreApi<T>>
-) => {
-  return Object.fromEntries(
-    objectKeys(store.getState()).map((key) => [key, (state: T) => state[key]])
-  ) as { [key in keyof T]: (state: T) => T[key] };
-};
+export function createStoreSelectors<T extends object>(storeApi: StoreApi<T>) {
+  const output = {} as { [K in keyof T]: (state: T) => T[K] };
+
+  objectKeys(storeApi.getState()).forEach((key) => {
+    output[key] = (state) => state[key];
+  });
+
+  return output;
+}

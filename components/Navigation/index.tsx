@@ -1,10 +1,11 @@
-import { classNames } from '@utils/react';
 import Link from 'next/link';
-import styles from './Navigation.module.css';
+import styles from './styles.module.css';
 
-import { SectionName, useVisibleSections } from 'stores/sectionsStore';
+import { classNames } from '@/utils/react';
 
-const createLinkProps = <T extends SectionName>(
+import { PageSection, useVisibleSections } from '@/stores/sectionsStore';
+
+const createLinkProps = <T extends PageSection>(
   section: T,
   label?: string
 ): { section: T; hash: `#${T}`; label: string } => ({
@@ -14,17 +15,17 @@ const createLinkProps = <T extends SectionName>(
 });
 
 const links = [
-  createLinkProps(SectionName.Contact),
-  createLinkProps(SectionName.Projects),
-  createLinkProps(SectionName.Start, 'To Start'),
-] satisfies { section: SectionName; hash: `#${SectionName}`; label: string }[];
+  createLinkProps(PageSection.Contact),
+  createLinkProps(PageSection.Projects),
+  createLinkProps(PageSection.Start, 'To Start'),
+] satisfies { section: PageSection; hash: `#${PageSection}`; label: string }[];
 
-const Navigation = () => {
+export const Navigation: React.FC = () => {
   const visibleSections = useVisibleSections();
   return (
     <>
       {links.map(({ label, hash, section }) => {
-        const href = section === SectionName.Start ? '' : hash;
+        const href = section === PageSection.Start ? '' : hash;
         const hidden = visibleSections[section];
         return (
           <div
@@ -50,5 +51,3 @@ const Navigation = () => {
     </>
   );
 };
-
-export default Navigation;

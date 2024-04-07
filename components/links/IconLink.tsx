@@ -1,8 +1,9 @@
-import Link, { type LinkProps } from './Link';
-import { classNames } from '@utils/react';
-import Image from 'next/image';
-import styles from './IconLink.module.css';
 import { useState } from 'react';
+import { Link, type LinkProps } from './Link';
+import { classNames } from '@/utils/react';
+import Image from 'next/image';
+
+import styles from './IconLink.module.css';
 
 export type IconLinkProps = LinkProps & {
   src?: string;
@@ -11,7 +12,7 @@ export type IconLinkProps = LinkProps & {
   height?: number;
 };
 
-const IconLink = ({
+export const IconLink = ({
   children,
   src,
   alt,
@@ -45,5 +46,3 @@ const IconLink = ({
     </Link>
   );
 };
-
-export default IconLink;

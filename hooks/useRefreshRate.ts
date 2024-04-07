@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 
-import { getAverage } from '@utils/math';
+import { getAverage } from '@/utils/math';
 
 /**
  * inspired by:
@@ -41,7 +41,7 @@ async function getAverageFPS(
   return !isFinite(fps) ? 0 : fps;
 }
 
-const MAX_STORED_MEASUREMENTS = 20;
+const MAX_CACHED_MEASUREMENTS = 20;
 /**
  *
  * @param measurementDuration How long each measurement should take, in milliseconds
@@ -65,7 +65,7 @@ const useRefreshRate = (
     getAverageFPS(measurementDuration, controller)
       .then((fps) =>
         setMeasurements((prev) => {
-          return [...prev, fps].slice(MAX_STORED_MEASUREMENTS - 1);
+          return [...prev, fps].slice(MAX_CACHED_MEASUREMENTS - 1);
         })
       )
       .catch((err) => {
@@ -74,7 +74,7 @@ const useRefreshRate = (
         }
       });
     return () => controller.abort();
-  }, [shouldExecute, measurementCount, measurementDuration, measurements]);
+  }, [shouldExecute, measurementDuration]);
 
   return useMemo(() => getAverage(...measurements), [measurements]);
 };

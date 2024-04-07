@@ -1,7 +1,7 @@
 import { Vector3, ShaderMaterial } from 'three';
 import { isObj, isNum } from 'x-is-type';
-import { minmax, isMinMax, cloneObjRecursive, MinMax } from '@utils/misc';
-import { rand } from '@utils/math';
+import { minmax, isMinMax, cloneObjRecursive, MinMax } from '@/utils/misc';
+import { rand } from '@/utils/math';
 import {
   v3,
   isV3,
@@ -9,7 +9,7 @@ import {
   uValue,
   UniformNum,
   UniformV3,
-} from '@utils/three';
+} from '@/utils/three';
 
 export type BlobShaderOptions = {
   alpha: number;

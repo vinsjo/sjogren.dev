@@ -1,8 +1,7 @@
-import { WH, WindowSize, getScreenSize, getWindowSize } from '@utils/misc';
-import { createStoreSelectors } from '@utils/zustand/createStoreSelectors';
-
 import { create } from 'zustand';
 import { shallow } from 'zustand/shallow';
+import { WH, WindowSize, getScreenSize, getWindowSize } from '@/utils/misc';
+import { createStoreSelectors } from '@/utils/zustand/createStoreSelectors';
 
 export interface WindowSizeStore {
   windowSize: WindowSize;
@@ -27,8 +26,3 @@ export const useWindowSizeStore = create<WindowSizeStore>((set, get) => ({
 }));
 
 export const selectors = createStoreSelectors(useWindowSizeStore);
-
-export const useWindowSize = () =>
-  useWindowSizeStore(selectors.windowSize, shallow);
-export const useScreenSize = () =>
-  useWindowSizeStore(selectors.screenSize, shallow);

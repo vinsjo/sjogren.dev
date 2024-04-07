@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "es6",
+    "typeRoots": ["types/global"],
     "lib": ["dom", "dom.iterable", "esnext"],
     "moduleResolution": "node",
     "allowJs": true,
@@ -16,11 +17,7 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@utils/*": ["utils/*"],
-      "@styles/*": ["styles/*"],
-      "@hooks/*": ["hooks/*"],
-      "@components/*": ["components/*"],
-      "@recoil/*": ["recoilStores/*"]
+      "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

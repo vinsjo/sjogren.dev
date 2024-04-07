@@ -1,42 +1,77 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useDebounce, useEventListener, useMediaQuery } from 'usehooks-ts';
+import { useEffect } from 'react';
+import { useMediaQuery } from 'usehooks-ts';
 
-import { getWindowSize, getScreenSize, getDeviceType } from '@utils/misc';
+import { getWindowSize, getScreenSize, getDeviceType } from '@/utils/misc';
 
-import { useWindowSizeStore } from 'stores/windowSizeStore';
-import { useOrientationStore } from 'stores/orientationStore';
-import { useDeviceTypeStore } from 'stores/deviceType';
+import {
+  useWindowSizeStore,
+  selectors as windowSizeStoreSelectors,
+} from 'stores/windowSizeStore';
+import {
+  useOrientationStore,
+  selectors as orientationSelectors,
+} from 'stores/orientationStore';
+import {
+  useDeviceTypeStore,
+  selectors as deviceTypeSelectors,
+} from 'stores/deviceType';
 
-const { setWindowSize, setScreenSize } = useWindowSizeStore.getState();
-const { setOrientation } = useOrientationStore.getState();
-const { setDeviceType } = useDeviceTypeStore.getState();
-
-const StoreManager: React.FC = () => {
-  const [currentWindowSize, setCurrentWindowSize] = useState(getWindowSize);
-
-  const debouncedWindowSize = useDebounce(currentWindowSize);
-
-  const handleResize = useCallback(
-    () => setCurrentWindowSize(getWindowSize()),
-    []
+export const StoreManager: React.FC = () => {
+  const setWindowSize = useWindowSizeStore(
+    windowSizeStoreSelectors.setWindowSize
   );
+  const setScreenSize = useWindowSizeStore(
+    windowSizeStoreSelectors.setScreenSize
+  );
+  const setOrientation = useOrientationStore(
+    orientationSelectors.setOrientation
+  );
+  const setDeviceType = useDeviceTypeStore(deviceTypeSelectors.setDeviceType);
 
   const isPortrait = useMediaQuery('(orientation:portrait)');
 
-  useEventListener('resize', handleResize);
-
   useEffect(
     () => setOrientation(isPortrait ? 'portrait' : 'landscape'),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isPortrait]
   );
 
-  useEffect(handleResize, [handleResize]);
-  useEffect(() => setWindowSize(debouncedWindowSize), [debouncedWindowSize]);
-
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setScreenSize(getScreenSize()), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setDeviceType(getDeviceType()), []);
 
-  return <></>;
-};
+  useEffect(() => {
+    const updateWindowSize = () => setWindowSize(getWindowSize());
 
-export default StoreManager;
+    updateWindowSize();
+
+    let timeout: number | null = null;
+
+    const clearTimeout = () => {
+      if (timeout != null) {
+        window.clearTimeout(timeout);
+        timeout = null;
+      }
+    };
+
+    const onResize = () => {
+      clearTimeout();
+
+      timeout = window.setTimeout(() => {
+        updateWindowSize();
+        timeout = null;
+      }, 250);
+    };
+
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+      clearTimeout();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+};

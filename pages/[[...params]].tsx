@@ -1,24 +1,15 @@
 import type { NextPage, GetServerSideProps } from 'next';
 
-import Navigation from '@components/navigation/Navigation';
-import Head from '@components/Head';
-import { Start, Projects, Contact } from '@components/sections';
-import { fetchRepos, type PartialRepo } from '@utils/api/github-api';
+import { Navigation } from '@/components/Navigation';
+import { Head } from '@/components/Head';
+import { Start, Projects, Contact } from '@/components/sections';
+import { fetchRepos, type PartialRepo } from '@/utils/api/github-api';
 
 import styles from 'styles';
 
 interface PageProps {
   repos: PartialRepo[];
 }
-
-// const getSectionFromPath = (path: string): SectionName | undefined => {
-//     const trimmed = path.split('/').filter(Boolean)[0]?.trim();
-//     return sections.find((name) => name === trimmed);
-// };
-
-// const scrollToElement = (element: Element, smooth = false) => {
-//     element?.scrollIntoView(!smooth ? undefined : { behavior: 'smooth' });
-// };
 
 export const getServerSideProps: GetServerSideProps<PageProps> = async ({
   res,
@@ -36,7 +27,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
   };
 };
 
-const Home: NextPage = ({ repos }: PageProps) => {
+const Home: NextPage<PageProps> = ({ repos }) => {
   return (
     <div className={styles.container}>
       <Head />

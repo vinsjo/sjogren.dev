@@ -1,6 +1,5 @@
 declare type Nullable<T> = T | null;
 
-/** Based on yup.Maybe type */
 declare type Maybe<T> = T | null | undefined;
 
 /**

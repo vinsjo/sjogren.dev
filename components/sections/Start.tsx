@@ -3,21 +3,28 @@ import { useUpdateEffect } from 'usehooks-ts';
 import dynamic from 'next/dynamic';
 
 import { createSection } from './Section';
-import ClientRender from '@components/utilities/ClientRender';
-import { classNames } from '@utils/react';
+
+import { withClientRender } from '@/components/utilities/ClientRender';
+import { classNames } from '@/utils/react';
 
 import { useIsMobile } from 'stores/deviceType';
 
-import { useWindowSize } from 'stores/windowSizeStore';
-import { SectionName } from 'stores/sectionsStore';
-import { WindowSize } from '@utils/misc';
+import {
+  useWindowSizeStore,
+  selectors as windowSizeSelectors,
+} from '@/stores/windowSizeStore';
+import { PageSection } from '@/stores/sectionsStore';
+import { WindowSize } from '@/utils/misc';
 
 import styles from './Start.module.css';
 
-const BlobScene = dynamic(() => import('@components/three/BlobScene'), {
-  ssr: false,
-  suspense: true,
-});
+const BlobScene = withClientRender(
+  dynamic(() => import('@/components/three/BlobScene'), {
+    ssr: false,
+    suspense: true,
+  }),
+  { withSuspense: true }
+);
 
 const getContainerStyle = (
   isMobile: boolean,
@@ -28,10 +35,11 @@ const getContainerStyle = (
   return { maxWidth: innerWidth, maxHeight: innerHeight };
 };
 
-const Start = createSection(
+export const Start = createSection(
   () => {
-    const windowSize = useWindowSize();
+    const windowSize = useWindowSizeStore(windowSizeSelectors.windowSize);
     const isMobile = useIsMobile();
+
     const [containerStyle, setContainerStyle] = useState(() =>
       getContainerStyle(isMobile, windowSize)
     );
@@ -66,14 +74,10 @@ const Start = createSection(
             [styles.mobile]: isMobile,
           })}
         >
-          <ClientRender withSuspense={true}>
-            <BlobScene onCreated={() => setLoaded(true)} />
-          </ClientRender>
+          <BlobScene onCreated={() => setLoaded(true)} />
         </div>
       </div>
     );
   },
-  { id: SectionName.Start, className: styles.section }
+  { id: PageSection.Start, className: styles.section }
 );
-
-export default Start;

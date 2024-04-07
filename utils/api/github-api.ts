@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { Octokit } from '@octokit/rest';
-import { pick } from '@utils/misc';
-
-// import { isNum, isObj, isStr, isUndef } from 'x-is-type';
+import { pick } from 'utils/misc';
 
 export type Repo = Awaited<
   ReturnType<Octokit['rest']['repos']['listForAuthenticatedUser']>
@@ -11,44 +9,7 @@ export type Repo = Awaited<
 export type Owner = Repo['owner'];
 export type License = Repo['license'];
 
-export type PartialRepo = Pick<
-  Repo,
-  | 'id'
-  | 'name'
-  | 'full_name'
-  | 'description'
-  | 'url'
-  | 'html_url'
-  | 'created_at'
-  | 'updated_at'
-  | 'pushed_at'
-  | 'language'
-  | 'package_name'
-  | 'homepage'
->;
-
-interface PackageJSON {
-  readonly name?: string;
-  readonly version?: string;
-  readonly description?: string;
-  readonly author?: string;
-  readonly license?: string;
-  readonly repository?: Record<string, string>;
-  readonly type?: string;
-  readonly source?: string;
-  readonly main?: string;
-  readonly module?: string;
-  readonly types?: string;
-  readonly exports?: string;
-  readonly files?: string[];
-  readonly browserslist?: string[];
-  readonly scripts?: Record<string, string>;
-  readonly devDependencies?: Record<string, string>;
-  readonly dependencies?: Record<string, string>;
-  readonly keywords?: string[];
-}
-
-const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
+const repoPropKeys = [
   'id',
   'name',
   'full_name',
@@ -60,135 +21,147 @@ const repoPropKeys: (keyof Omit<PartialRepo, 'package_name'>)[] = [
   'pushed_at',
   'language',
   'homepage',
-];
+] as const satisfies Array<Omit<keyof Repo, 'package_name'>>;
 
-// const isPartialRepo = (data: unknown): data is PartialRepo => {
-//     if (!isObj(data)) return false;
-//     const {
-//         id,
-//         name,
-//         full_name,
-//         description,
-//         url,
-//         html_url,
-//         created_at,
-//         updated_at,
-//         pushed_at,
-//         language,
-//         package_name,
-//         homepage,
-//     } = data;
+export type PartialRepo = Pick<
+  Repo,
+  (typeof repoPropKeys)[number] | 'package_name'
+>;
 
-//     return (
-//         isNum(id) &&
-//         [
-//             name,
-//             full_name,
-//             description,
-//             url,
-//             html_url,
-//             created_at,
-//             updated_at,
-//             pushed_at,
-//             language,
-//             homepage,
-//         ].every(isStr) &&
-//         (isStr(package_name) || isUndef(package_name))
-//     );
-// };
+type PackageJSON = Readonly<{
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  license: string;
+  repository: Record<string, string>;
+  type: string;
+  source: string;
+  main: string;
+  module: string;
+  types: string;
+  exports: string;
+  files: string[];
+  browserslist: string[];
+  scripts: Record<string, string>;
+  devDependencies: Record<string, string>;
+  dependencies: Record<string, string>;
+  keywords: string[];
+}>;
 
-function getPackageURL({ full_name, default_branch }: Repo) {
+const PROFILE_REPO_NAME = 'vinsjo';
+const THIS_REPO_NAME = 'sjogren.dev';
+
+const { GH_UA, GH_AUTH } = process.env;
+
+function getPackageURL({ full_name, default_branch }: Repo): string | null {
   return !full_name || !default_branch
     ? null
     : `https://raw.githubusercontent.com/${full_name}/${default_branch}/package.json`;
 }
 
-// function filterRepos(repos: Repo[]) {
-//     return repos.filter((repo) => {
-//         return (
-//             repo.description &&
-//             /(\w+(\s)+){2,}\w+/.test(repo.description) &&
-//             repo.name !== 'vinsjo' &&
-//             !repo.topics?.includes('school-assignment')
-//         );
-//     });
-// }
+function isPackageJsonLanguage(language: string): boolean {
+  return ['TypeScript', 'JavaScript'].some(
+    (lang) => lang === language || lang.toLowerCase() === language.toLowerCase()
+  );
+}
 
-async function fetchPackageJSON(repo: Repo) {
-  const url = getPackageURL(repo);
-  if (!url || !['TypeScript', 'JavaScript'].includes(repo.language)) {
-    return null;
-  }
-  const { GH_AUTH, GH_UA } = process.env;
-  const config =
-    !GH_AUTH || !GH_UA
-      ? {}
-      : {
-          headers: {
-            'User-Agent': GH_UA,
-            Authorization: `Bearer ${GH_AUTH}`,
-          },
-        };
+async function fetchPackageJSON(
+  repo: Repo
+): Promise<Partial<PackageJSON> | null> {
+  const NO_URL_ERROR = 'NO_URL';
+  const INVALID_LANGUAGE_ERROR = 'INVALID_LANGUAGE';
+
   try {
-    const { data } = await axios.get<PackageJSON>(url, config);
+    if (!isPackageJsonLanguage(repo.language)) {
+      throw INVALID_LANGUAGE_ERROR;
+    }
+    const url = getPackageURL(repo);
+
+    if (!url) {
+      throw NO_URL_ERROR;
+    }
+
+    const { data } = await axios.get<PackageJSON>(url, {
+      headers: {
+        'User-Agent': GH_UA,
+        Authorization: `Bearer ${GH_AUTH}`,
+      },
+    });
     return data;
-  } catch (err: Error | any) {
+  } catch (err) {
     if (
       process.env.NODE_ENV !== 'production' &&
+      err !== NO_URL_ERROR &&
+      err !== INVALID_LANGUAGE_ERROR &&
       (!axios.isAxiosError(err) || err.response?.status !== 404)
     ) {
-      console.error('message' in err ? err.message : err);
+      console.error(err instanceof Error ? err.message : err);
     }
     return null;
   }
 }
 
-function getPartialRepos(repos: Repo[]): Promise<PartialRepo[]> {
-  return Promise.all(
-    repos
-      .filter((repo) => {
-        return (
-          // Exclude repos missing description
-          repo.description &&
-          // Only include repos with at least three words
-          /([\w.-@/!?&%]+(\s)+){2,}[\w.-@/!?&%]+/.test(repo.description) &&
-          // Exclude "profile repo"
-          repo.name !== 'vinsjo' &&
-          // Exclude school assignments
-          !repo.topics?.includes('school-assignment') &&
-          !repo.fork
-        );
-      })
-      .map(async (repo) => {
-        const partial: PartialRepo = pick(repo, ...repoPropKeys);
-        if (partial.name === 'sjogren.dev') {
-          partial.description = 'This website';
-          partial.homepage = partial.html_url;
-        }
-        const pkg = await fetchPackageJSON(repo);
-        if (pkg?.name) partial.package_name = pkg.name;
-        return partial;
-      })
+async function getPackageJsonName(repo: Repo): Promise<string | null> {
+  const pkg = await fetchPackageJSON(repo);
+
+  return (pkg && pkg.name) || null;
+}
+
+function filterRepos(repos: Repo[]) {
+  return repos.filter(
+    (repo): boolean =>
+      // Exclude forked repos
+      !repo.fork &&
+      // Exclude "profile repo"
+      repo.name !== PROFILE_REPO_NAME &&
+      // Exclude school assignments
+      !repo.topics?.includes('school-assignment') &&
+      // Exclude repos missing description
+      !!repo.description &&
+      // Only include repos with at least three words in description
+      /([\w.-@/!?&%]+(\s)+){2,}[\w.-@/!?&%]+/.test(repo.description)
+  );
+}
+
+async function createPartialRepo(repo: Repo): Promise<PartialRepo> {
+  const partialRepo: PartialRepo = pick(repo, ...repoPropKeys);
+
+  if (partialRepo.name === THIS_REPO_NAME) {
+    partialRepo.description = 'This website';
+    partialRepo.homepage = partialRepo.html_url;
+  } else {
+    partialRepo.package_name =
+      (await getPackageJsonName(repo)) || partialRepo.package_name;
+  }
+
+  return partialRepo;
+}
+
+function sortRepos<T extends Partial<Repo>>(repos: T[]) {
+  return repos.sort((a, b) =>
+    a.name === THIS_REPO_NAME ? 1 : b.name === THIS_REPO_NAME ? -1 : 0
   );
 }
 
 export async function fetchRepos(): Promise<PartialRepo[]> {
   try {
     const octokit = new Octokit({
-      auth: process.env.GH_AUTH,
-      userAgent: process.env.GH_UA,
+      auth: GH_AUTH,
+      userAgent: GH_UA,
     });
-    const { data } = await octokit.rest.repos.listForAuthenticatedUser({
+
+    const response = await octokit.rest.repos.listForAuthenticatedUser({
       visibility: 'public',
       affiliation: 'owner',
       sort: 'created',
       direction: 'desc',
     });
-    const repos = await getPartialRepos(data);
-    return repos.sort((a, b) =>
-      a.name === 'sjogren.dev' ? 1 : b.name === 'sjogren.dev' ? -1 : 0
+
+    return await Promise.all(
+      sortRepos(filterRepos(response.data)).map(createPartialRepo)
     );
-  } catch (err: Error | any) {
+  } catch (err) {
     console.error(err);
     return [];
   }

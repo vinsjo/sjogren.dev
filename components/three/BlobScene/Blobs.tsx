@@ -1,25 +1,28 @@
 import { useEffect, useMemo, useState } from 'react';
 import { isNum } from 'x-is-type';
-import { shallow } from 'zustand/shallow';
+
 import { PerspectiveCamera, Vector3, MathUtils } from 'three';
 
 import { RootState, useThree } from '@react-three/fiber';
 
-import { rand_neg } from '@utils/math';
-import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@utils/three';
-import { minmax } from '@utils/misc';
+import { rand_neg } from '@/utils/math';
+import { randomV3, v2, v3, equalV3, visibleSizeAtZ } from '@/utils/three';
+import { minmax } from '@/utils/misc';
 
 import Blob from './Blob';
 
-import { useScreenSize } from 'stores/windowSizeStore';
+import {
+  useWindowSizeStore,
+  selectors as windowSizeSelectors,
+} from '@/stores/windowSizeStore';
 
-type BlobProp = { position: Vector3; scale: Vector3 };
+type BlobProps = { position: Vector3; scale: Vector3 };
 
 const initBlobs = (
   cols: number,
   rows: number,
   camera: PerspectiveCamera
-): BlobProp[] => {
+): BlobProps[] => {
   if (!cols || !rows || ![cols, rows].every(isNum)) {
     return [];
   }
@@ -27,7 +30,7 @@ const initBlobs = (
   const maxRad = Math.min(visible.x / cols / 2, visible.y / rows / 2);
   const radLimits = minmax(maxRad * 0.8, maxRad * 1.2);
   const avgRad = (radLimits.max + radLimits.min) / 2;
-  const blobs: BlobProp[] = [];
+  const blobs: BlobProps[] = [];
   const center = v3(0, 0, 0);
   const maxPos = v2((avgRad * cols) / 2, (avgRad * rows) / 2);
   for (let row = 0; row < rows; row++) {
@@ -49,9 +52,9 @@ const initBlobs = (
 };
 
 const fitBlobsInView = (
-  blobs: BlobProp[],
+  blobs: BlobProps[],
   camera: PerspectiveCamera
-): BlobProp[] => {
+): BlobProps[] => {
   const aspect = MathUtils.clamp(camera.aspect, 0.5, 1.2);
   const maxCover = 0.9;
   const center = v3(0, 0, 0);
@@ -90,19 +93,21 @@ const fitBlobsInView = (
   });
 };
 
-const selector = ({ size: { width, height }, camera }: RootState) => ({
-  width,
-  height,
-  camera: camera as PerspectiveCamera,
-});
+const selectors = {
+  width: (state: RootState) => state.size.width,
+  height: (state: RootState) => state.size.height,
+  camera: (state: RootState) => state.camera as PerspectiveCamera,
+};
 
-const Blobs = () => {
-  const screenSize = useScreenSize();
+const Blobs: React.FC = () => {
+  const screenSize = useWindowSizeStore(windowSizeSelectors.screenSize);
 
-  const { width, height, camera } = useThree(selector, shallow);
+  const width = useThree(selectors.width);
+  const height = useThree(selectors.height);
+  const camera = useThree(selectors.camera);
 
   const [blobSize, setBlobSize] = useState(0);
-  const [blobs, setBlobs] = useState<BlobProp[]>([]);
+  const [blobs, setBlobs] = useState<BlobProps[]>([]);
   const [{ cols, rows }, setColsAndRows] = useState({ cols: 0, rows: 0 });
 
   const adjustedBlobs = useMemo(() => {

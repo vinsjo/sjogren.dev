@@ -1,4 +1,4 @@
-import ThreeScene, { ThreeSceneProps } from '../ThreeScene';
+import { ThreeScene, ThreeSceneProps } from '../ThreeScene';
 import Blobs from './Blobs';
 
 type BlobSceneProps = Omit<
@@ -19,7 +19,7 @@ const camera: ThreeSceneProps['camera'] = {
   position: [0, 0, 15],
 };
 
-const BlobScene = (props: BlobSceneProps) => {
+const BlobScene: React.FC<BlobSceneProps> = (props) => {
   return (
     <ThreeScene
       fpsLimit={30}
