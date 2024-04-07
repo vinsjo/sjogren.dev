@@ -1,9 +1,8 @@
 import { createSection } from './Section';
 import { Link, IconLink } from '@/components/links';
 
-import { PageSection } from '@/stores/sectionsStore';
-
 import styles from './Contact.module.css';
+import { PageSection } from './constants';
 
 export const Contact = createSection(
   () => {

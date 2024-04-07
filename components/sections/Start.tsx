@@ -7,16 +7,17 @@ import { createSection } from './Section';
 import { withClientRender } from '@/components/utilities/ClientRender';
 import { classNames } from '@/utils/react';
 
-import { useIsMobile } from 'stores/deviceType';
+import { useIsMobile } from '@/stores/deviceType';
 
 import {
   useWindowSizeStore,
   selectors as windowSizeSelectors,
 } from '@/stores/windowSizeStore';
-import { PageSection } from '@/stores/sectionsStore';
+
 import { WindowSize } from '@/utils/misc';
 
 import styles from './Start.module.css';
+import { PageSection } from './constants';
 
 const BlobScene = withClientRender(
   dynamic(() => import('@/components/three/BlobScene'), {

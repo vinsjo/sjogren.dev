@@ -6,6 +6,7 @@ import { Start, Projects, Contact } from '@/components/sections';
 import { fetchRepos, type PartialRepo } from '@/utils/api/github-api';
 
 import styles from 'styles';
+import { useEffect } from 'react';
 
 interface PageProps {
   repos: PartialRepo[];
@@ -28,6 +29,7 @@ export const getServerSideProps: GetServerSideProps<PageProps> = async ({
 };
 
 const Home: NextPage<PageProps> = ({ repos }) => {
+  useEffect(() => document.documentElement.classList.add('loaded'), []);
   return (
     <div className={styles.container}>
       <Head />

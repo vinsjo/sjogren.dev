@@ -3,7 +3,7 @@ import styles from './styles.module.css';
 
 import { classNames } from '@/utils/react';
 
-import { PageSection, useVisibleSections } from '@/stores/sectionsStore';
+import { PageSection } from '../sections/constants';
 
 const createLinkProps = <T extends PageSection>(
   section: T,
@@ -14,26 +14,21 @@ const createLinkProps = <T extends PageSection>(
   label: label || section,
 });
 
-const links = [
+const sectionLinks = [
   createLinkProps(PageSection.Contact),
   createLinkProps(PageSection.Projects),
   createLinkProps(PageSection.Start, 'To Start'),
-] satisfies { section: PageSection; hash: `#${PageSection}`; label: string }[];
+];
 
 export const Navigation: React.FC = () => {
-  const visibleSections = useVisibleSections();
   return (
     <>
-      {links.map(({ label, hash, section }) => {
+      {sectionLinks.map(({ label, hash, section }) => {
         const href = section === PageSection.Start ? '' : hash;
-        const hidden = visibleSections[section];
         return (
           <div
             key={`link-${section}`}
-            className={classNames(styles.container, styles[section], {
-              hidden,
-            })}
-            hidden={hidden}
+            className={classNames(styles.container, styles[section])}
           >
             <Link
               href={href}
