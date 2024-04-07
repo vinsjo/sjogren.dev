@@ -47,7 +47,7 @@ const MAX_CACHED_MEASUREMENTS = 20;
  * @param measurementDuration How long each measurement should take, in milliseconds
  * @param measurementCount Maximum amount of measurements, or undefined if measurements should continue indefinitely
  */
-const useRefreshRate = (
+export const useRefreshRate = (
   measurementDuration = 1000,
   measurementCount?: number
 ) => {
@@ -78,5 +78,3 @@ const useRefreshRate = (
 
   return useMemo(() => getAverage(...measurements), [measurements]);
 };
-
-export default useRefreshRate;

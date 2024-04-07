@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useThree, RootState } from '@react-three/fiber';
 
-import useRefreshRate from '@/hooks/useRefreshRate';
+import { useRefreshRate } from '@/hooks/useRefreshRate';
 
 type Props = { limit: number; children: React.ReactNode };
 
