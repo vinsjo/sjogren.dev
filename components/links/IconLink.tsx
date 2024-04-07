@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import clsx from 'clsx';
 import { Link, type LinkProps } from './Link';
-import { classNames } from '@/utils/react';
 import Image from 'next/image';
 
 import styles from './IconLink.module.css';
@@ -24,11 +24,7 @@ export const IconLink = ({
   const [error, setError] = useState(false);
   return (
     <Link
-      className={classNames(
-        styles.link,
-        error ? styles.error : null,
-        className
-      )}
+      className={clsx(styles.link, error && styles.error, className)}
       {...props}
     >
       {!src ? (

@@ -16,7 +16,7 @@ export type FormatURLOptions = Record<
 >;
 
 export function formatURL(
-  urlString?: string,
+  urlString: Maybe<string>,
   formatOptions: Partial<FormatURLOptions> = {}
 ) {
   if (!urlString) return null;

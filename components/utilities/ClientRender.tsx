@@ -26,7 +26,7 @@ export const ClientRender: React.FC<ClientRenderProps> = ({
   return <>{didMount ? children : fallback}</>;
 };
 
-export function withClientRender<P>(
+export function withClientRender<P extends object>(
   Component: React.ComponentType<P>,
   clientRenderProps?: Omit<ClientRenderProps, 'children'>
 ) {

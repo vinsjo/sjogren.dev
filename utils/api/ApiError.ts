@@ -23,9 +23,12 @@ export default class ApiError extends Error {
   statusCode: HTTPErrorCode;
 
   constructor(statusCode?: HTTPErrorCode, message?: string) {
+    if (!ApiError.isErrorCode(statusCode)) {
+      statusCode = 500;
+    }
     super(message || ApiError.DEFAULT_ERROR_MESSAGES[statusCode]);
 
-    this.statusCode = ApiError.isErrorCode(statusCode) ? statusCode : 500;
+    this.statusCode = statusCode;
 
     this.send = this.send.bind(this);
   }

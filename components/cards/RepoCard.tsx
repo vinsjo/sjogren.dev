@@ -1,18 +1,18 @@
-import { useMemo } from 'react';
 import { formatURL } from '@/utils/misc';
 import type { PartialRepo } from '@/utils/api/github-api';
 import { Link } from '@/components/links/Link';
+
 import styles from './RepoCard.module.css';
 
-export const RepoCard = ({
+export const RepoCard: React.FC<PartialRepo> = ({
   package_name,
   name,
   description,
   html_url,
   language,
   homepage,
-}: PartialRepo) => {
-  const homepageOutput = useMemo(() => formatURL(homepage), [homepage]);
+}) => {
+  const formattedHomePage = formatURL(homepage);
   return (
     <div className={styles.container}>
       <div className={styles.top}>
@@ -32,14 +32,14 @@ export const RepoCard = ({
       </div>
       <div className={styles.bottom}>
         <p className={styles.description}>{description}</p>
-        {!!homepageOutput && (
+        {homepage != null && formattedHomePage != null && (
           <Link
             className={styles.homepage}
             href={homepage}
             target="_blank"
             title={`View project at ${homepage}`}
           >
-            {homepageOutput}
+            {formattedHomePage}
           </Link>
         )}
       </div>

@@ -1,4 +1,4 @@
-declare type Nullable<T> = T | null;
+declare type Nullable<T> = null | T;
 
 declare type Maybe<T> = T | null | undefined;
 

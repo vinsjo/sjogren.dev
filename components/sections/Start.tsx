@@ -1,11 +1,11 @@
-import { CSSProperties, useState } from 'react';
+import { CSSProperties, useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import { useUpdateEffect } from 'usehooks-ts';
 import dynamic from 'next/dynamic';
 
 import { createSection } from './Section';
 
 import { withClientRender } from '@/components/utilities/ClientRender';
-import { classNames } from '@/utils/react';
 
 import { useIsMobile } from '@/stores/deviceType';
 
@@ -32,48 +32,45 @@ const getContainerStyle = (
   windowSize: WindowSize
 ): CSSProperties | undefined => {
   const { innerWidth, innerHeight } = windowSize;
+
   if (!isMobile || !innerWidth || !innerHeight) return;
   return { maxWidth: innerWidth, maxHeight: innerHeight };
 };
 
 export const Start = createSection(
   () => {
-    const windowSize = useWindowSizeStore(windowSizeSelectors.windowSize);
+    const { innerWidth, innerHeight } = useWindowSizeStore(
+      windowSizeSelectors.windowSize
+    );
     const isMobile = useIsMobile();
 
-    const [containerStyle, setContainerStyle] = useState(() =>
-      getContainerStyle(isMobile, windowSize)
-    );
-
-    useUpdateEffect(() => {
-      const next = getContainerStyle(isMobile, windowSize);
-      setContainerStyle((prev) => {
-        if (
-          prev?.maxHeight === next?.maxHeight &&
-          prev?.maxWidth === next?.maxHeight
-        ) {
-          return prev;
-        }
-        return next;
-      });
-    }, [isMobile, windowSize]);
-
     const [loaded, setLoaded] = useState(false);
+
+    const containerStyle: Partial<
+      Pick<React.CSSProperties, 'maxWidth' | 'maxHeight'>
+    > = {};
+
+    if (isMobile) {
+      if (innerWidth) {
+        containerStyle.maxWidth = innerWidth;
+      }
+      if (innerHeight) {
+        containerStyle.maxHeight = innerHeight;
+      }
+    }
+
     return (
       <div className={styles.container} style={containerStyle}>
         <div className={styles['caption-container']}>
-          <h1 className={classNames('title', styles.caption)}>
-            Vincent Sjögren
-          </h1>
-          <h3 className={classNames('title', styles.caption)}>
-            Web developer in training
-          </h3>
+          <h1 className={clsx('title', styles.caption)}>Vincent Sjögren</h1>
+          <h3 className={clsx('title', styles.caption)}>Web developer</h3>
         </div>
         <div
-          className={classNames(styles['blob-container'], {
-            [styles.loaded]: loaded,
-            [styles.mobile]: isMobile,
-          })}
+          className={clsx(
+            styles['blob-container'],
+            loaded && styles.loaded,
+            isMobile && styles.mobile
+          )}
         >
           <BlobScene onCreated={() => setLoaded(true)} />
         </div>

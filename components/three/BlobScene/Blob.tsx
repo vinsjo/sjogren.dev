@@ -36,7 +36,7 @@ const ShaderBlob = ({
       isNum(heightSegments) ? heightSegments : 32
     )
   );
-  const mesh = useRef<Mesh<SphereGeometry, ShaderMaterial>>();
+  const mesh = useRef<Mesh<SphereGeometry, ShaderMaterial>>(null);
   const material = useMemo(() => blobShader(options.shader), [options.shader]);
 
   const handleClick = useCallback(

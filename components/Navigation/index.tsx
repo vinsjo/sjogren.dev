@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import styles from './styles.module.css';
-
-import { classNames } from '@/utils/react';
+import clsx from 'clsx';
 
 import { PageSection } from '../sections/constants';
+
+import styles from './styles.module.css';
 
 const createLinkProps = <T extends PageSection>(
   section: T,
@@ -28,11 +28,11 @@ export const Navigation: React.FC = () => {
         return (
           <div
             key={`link-${section}`}
-            className={classNames(styles.container, styles[section])}
+            className={clsx(styles.container, styles[section])}
           >
             <Link
               href={href}
-              className={classNames('title', styles.link)}
+              className={clsx('title', styles.link)}
               shallow
               onClick={() => {
                 window.location.hash = href;

@@ -9,7 +9,7 @@ export type ThreeSceneProps = Props &
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({
   children,
-  fpsLimit,
+  fpsLimit = 60,
   ...props
 }: ThreeSceneProps) => {
   const [viewRef, inView] = useInView({

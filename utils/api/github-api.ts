@@ -21,7 +21,7 @@ const repoPropKeys = [
   'pushed_at',
   'language',
   'homepage',
-] as const satisfies Array<Omit<keyof Repo, 'package_name'>>;
+] as const satisfies Array<keyof Repo>;
 
 export type PartialRepo = Pick<Repo, (typeof repoPropKeys)[number]> & {
   package_name: Nullable<string>;
@@ -59,9 +59,13 @@ function getPackageURL({ full_name, default_branch }: Repo): string | null {
     : `https://raw.githubusercontent.com/${full_name}/${default_branch}/package.json`;
 }
 
-function isPackageJsonLanguage(language: string): boolean {
-  return ['TypeScript', 'JavaScript'].some(
-    (lang) => lang === language || lang.toLowerCase() === language.toLowerCase()
+function isPackageJsonLanguage(language: Maybe<string>): boolean {
+  return (
+    language != null &&
+    ['TypeScript', 'JavaScript'].some(
+      (lang) =>
+        lang === language || lang.toLowerCase() === language.toLowerCase()
+    )
   );
 }
 

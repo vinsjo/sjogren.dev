@@ -2,7 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { isArr, isInt, isObj, isStr } from 'x-is-type';
 import { v4 as uuidv4 } from 'uuid';
-import safeJSON from 'safe-json-decode';
+
 import { cloneArrayRecursive, objectEntries, shuffle_arr } from '@/utils/misc';
 
 import { rand_int } from '@/utils/math';
@@ -210,10 +210,10 @@ export async function createBoard(
         if (!fs.existsSync(DATA_DIR)) {
           fs.mkdirSync(DATA_DIR, { recursive: true });
         }
-        const json = safeJSON.encode(board);
+
         await fs.promises.writeFile(
           path.join(config.DATA_DIR, `${board.id}.json`),
-          json,
+          JSON.stringify(board),
           {
             encoding: 'utf-8',
           }
@@ -239,7 +239,7 @@ export async function getStoredBoard(
     const data = await fs.promises.readFile(jsonPath, {
       encoding: 'utf-8',
     });
-    const board = safeJSON.decode(data);
+    const board: unknown = JSON.parse(data);
     return !isSudokuResponse(board) ? null : board;
   } catch (err) {
     return null;
@@ -248,7 +248,6 @@ export async function getStoredBoard(
 
 export async function getAllBoards(): Promise<Sudoku.Response[]> {
   try {
-    if (!fs.existsSync(DATA_DIR)) return null;
     const files = await fs.promises.readdir(config.DATA_DIR);
     const boards = await Promise.all<null | Sudoku.Response>(
       files.map(async (file) => {
@@ -257,14 +256,14 @@ export async function getAllBoards(): Promise<Sudoku.Response[]> {
             path.join(config.DATA_DIR, file),
             { encoding: 'utf-8' }
           );
-          const board = safeJSON.decode(json);
+          const board: unknown = JSON.parse(json);
           return !isSudokuResponse(board) ? null : board;
         } catch (err) {
           return null;
         }
       })
     );
-    return boards.filter((b) => !!b);
+    return boards.filter((b): b is Exclude<typeof b, null> => !!b);
   } catch (err) {
     return [];
   }

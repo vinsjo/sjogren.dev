@@ -18,18 +18,20 @@ async function getAverageFPS(
     }
     let current: number | null = null,
       prev: number | null = null;
-    let handle: ReturnType<typeof requestAnimationFrame> | null = null;
+    let animationFrame: ReturnType<typeof requestAnimationFrame> | null = null;
 
     const deltas: number[] = [];
 
     (function animate() {
-      handle = requestAnimationFrame(animate);
+      animationFrame = requestAnimationFrame(animate);
       [current, prev] = [performance.now(), current];
       if (prev) deltas.push(current - prev);
     })();
 
     setTimeout(() => {
-      cancelAnimationFrame(handle);
+      if (animationFrame != null) {
+        cancelAnimationFrame(animationFrame);
+      }
       resolve(deltas);
     }, measurementLength);
   });
