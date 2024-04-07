@@ -1,6 +1,5 @@
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import clsx from 'clsx';
-import { useUpdateEffect } from 'usehooks-ts';
 import dynamic from 'next/dynamic';
 
 import { createSection } from './Section';
@@ -14,10 +13,9 @@ import {
   selectors as windowSizeSelectors,
 } from '@/stores/windowSizeStore';
 
-import { WindowSize } from '@/utils/misc';
+import { PageSection } from './constants';
 
 import styles from './Start.module.css';
-import { PageSection } from './constants';
 
 const BlobScene = withClientRender(
   dynamic(() => import('@/components/three/BlobScene'), {
@@ -26,16 +24,6 @@ const BlobScene = withClientRender(
   }),
   { withSuspense: true }
 );
-
-const getContainerStyle = (
-  isMobile: boolean,
-  windowSize: WindowSize
-): CSSProperties | undefined => {
-  const { innerWidth, innerHeight } = windowSize;
-
-  if (!isMobile || !innerWidth || !innerHeight) return;
-  return { maxWidth: innerWidth, maxHeight: innerHeight };
-};
 
 export const Start = createSection(
   () => {
