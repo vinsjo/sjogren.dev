@@ -11,8 +11,7 @@ export type Repo = Awaited<
 export type Owner = Repo['owner'];
 export type License = Repo['license'];
 
-const repoPropKeys = [
-  'id',
+const repoKeys = [
   'name',
   'full_name',
   'description',
@@ -25,7 +24,9 @@ const repoPropKeys = [
   'homepage',
 ] as const satisfies Array<keyof Repo>;
 
-export type PartialRepo = Pick<Repo, (typeof repoPropKeys)[number]> & {
+type PartialRepoKey = (typeof repoKeys)[number];
+
+export type PartialRepo = Pick<Repo, PartialRepoKey> & {
   package_name: Nullable<string>;
 };
 
@@ -164,7 +165,7 @@ function filterRepos(repos: Repo[]) {
 
 async function createPartialRepo(repo: Repo): Promise<PartialRepo> {
   const partialRepo: PartialRepo = {
-    ...pick(repo, ...repoPropKeys),
+    ...pick(repo, ...repoKeys),
     package_name: await getPackageJsonName(repo),
   };
 

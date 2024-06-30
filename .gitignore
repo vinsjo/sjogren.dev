@@ -31,3 +31,6 @@ data/**/*.json
 /data
 
 .vscode
+
+
+/src/env.d.ts

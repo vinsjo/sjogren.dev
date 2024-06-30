@@ -1,6 +1,7 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
+    "types": ["astro/types", "astro/client"],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "resolveJsonModule": true,
@@ -8,5 +9,6 @@
     "paths": {
       "@/*": ["src/*"]
     }
-  }
+  },
+  "include": ["src/**/*"]
 }

@@ -40,6 +40,10 @@
     {
       "files": ["scripts/**/*"],
       "rules": { "no-console": "off" }
+    },
+    {
+      "files": "src/env.d.ts",
+      "rules": { "@typescript-eslint/triple-slash-reference": "off" }
     }
   ],
   "ignorePatterns": ["node_modules", "public", "build", ".next", "cms-cache"]

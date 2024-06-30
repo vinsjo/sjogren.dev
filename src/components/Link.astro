@@ -3,12 +3,33 @@ import type { HTMLAttributes } from 'astro/types';
 
 export type Props = HTMLAttributes<'a'>;
 
-const { target, rel, ...restProps } = Astro.props;
+const {
+  target,
+  rel,
+  'class:list': classList,
+  class: className,
+  ...restProps
+} = Astro.props;
 ---
 
+<style>
+  .link {
+    text-decoration: underline solid transparent;
+    transition: text-decoration-color 0.2s ease-in-out;
+  }
+
+  .link:hover {
+    text-decoration-color: inherit;
+  }
+</style>
 <a
   target={target}
   rel={target === '_blank' ? 'noreferrer' : rel}
+  class:list={[
+    'link',
+    className,
+    ...(Array.isArray(classList) ? classList : [classList]),
+  ]}
   {...restProps}
 >
   <slot />

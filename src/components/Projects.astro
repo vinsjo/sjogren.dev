@@ -1,16 +1,29 @@
 ---
-import { fetchRepos } from '@/utils/api/github-api';
+import { fetchRepos, type PartialRepo } from '@/utils/api/github-api';
 import { formatURL } from '@/utils/misc';
 import { PageSection } from '@/constants';
 import Link from './Link.astro';
 import Section from './Section.astro';
 
-const repos = await fetchRepos().catch((err) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(err instanceof Error ? err.message : err);
-  }
-  return [];
-});
+type Project = Pick<PartialRepo, 'name' | 'description' | 'homepage'> &
+  Omit<Partial<PartialRepo>, 'name' | 'description' | 'homepage'>;
+
+const projects: Project[] = [
+  {
+    name: 'eleonoreandersson.com',
+    language: 'TypeScript',
+    description: 'Portfolio website for Eleonore Andersson.',
+    homepage: 'https://eleonoreandersson.com',
+  },
+];
+
+await fetchRepos()
+  .then((repos) => projects.push(...repos))
+  .catch((err) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(err);
+    }
+  });
 ---
 
 <style>
@@ -30,7 +43,7 @@ const repos = await fetchRepos().catch((err) => {
     gap: 0.5rem;
   }
 
-  .repo-card {
+  .project-card {
     width: 100%;
     height: 100%;
     display: flex;
@@ -45,58 +58,73 @@ const repos = await fetchRepos().catch((err) => {
     background-color: var(--translucent);
   }
 
-  .repo-card__header {
+  .project-card__header {
     flex-shrink: 0;
   }
 
-  .repo-card__content {
+  .project-card__content {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
-  .repo-card__title {
+  .project-card__title {
     font-size: 1rem;
     font-weight: 500;
   }
 
-  .repo-card__language {
+  .project-card__language {
     text-transform: lowercase;
   }
-  .repo-card__description {
+  .project-card__description {
     line-height: 160%;
     margin-bottom: 0.5rem;
   }
 </style>
 
 <Section id={PageSection.Projects} class='section'>
-  <h3 class='title'>Projects on GitHub</h3>
+  <h3 class='title'>Projects</h3>
   <div class='card-grid'>
     {
-      repos?.map(
-        ({ package_name, name, description, html_url, language, homepage }) => {
+      projects.map(
+        ({
+          package_name,
+          name,
+          description,
+          html_url: githubUrl,
+          language,
+          homepage,
+        }) => {
+          const displayName = package_name || name;
           const formattedHomePage = formatURL(homepage);
+
+          const hasHomePage = !!formattedHomePage && !!homepage;
+
           return (
-            <div class='repo-card'>
-              <div class='repo-card__header'>
-                <Link
-                  class='repo-card__title'
-                  href={html_url}
-                  target='_blank'
-                  title='To GitHub Repository'
-                >
-                  {package_name || name}
-                </Link>
+            <div class='project-card'>
+              <div class='project-card__header'>
+                {githubUrl ? (
+                  <Link
+                    class='project-card__title'
+                    href={githubUrl}
+                    target='_blank'
+                    title='To GitHub Repository'
+                  >
+                    {displayName}
+                  </Link>
+                ) : (
+                  <h4 class='project-card__title'>{displayName}</h4>
+                )}
                 {language && (
-                  <p class='repo-card__language'>
+                  <p class='project-card__language'>
                     <small>Written in {language}</small>
                   </p>
                 )}
               </div>
-              <div class='repo-card__content'>
-                <p class='repo-card__description'>{description}</p>
-                {!homepage || !formattedHomePage ? null : (
+              <div class='project-card__content'>
+                <p class='project-card__description'>{description}</p>
+                {hasHomePage && (
                   <Link
                     href={homepage}
                     target='_blank'
