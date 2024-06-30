@@ -1,0 +1,115 @@
+---
+import { fetchRepos } from '@/utils/api/github-api';
+import { formatURL } from '@/utils/misc';
+import { PageSection } from '@/constants';
+import Link from './Link.astro';
+import Section from './Section.astro';
+
+const repos = await fetchRepos().catch((err) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(err instanceof Error ? err.message : err);
+  }
+  return [];
+});
+---
+
+<style>
+  .section {
+    height: fit-content;
+    min-height: 0;
+  }
+
+  .card-grid {
+    width: 100%;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+    grid-auto-rows: 1fr;
+    gap: 0.5rem;
+  }
+
+  .repo-card {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 1rem;
+    font-size: 0.8rem;
+    min-width: 30ch;
+    min-height: 8rem;
+    background-color: var(--translucent);
+  }
+
+  .repo-card__header {
+    flex-shrink: 0;
+  }
+
+  .repo-card__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .repo-card__title {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .repo-card__language {
+    text-transform: lowercase;
+  }
+  .repo-card__description {
+    line-height: 160%;
+    margin-bottom: 0.5rem;
+  }
+</style>
+
+<Section id={PageSection.Projects} class='section'>
+  <h3 class='title'>Projects on GitHub</h3>
+  <div class='card-grid'>
+    {
+      repos?.map(
+        ({ package_name, name, description, html_url, language, homepage }) => {
+          const formattedHomePage = formatURL(homepage);
+          return (
+            <div class='repo-card'>
+              <div class='repo-card__header'>
+                <Link
+                  class='repo-card__title'
+                  href={html_url}
+                  target='_blank'
+                  title='To GitHub Repository'
+                >
+                  {package_name || name}
+                </Link>
+                {language && (
+                  <p class='repo-card__language'>
+                    <small>Written in {language}</small>
+                  </p>
+                )}
+              </div>
+              <div class='repo-card__content'>
+                <p class='repo-card__description'>{description}</p>
+                {!homepage || !formattedHomePage ? null : (
+                  <Link
+                    href={homepage}
+                    target='_blank'
+                    title={`View project at ${homepage}`}
+                  >
+                    {formattedHomePage}
+                  </Link>
+                )}
+              </div>
+            </div>
+          );
+        },
+      )
+    }
+  </div>
+</Section>

@@ -1,0 +1,56 @@
+---
+import Navigation from '@/components/Navigation.astro';
+import Projects from '@/components/Projects.astro';
+import Contact from '@/components/Contact.astro';
+import Start from '@/components/Start.astro';
+
+import '@/styles/global.css';
+
+const title = 'sjogren.dev';
+
+const keywords = [
+  'Vincent Sjögren',
+  'Vincent',
+  'Sjögren',
+  'Developer',
+  'Front-end',
+  'Frontend',
+  'Full-stack',
+  'Javascript',
+  'React',
+  'Next.js',
+  'Three.js',
+  'Stockholm',
+];
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <meta
+      name='viewport'
+      content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
+    />
+    <meta name='keywords' content={keywords.join(', ')} />
+    <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
+    <meta name='generator' content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+
+  <body>
+    <Navigation />
+    <main>
+      <Start />
+      <Projects />
+      <Contact />
+    </main>
+  </body>
+  <script>
+    import { isMobileDeviceType } from '@/utils/misc';
+    document.documentElement.setAttribute('data-loaded', 'true');
+
+    if (isMobileDeviceType()) {
+      document.documentElement.setAttribute('data-device', 'mobile');
+    }
+  </script>
+</html>

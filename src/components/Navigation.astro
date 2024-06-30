@@ -1,0 +1,50 @@
+---
+import { PageSection } from '@/constants';
+---
+
+<style>
+  .link-container {
+    position: fixed;
+    width: auto;
+    height: auto;
+    padding: 1rem;
+    z-index: 100;
+  }
+
+  .link-container.projects {
+    top: 0;
+    right: 0;
+  }
+
+  .link-container.contact {
+    left: 0;
+    top: 0;
+  }
+  .link-container.start {
+    bottom: 0;
+    right: 0;
+  }
+
+  .link {
+    font-weight: 600;
+    text-transform: lowercase;
+  }
+</style>
+<>
+  {
+    [PageSection.Contact, PageSection.Projects, PageSection.Start].map(
+      (section) => {
+        return (
+          <div class:list={['link-container', section]}>
+            <a
+              href={section === PageSection.Start ? '#' : `#${section}`}
+              class:list={['title', 'link']}
+            >
+              {section === PageSection.Start ? 'To Start' : section}
+            </a>
+          </div>
+        );
+      },
+    )
+  }
+</>

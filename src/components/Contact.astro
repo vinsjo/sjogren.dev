@@ -1,0 +1,72 @@
+---
+import { PageSection } from '@/constants';
+import Section from './Section.astro';
+import IconLink from './IconLink.astro';
+import Link from './Link.astro';
+import GithubIcon from './icons/GithubIcon.astro';
+import LinkedInIcon from './icons/LinkedInIcon.astro';
+---
+
+<style>
+  .contact-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .contact-details {
+    gap: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .social {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section {
+    height: 100vh;
+    max-height: 100vh;
+  }
+</style>
+
+<Section id={PageSection.Contact} class='section'>
+  <h2 class='title'>Contact</h2>
+  <div class='contact-container'>
+    <div class='contact-details'>
+      <Link
+        href='mailto:vincent@sjogren.dev'
+        target='_blank'
+        title='Send me an email'
+      >
+        vincent@sjogren.dev
+      </Link>
+      <Link href='tel:+46700624523' title='Call me'>+46 700 62 45 23</Link>
+    </div>
+    <div class='social'>
+      <IconLink
+        href='https://github.com/vinsjo'
+        target='_blank'
+        title='Follow me on GitHub'
+      >
+        <GithubIcon />
+      </IconLink>
+      <IconLink
+        href='https://www.linkedin.com/in/vincent-sj%C3%B6gren-547681159'
+        target='_blank'
+        title='Add me to your LinkedIn network'
+      >
+        <LinkedInIcon />
+      </IconLink>
+    </div>
+  </div>
+</Section>

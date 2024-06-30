@@ -1,0 +1,47 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+export type Props = HTMLAttributes<'a'>;
+
+const {
+  target,
+  rel,
+  'class:list': classList,
+  class: className,
+  ...restProps
+} = Astro.props;
+---
+
+<style>
+  .icon-link {
+    --hover-transform: scale(1.05);
+    background-color: none;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .icon-link svg {
+    fill: currentColor;
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+
+<a
+  target={target}
+  rel={target === '_blank' ? 'noreferrer' : rel}
+  class:list={[
+    [
+      'icon-link',
+      className,
+      ...(Array.isArray(classList) ? classList : [classList]),
+    ],
+  ]}
+  {...restProps}
+>
+  <slot />
+</a>
