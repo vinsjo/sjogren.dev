@@ -1,7 +1,7 @@
 {
-  "name": "sjogren-dev-astro",
+  "name": "sjogren.dev",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
@@ -31,7 +31,6 @@
     "astro": "^4.7.0",
     "autoprefixer": "^10.4.15",
     "axios": "^1.6.8",
-    "clsx": "^2.1.1",
     "eslint": "^8.57.0",
     "eslint-plugin-astro": "^1.1.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
@@ -51,7 +50,6 @@
     "three": "^0.164.1",
     "typescript": "^5.4.5",
     "ua-parser-js": "^1.0.37",
-    "usehooks-ts": "^3.1.0",
     "x-is-type": "^1.2.8"
   },
   "lint-staged": {
