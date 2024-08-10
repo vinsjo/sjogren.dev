@@ -38,6 +38,8 @@
   --translucent: rgba(255, 255, 255, 0.05);
   --body-bg: var(--light-gray);
   --text-color: white;
+  --safe-viewport-height: 100vh;
+  --safe-viewport-width: 100vw;
 }
 
 * {
@@ -58,13 +60,14 @@ html[data-loaded='true'] {
 body {
   color: var(--text-color);
   background-color: var(--body-bg);
-  width: 100%;
   font-family: var(--main-font);
+  width: 100%;
 }
 
 main {
   width: 100%;
   height: fit-content;
+  min-height: var(--safe-viewport-height);
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -117,5 +120,12 @@ section > .title {
   }
   section > .title {
     --font-size: 1.6rem;
+  }
+}
+
+@supports (height: 100svh) {
+  :root {
+    --safe-viewport-height: 100svh;
+    --safe-viewport-width: 100svw;
   }
 }

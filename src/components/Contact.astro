@@ -1,5 +1,4 @@
 ---
-import { PageSection } from '@/constants';
 import Section from './Section.astro';
 import IconLink from './IconLink.astro';
 import Link from './Link.astro';
@@ -8,6 +7,10 @@ import LinkedInIcon from './icons/LinkedInIcon.astro';
 ---
 
 <style>
+  .section#contact {
+    height: 100vh;
+    max-height: 100vh;
+  }
   .contact-container {
     width: 100%;
     height: 100%;
@@ -32,14 +35,9 @@ import LinkedInIcon from './icons/LinkedInIcon.astro';
     align-items: center;
     gap: 1rem;
   }
-
-  .section {
-    height: 100vh;
-    max-height: 100vh;
-  }
 </style>
 
-<Section id={PageSection.Contact} class='section'>
+<Section id='contact'>
   <h2 class='title'>Contact</h2>
   <div class='contact-container'>
     <div class='contact-details'>

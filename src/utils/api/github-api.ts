@@ -3,7 +3,6 @@ import path from 'path';
 import axios from 'axios';
 import { Octokit } from '@octokit/rest';
 import { pick } from '../misc';
-import { IS_DEV } from '@/constants';
 
 export type Repo = Awaited<
   ReturnType<Octokit['rest']['repos']['listForAuthenticatedUser']>
@@ -130,7 +129,7 @@ async function fetchPackageJSON(
     });
     return data;
   } catch (err) {
-    if (IS_DEV) {
+    if (process.env.NODE_ENV === 'development') {
       if (
         err !== NO_URL_ERROR &&
         err !== INVALID_LANGUAGE_ERROR &&

@@ -16,7 +16,7 @@ export function getDeviceType(): Nullable<DeviceType> {
 
   return !userAgent
     ? null
-    : (new UAParser(userAgent).getDevice().type as DeviceType) || null;
+    : (new UAParser(userAgent).getDevice().type as DeviceType);
 }
 
 const mobileDeviceTypes = new Set<MobileDeviceType>(['mobile', 'tablet']);
@@ -31,5 +31,6 @@ export function isMobileDeviceType(type?: string | null): boolean {
   if (type === undefined) {
     type = getDeviceType();
   }
-  return type != null && (mobileDeviceTypes as Set<unknown>).has(type);
+
+  return (mobileDeviceTypes as Set<unknown>).has(type);
 }

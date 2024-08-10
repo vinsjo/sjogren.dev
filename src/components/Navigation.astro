@@ -1,7 +1,3 @@
----
-import { PageSection } from '@/constants';
----
-
 <style>
   .link-container {
     position: fixed;
@@ -25,26 +21,24 @@ import { PageSection } from '@/constants';
     right: 0;
   }
 
-  .link {
+  .link-container .link {
     font-weight: 600;
     text-transform: lowercase;
   }
 </style>
 <>
   {
-    [PageSection.Contact, PageSection.Projects, PageSection.Start].map(
-      (section) => {
-        return (
-          <div class:list={['link-container', section]}>
-            <a
-              href={section === PageSection.Start ? '#' : `#${section}`}
-              class:list={['title', 'link']}
-            >
-              {section === PageSection.Start ? 'To Start' : section}
-            </a>
-          </div>
-        );
-      },
-    )
+    (['contact', 'projects', 'start'] as const).map((section) => {
+      return (
+        <div class:list={['link-container', section]}>
+          <a
+            href={section === 'start' ? '#' : `#${section}`}
+            class:list={['title', 'link']}
+          >
+            {section === 'start' ? 'To Start' : section}
+          </a>
+        </div>
+      );
+    })
   }
 </>

@@ -1,7 +1,6 @@
 ---
 import { fetchRepos, type PartialRepo } from '@/utils/api/github-api';
 import { formatURL } from '@/utils/misc';
-import { PageSection } from '@/constants';
 import Link from './Link.astro';
 import Section from './Section.astro';
 
@@ -27,7 +26,7 @@ await fetchRepos()
 ---
 
 <style>
-  .section {
+  .section#projects {
     height: fit-content;
     min-height: 0;
   }
@@ -83,7 +82,7 @@ await fetchRepos()
   }
 </style>
 
-<Section id={PageSection.Projects} class='section'>
+<Section id='projects' class='section'>
   <h3 class='title'>Projects</h3>
   <div class='card-grid'>
     {
