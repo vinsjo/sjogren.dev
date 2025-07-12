@@ -1,6 +1,5 @@
 import type { MeshProps } from '@react-three/fiber';
 import type { IUniform, Vector3 } from 'three';
-
 import type { MinMax } from '@/types';
 
 export type BlobShaderOptions = {
@@ -37,6 +36,10 @@ export type BlobOptions = {
  */
 export type RandomBlobOptionsLimits = {
   [K in keyof BlobOptions]: { [U in keyof BlobOptions[K]]: MinMax };
+};
+
+export type PartialRandomBlobOptionsLimits = {
+  [K in keyof RandomBlobOptionsLimits]?: Partial<RandomBlobOptionsLimits[K]>;
 };
 
 export interface RequiredBlobProps

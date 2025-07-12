@@ -20,27 +20,41 @@ export const getInitialBlobProps = (
 
   const radiusLimits: MinMax = [maxRadius * 0.8, maxRadius * 1.2];
 
-  const avgRadius = getAverage(radiusLimits);
+  const averageRadius = getAverage(radiusLimits);
   /**
-   * Max x and y position based on average radius and number of columns and rows
+   * Max offset from center based on average radius and number of columns and rows
    * to avoid blobs being too close to the edges of the view.
    */
-  const maxPosition = { x: (avgRadius * cols) / 2, y: (avgRadius * rows) / 2 };
+  const maxCenterOffset = {
+    x: (averageRadius * cols) / 2,
+    y: (averageRadius * rows) / 2,
+  };
 
-  const maxPositionOffset = avgRadius / 2;
+  const maxPositionOffset = averageRadius / 2;
 
   const center = v3(0, 0, 0);
 
   const output: RequiredBlobProps[] = [];
 
-  for (let row = 0; row < rows; row++) {
+  for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
     const y =
-      MathUtils.mapLinear(row, 0, rows - 1, -maxPosition.y, maxPosition.y) || 0;
+      MathUtils.mapLinear(
+        rowIndex,
+        0,
+        rows - 1,
+        -maxCenterOffset.y,
+        maxCenterOffset.y,
+      ) || 0;
 
-    for (let col = 0; col < cols; col++) {
+    for (let colIndex = 0; colIndex < cols; colIndex++) {
       const x =
-        MathUtils.mapLinear(col, 0, cols - 1, -maxPosition.x, maxPosition.x) ||
-        0;
+        MathUtils.mapLinear(
+          colIndex,
+          0,
+          cols - 1,
+          -maxCenterOffset.x,
+          maxCenterOffset.x,
+        ) || 0;
 
       output.push({
         position: v3(

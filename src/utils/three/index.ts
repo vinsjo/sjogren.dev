@@ -50,7 +50,7 @@ export const getVisibleSizeAtZ = (
   const verticalFOV = (camera.fov * Math.PI) / 180;
 
   // Math.abs to ensure the result is always positive
-  const maxVisibleHeight = Math.tan(verticalFOV / 2) * Math.abs(depth);
+  const maxVisibleHeight = 2 * Math.tan(verticalFOV / 2) * Math.abs(depth);
   const maxVisibleWidth = maxVisibleHeight * camera.aspect;
 
   return [maxVisibleWidth, maxVisibleHeight];

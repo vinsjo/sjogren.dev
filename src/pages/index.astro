@@ -46,11 +46,21 @@ const keywords = [
     </main>
   </body>
   <script>
-    import { isMobileDeviceType } from '@/utils/misc';
     document.documentElement.setAttribute('data-loaded', 'true');
 
-    if (isMobileDeviceType()) {
-      document.documentElement.setAttribute('data-device', 'mobile');
-    }
+    import('ua-parser-js')
+      .then(({ UAParser }) => {
+        const deviceType = UAParser().device.type;
+        if (deviceType) {
+          // Set a data attribute on the HTML element to indicate the device type
+          // This can be used for styling or functionality based on device type
+          document.documentElement.setAttribute('data-device-type', deviceType);
+        }
+      })
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.error('Error loading UAParser:', error);
+        }
+      });
   </script>
 </html>

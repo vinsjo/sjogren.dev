@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { SphereGeometry, ShaderMaterial, Mesh } from 'three';
 import { type MeshProps, type ThreeEvent, useFrame } from '@react-three/fiber';
 import useEventCallback from '@mui/utils/useEventCallback';
@@ -11,7 +11,7 @@ export interface ShaderBlobProps
   radius?: number;
   widthSegments?: number;
   heightSegments?: number;
-  randomRefresh?: number;
+  // randomRefresh?: number;
 }
 
 type State = {
@@ -32,7 +32,7 @@ export const ShaderBlob = ({
   widthSegments = 64,
   heightSegments = 32,
   scale,
-  randomRefresh,
+  // randomRefresh,
   ...meshProps
 }: ShaderBlobProps) => {
   const [{ options, material }, setState] = useState(() =>
@@ -54,7 +54,6 @@ export const ShaderBlob = ({
 
   useFrame(() => {
     if (!mesh.current) return;
-
     const {
       rotation,
       material: { uniforms },
@@ -62,23 +61,12 @@ export const ShaderBlob = ({
 
     (['x', 'y', 'z'] satisfies Array<keyof typeof rotationSpeed>).forEach(
       (key) => {
-        if (rotationSpeed[key] === 0) return;
-        rotation[key] += rotationSpeed[key];
+        rotation[key] += rotationSpeed[key] || 0;
       },
     );
+
     uniforms.uTime.value += 0.1;
   });
-
-  useEffect(() => {
-    if (!randomRefresh) return;
-
-    const timeout = setTimeout(
-      () => setState(getRandomizedState()),
-      Math.floor(Math.random() * randomRefresh),
-    );
-
-    return () => clearTimeout(timeout);
-  }, [randomRefresh, options]);
 
   return (
     <mesh

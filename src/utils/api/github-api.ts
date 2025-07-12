@@ -10,22 +10,19 @@ export type Repo = Awaited<
 export type Owner = Repo['owner'];
 export type License = Repo['license'];
 
-const repoKeys = [
-  'name',
-  'full_name',
-  'description',
-  'url',
-  'html_url',
-  'created_at',
-  'updated_at',
-  'pushed_at',
-  'language',
-  'homepage',
-] as const satisfies Array<keyof Repo>;
-
-type PartialRepoKey = (typeof repoKeys)[number];
-
-export type PartialRepo = Pick<Repo, PartialRepoKey> & {
+export type PartialRepo = Pick<
+  Repo,
+  | 'name'
+  | 'full_name'
+  | 'description'
+  | 'url'
+  | 'html_url'
+  | 'created_at'
+  | 'updated_at'
+  | 'pushed_at'
+  | 'language'
+  | 'homepage'
+> & {
   package_name: Nullable<string>;
 };
 

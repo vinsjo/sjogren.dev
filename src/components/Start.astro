@@ -75,7 +75,8 @@ import BlobScene from './three/BlobScene';
     opacity: 1;
   }
 
-  [data-device='mobile'] .blob-scene {
+  [data-device-type='mobile'] .blob-scene,
+  [data-device-type='tablet'] .blob-scene {
     max-height: calc(var(--safe-viewport-height) * 0.8);
   }
 

@@ -24,17 +24,9 @@ export const fitBlobsInView = (
       y: (visibleHeight * maxCover) / 2,
     };
 
-    if (radiusLimit.x - maxRadius < 0) x = 0;
-    if (radiusLimit.y - maxRadius < 0) y = 0;
-
-    if (y) {
-      y = MathUtils.clamp(
-        y / aspect,
-        -radiusLimit.y + maxRadius,
-        radiusLimit.y - maxRadius,
-      );
-    }
-    if (x) {
+    if (radiusLimit.x - maxRadius < 0) {
+      x = 0;
+    } else if (x) {
       x = MathUtils.clamp(
         x * aspect,
         -radiusLimit.x + maxRadius,
@@ -42,16 +34,36 @@ export const fitBlobsInView = (
       );
     }
 
-    const minLimit = Math.min(radiusLimit.x, radiusLimit.y);
-
-    if (minLimit - maxRadius < 0 && (x === 0 || y === 0)) {
-      s = s.clone().clamp(equalV3(0), equalV3(minLimit));
+    if (radiusLimit.y - maxRadius < 0) {
+      y = 0;
+    } else if (y) {
+      y = MathUtils.clamp(
+        y / aspect,
+        -radiusLimit.y + maxRadius,
+        radiusLimit.y - maxRadius,
+      );
     }
 
-    if (x !== p.x || y !== p.y) p = v3(x, y, z).lerp(center, 0.1);
+    const minLimit = Math.min(radiusLimit.x, radiusLimit.y);
 
-    return p !== blob.position || s !== blob.scale
-      ? { position: p, scale: s }
-      : blob;
+    let hasChanged = false;
+    if (minLimit - maxRadius < 0 && (!x || !y)) {
+      s = s.clone().clamp(equalV3(0), equalV3(minLimit));
+      hasChanged = true;
+    }
+
+    if (x !== p.x || y !== p.y) {
+      p = v3(x, y, z).lerp(center, 0.1);
+      hasChanged = true;
+    }
+
+    if (hasChanged) {
+      return {
+        position: p,
+        scale: s,
+      };
+    }
+
+    return blob;
   });
 };

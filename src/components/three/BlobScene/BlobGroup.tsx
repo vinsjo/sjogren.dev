@@ -13,14 +13,6 @@ import type { RequiredBlobProps } from './types';
 
 import { ShaderBlob } from './ShaderBlob';
 
-type ThreeStateSelector<U = unknown> = (state: RootState) => U;
-
-const threeStateSelectors = {
-  width: (state) => state.size.width,
-  height: (state) => state.size.height,
-  camera: (state) => state.camera as PerspectiveCamera,
-} satisfies Record<string, ThreeStateSelector>;
-
 type GridSize = [cols: number, rows: number];
 
 type StateRefs = {
@@ -33,9 +25,9 @@ type StateRefs = {
    */
   canvasWidth: number;
   /**
-   * Blob size, based on screen size
+   * Cell size in 'grid' in pixels
    */
-  blobSize: number;
+  cellSize: number;
   /**
    * Camera used to calculate blob positions and sizes
    * (only `position`, `fov` and `aspect` are used)
@@ -67,7 +59,7 @@ type State = {
  * Get blob size in pixels based on current screen size,
  * or 0 when SSR
  */
-const getBlobSize = (): number => {
+const getGridCellSize = (): number => {
   const longestSide = Math.max(...getScreenSize());
   return longestSide && Math.round(longestSide / 5);
 };
@@ -75,28 +67,29 @@ const getBlobSize = (): number => {
 const getGridSize = (
   canvasWidth: number,
   canvasHeight: number,
-  blobSize: number,
+  cellSize: number,
 ): GridSize => {
-  if (canvasHeight && canvasWidth && blobSize) {
-    return [
-      Math.ceil(canvasWidth / blobSize) || 0,
-      Math.ceil(canvasWidth / blobSize) || 0,
-    ];
+  if (!canvasWidth || !canvasHeight || !cellSize) {
+    return [0, 0];
   }
-  return [0, 0];
+
+  return [
+    Math.ceil(canvasWidth / cellSize),
+    Math.ceil(canvasHeight / cellSize),
+  ];
 };
 
 /**
  * Check if `aspect`, `fov` and `position` of two cameras are equal.
  */
-const isEqualCameraRefs = (a: StateRefs['camera'], b: StateRefs['camera']) => {
+const isEqualCameras = (a: StateRefs['camera'], b: StateRefs['camera']) => {
   return (
     a.aspect === b.aspect && a.fov === b.fov && a.position.equals(b.position)
   );
 };
 
 const getInitialState = (refs: StateRefs, gridSize?: GridSize): State => {
-  const { canvasWidth, canvasHeight, blobSize, camera } = refs;
+  const { canvasWidth, canvasHeight, cellSize: blobSize, camera } = refs;
   if (!gridSize) {
     gridSize = getGridSize(canvasWidth, canvasHeight, blobSize);
   }
@@ -115,27 +108,25 @@ const reducer: React.Reducer<State, StateRefs> = (
   state: State,
   refs: StateRefs,
 ): State => {
-  const isEqualBlobSize = state.refs.blobSize === refs.blobSize;
+  const isEqualCellSize = state.refs.cellSize === refs.cellSize;
   const isEqualCanvasSize =
     state.refs.canvasWidth === refs.canvasWidth &&
     state.refs.canvasHeight === refs.canvasHeight;
-  const isEqualCamera = isEqualCameraRefs(state.refs.camera, refs.camera);
+  const isEqualCamera = isEqualCameras(state.refs.camera, refs.camera);
 
   // Skip if refs are equal
-  if (isEqualCanvasSize && isEqualCamera && isEqualBlobSize) {
+  if (isEqualCanvasSize && isEqualCamera && isEqualCellSize) {
     return state;
   }
 
-  const gridSize =
-    isEqualCanvasSize && isEqualBlobSize
-      ? state.gridSize
-      : getGridSize(refs.canvasWidth, refs.canvasHeight, refs.blobSize);
+  const gridSize = getGridSize(
+    refs.canvasWidth,
+    refs.canvasHeight,
+    refs.cellSize,
+  );
 
-  const isEqualGridSize =
-    gridSize !== state.gridSize &&
-    state.gridSize.every((value, i) => value === gridSize[i]);
-
-  if (!isEqualGridSize) {
+  // Re-initialize if grid size changes
+  if (!state.gridSize.every((value, i) => value === gridSize[i])) {
     return getInitialState(refs, gridSize);
   }
 
@@ -146,8 +137,16 @@ const reducer: React.Reducer<State, StateRefs> = (
   };
 };
 
+type ThreeStateSelector<U = unknown> = (state: RootState) => U;
+
+const threeStateSelectors = {
+  width: (state) => state.size.width,
+  height: (state) => state.size.height,
+  camera: (state) => state.camera as PerspectiveCamera,
+} satisfies Record<string, ThreeStateSelector>;
+
 const BlobGroup: React.FC = () => {
-  const [blobSize, setBlobSize] = useState(() => getBlobSize());
+  const [gridCellSize, setGridCellSize] = useState(() => getGridCellSize());
 
   const canvasWidth = useThree(threeStateSelectors.width);
   const canvasHeight = useThree(threeStateSelectors.height);
@@ -159,21 +158,26 @@ const BlobGroup: React.FC = () => {
   >(
     reducer,
     {
-      blobSize,
+      camera,
       canvasWidth,
       canvasHeight,
-      camera,
+      cellSize: gridCellSize,
     },
     getInitialState,
   );
 
   useEnhancedEffect(() => {
-    setBlobSize(getBlobSize());
+    setGridCellSize(getGridCellSize());
   }, []);
 
   useEnhancedEffect(() => {
-    dispatch({ camera, canvasHeight, canvasWidth, blobSize });
-  }, [camera, canvasHeight, canvasWidth, blobSize]);
+    dispatch({
+      camera,
+      canvasHeight,
+      canvasWidth,
+      cellSize: gridCellSize,
+    });
+  }, [camera, canvasHeight, canvasWidth, gridCellSize]);
 
   return (
     <group>
