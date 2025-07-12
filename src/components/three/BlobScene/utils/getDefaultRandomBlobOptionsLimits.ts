@@ -8,10 +8,9 @@ export const getDefaultRandomBlobOptionsLimits =
         rotationSpeed: [-0.005, 0.005],
       },
       shader: {
-        alpha: [1, 1],
-        colorMultiplier: [0.4, 1],
-        lightThreshold: [0.05, 0.25],
-        frequency: [0.5, 3],
+        colorMultiplier: [0.5, 1],
+        lightThreshold: [0.1, 0.3],
+        frequency: [0.5, 5],
         amplitude: [0.05, 0.3],
         distSpeed: [0.01, 0.2],
       },

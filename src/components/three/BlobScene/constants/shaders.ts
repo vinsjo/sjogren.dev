@@ -1,7 +1,6 @@
 export const blobFragmentShader = `
 	precision mediump float;
 
-	uniform float uAlpha;
 	uniform vec3 uLightThreshold;
 	uniform vec3 uColorMultiplier;
 	uniform float uTime;
@@ -20,7 +19,7 @@ export const blobFragmentShader = `
 			uColorMultiplier.z * (vNormal.z * uLightThreshold.z + lThreshold.z)
 		);
 	
-		gl_FragColor = vec4(color, uAlpha);
+		gl_FragColor = vec4(color, 1.0);
 	}`;
 export const blobVertexShader = `
 			precision mediump float;

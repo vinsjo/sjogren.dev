@@ -1,6 +1,5 @@
 import type { Vector3 } from 'three';
 
-import { randomNumber } from '@/utils/math';
 import { randomV3 } from '@/utils/three';
 import type {
   BlobOptions,
@@ -25,8 +24,6 @@ export const getRandomBlobOptions = (
   if (limitOptions.shader) {
     Object.assign(shaderLimits, limitOptions.shader);
   }
-
-  shader.alpha = randomNumber(...shaderLimits.alpha);
 
   (
     [

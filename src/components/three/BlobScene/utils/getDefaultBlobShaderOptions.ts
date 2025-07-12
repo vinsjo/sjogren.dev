@@ -3,7 +3,6 @@ import type { BlobShaderOptions } from '../types';
 
 export const getDefaultBlobShaderOptions = (): BlobShaderOptions => {
   return {
-    alpha: 1,
     lightThreshold: equalV3(0.2),
     frequency: equalV3(5),
     amplitude: equalV3(0.2),

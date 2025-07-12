@@ -26,11 +26,11 @@ export const getInitialBlobProps = (
    * to avoid blobs being too close to the edges of the view.
    */
   const maxCenterOffset = {
-    x: (averageRadius * cols) / 2,
-    y: (averageRadius * rows) / 2,
+    x: averageRadius * cols * 0.6,
+    y: averageRadius * rows * 0.6,
   };
 
-  const maxPositionOffset = averageRadius / 2;
+  const maxPositionOffset = averageRadius * 0.75;
 
   const center = v3(0, 0, 0);
 

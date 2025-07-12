@@ -3,7 +3,6 @@ import type { IUniform, Vector3 } from 'three';
 import type { MinMax } from '@/types';
 
 export type BlobShaderOptions = {
-  alpha: number;
   lightThreshold: Vector3;
   frequency: Vector3;
   amplitude: Vector3;
@@ -11,13 +10,11 @@ export type BlobShaderOptions = {
   colorMultiplier: Vector3;
 };
 
-type BlobUniformValues = BlobShaderOptions & {
-  time: number;
-};
-
 export type BlobUniforms = {
-  [K in keyof BlobUniformValues as `u${Capitalize<K>}`]: IUniform<
-    BlobUniformValues[K]
+  uTime: IUniform<number>;
+} & {
+  [K in keyof BlobShaderOptions as `u${Capitalize<K>}`]: IUniform<
+    BlobShaderOptions[K]
   >;
 };
 
