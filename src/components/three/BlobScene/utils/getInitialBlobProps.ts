@@ -16,9 +16,9 @@ export const getInitialBlobProps = (
   const [maxVisibleHeight, maxVisibleWidth] = getVisibleSizeAtZ(0, camera);
 
   const maxRadius =
-    Math.min(maxVisibleWidth / cols, maxVisibleHeight / rows) / 2;
+    Math.min(maxVisibleWidth / cols, maxVisibleHeight / rows) * 0.75;
 
-  const radiusLimits: MinMax = [maxRadius * 0.8, maxRadius * 1.2];
+  const radiusLimits: MinMax = [maxRadius * 0.75, maxRadius * 1.25];
 
   const averageRadius = getAverage(radiusLimits);
   /**
