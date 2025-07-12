@@ -9,10 +9,10 @@ const CANCELLED_ERROR = 'cancelled';
  * inspired by:
  * https://ourcodeworld.com/articles/read/1390/how-to-determine-the-screen-refresh-rate-in-hz-of-the-monitor-with-javascript-in-the-browser
  */
-async function getAverageFPS(
+const getAverageFPS = async (
   duration: number,
   controller: AbortController,
-): Promise<number> {
+): Promise<number> => {
   if (typeof window === 'undefined' || duration <= 0) {
     return 0;
   }
@@ -28,12 +28,12 @@ async function getAverageFPS(
 
     const resolveAverageFps = () => {
       const avgDelta = getAverage(deltas);
-      return resolve(!avgDelta ? 0 : 1000 / avgDelta);
+      return resolve(avgDelta && 1000 / avgDelta);
     };
 
     const cancelAnimation = () => {
       if (animationFrameHandle != null) {
-        cancelAnimationFrame(animationFrameHandle);
+        window.cancelAnimationFrame(animationFrameHandle);
         animationFrameHandle = null;
       }
     };
@@ -41,14 +41,14 @@ async function getAverageFPS(
     // Enable stopping the animation loop using AbortController
     controller.signal.addEventListener('abort', () => {
       if (animationFrameHandle != null) {
-        cancelAnimationFrame(animationFrameHandle);
+        window.cancelAnimationFrame(animationFrameHandle);
         animationFrameHandle = null;
       }
       reject(CANCELLED_ERROR);
     });
 
     function animate() {
-      animationFrameHandle = requestAnimationFrame(animate);
+      animationFrameHandle = window.requestAnimationFrame(animate);
 
       [current, prev] = [performance.now(), current];
 
@@ -64,7 +64,7 @@ async function getAverageFPS(
       resolveAverageFps();
     }, duration);
   });
-}
+};
 
 type State = {
   measurements: number[];
@@ -124,7 +124,7 @@ export const useScreenRefreshRate = (
     getAverageFPS(measurementDuration, controller)
       .then((payload) => dispatch({ type: 'add', payload }))
       .catch((err) => {
-        const isCancelled = CANCELLED_ERROR;
+        const isCancelled = err === CANCELLED_ERROR;
         if (import.meta.env.DEV) {
           console.error(isCancelled ? 'FPS Measurement aborted' : err);
         }
@@ -133,7 +133,7 @@ export const useScreenRefreshRate = (
         }
       });
 
-    return () => controller.abort();
+    return () => controller.abort(CANCELLED_ERROR);
   }, [shouldExecute, measurementDuration, state.measurements]);
 
   return state.average;

@@ -1,7 +1,6 @@
 import { useState } from 'react';
-
 import { ThreeScene, type ThreeSceneProps } from '../ThreeScene';
-import Blobs from './Blobs';
+import BlobGroup from './BlobGroup';
 
 const gl: ThreeSceneProps['gl'] = {
   antialias: false,
@@ -23,7 +22,7 @@ const BlobScene: React.FC<Props> = (props) => {
   return (
     <div {...props} data-loaded={loaded}>
       <ThreeScene gl={gl} camera={camera} onCreated={() => setLoaded(true)}>
-        <Blobs />
+        <BlobGroup />
       </ThreeScene>
     </div>
   );

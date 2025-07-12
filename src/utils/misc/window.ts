@@ -1,37 +1,9 @@
-import { pick } from './object';
+import type { WH } from '@/types';
 
-import { type WH, wh } from './wh';
+export const getWindow: () => Partial<Window> =
+  typeof window === 'undefined' ? () => ({}) : () => window;
 
-const isSsr = typeof window === 'undefined';
-
-export function getWindow(): Partial<typeof window> {
-  return isSsr ? {} : window;
-}
-
-export type WindowSize = Pick<
-  typeof window,
-  `${'inner' | 'outer'}${'Width' | 'Height'}`
->;
-
-const fallbackWindowSize: WindowSize = {
-  innerHeight: 0,
-  innerWidth: 0,
-  outerHeight: 0,
-  outerWidth: 0,
+export const getScreenSize = (): WH => {
+  const { width = 0, height = 0 } = getWindow().screen ?? {};
+  return [width, height];
 };
-
-const windowSizeKeys = Object.keys(fallbackWindowSize) as Array<
-  keyof typeof fallbackWindowSize
->;
-
-export function getWindowSize(): WindowSize {
-  if (isSsr) return fallbackWindowSize;
-
-  return pick(window, ...windowSizeKeys);
-}
-
-export function getScreenSize(): WH {
-  const { width, height } = getWindow().screen || {};
-
-  return wh(width || 0, height || 0);
-}

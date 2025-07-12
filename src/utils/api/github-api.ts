@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 import { Octokit } from '@octokit/rest';
-import { pick } from '../misc';
 
 export type Repo = Awaited<
   ReturnType<Octokit['rest']['repos']['listForAuthenticatedUser']>
@@ -151,40 +150,64 @@ async function getPackageJsonName(
   return pkg?.name || null;
 }
 
+const shouldIncludeRepo = (repo: Repo): boolean => {
+  return (
+    // Exclude forked repos
+    !repo.fork &&
+    // Exclude "profile repo"
+    repo.name !== PROFILE_REPO_NAME &&
+    // Exclude school assignments
+    !repo.topics?.includes('school-assignment') &&
+    // Exclude repos missing description
+    !!repo.description?.trim() &&
+    // Only include repos with at least three words in description
+    /([\w.-@/!?&%]+(\s)+){2,}[\w.-@/!?&%]+/.test(repo.description)
+  );
+};
+
+const getPartialRepo = async (repo: Repo): Promise<PartialRepo> => {
+  const {
+    name,
+    full_name,
+    description,
+    url,
+    html_url,
+    created_at,
+    updated_at,
+    pushed_at,
+    language,
+    homepage,
+  } = repo;
+
+  return {
+    name,
+    full_name,
+    ...(name === THIS_REPO_NAME
+      ? {
+          description: 'This website',
+          homepage: html_url,
+        }
+      : { description, homepage }),
+    url,
+    html_url,
+    created_at,
+    updated_at,
+    pushed_at,
+    language,
+    package_name: await getPackageJsonName(repo),
+  };
+};
+
 export async function fetchRepos(): Promise<PartialRepo[]> {
   const repos = await fetchAllRepos();
 
-  const filteredRepos = repos
-    .filter(
-      (repo): boolean =>
-        // Exclude forked repos
-        !repo.fork &&
-        // Exclude "profile repo"
-        repo.name !== PROFILE_REPO_NAME &&
-        // Exclude school assignments
-        !repo.topics?.includes('school-assignment') &&
-        // Exclude repos missing description
-        !!repo.description?.trim() &&
-        // Only include repos with at least three words in description
-        /([\w.-@/!?&%]+(\s)+){2,}[\w.-@/!?&%]+/.test(repo.description),
-    )
-    .sort((a, b) =>
-      a.name === THIS_REPO_NAME ? 1 : b.name === THIS_REPO_NAME ? -1 : 0,
-    );
-
   return await Promise.all(
-    filteredRepos.map(async (repo): Promise<PartialRepo> => {
-      const partialRepo: PartialRepo = {
-        ...pick(repo, ...repoKeys),
-        package_name: await getPackageJsonName(repo),
-      };
-
-      if (partialRepo.name === THIS_REPO_NAME) {
-        partialRepo.description = 'This website';
-        partialRepo.homepage = partialRepo.html_url;
-      }
-
-      return partialRepo;
-    }),
+    repos
+      .filter(shouldIncludeRepo)
+      .sort((a, b) =>
+        // Place this project last
+        a.name === THIS_REPO_NAME ? 1 : b.name === THIS_REPO_NAME ? -1 : 0,
+      )
+      .map(getPartialRepo),
   );
 }

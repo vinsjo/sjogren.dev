@@ -1,19 +1,19 @@
-export function getSum(values: number[]) {
-  return values.reduce((sum, value) => sum + (value || 0), 0);
-}
+import type { MinMax } from '@/types';
 
-export function getAverage(values: number[]) {
+export const getAverage = (values: number[]) => {
   if (!values.length) return 0;
 
-  return getSum(values) / values.length;
-}
+  const sum = values.reduce((sum, value) => sum + (value || 0), 0);
 
-export function rand(max = 1, min = 0) {
+  return sum / values.length;
+};
+
+export const randomNumber: (...args: MinMax) => number = (min, max) => {
   return Math.random() * (max - min) + min;
-}
-export function rand_int(max = 10, min = 0) {
-  return Math.floor(rand(max, min));
-}
-export function rand_neg(max = 1) {
-  return rand(max, -max);
-}
+};
+
+export const randomInt: (...args: MinMax) => number = (min, max) => {
+  return Math.trunc(randomNumber(max, min));
+};
+
+export const randomNegativeNumber = (max: number) => randomNumber(max, -max);
