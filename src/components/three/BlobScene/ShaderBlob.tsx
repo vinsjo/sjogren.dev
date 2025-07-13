@@ -1,81 +1,75 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { SphereGeometry, ShaderMaterial, Mesh } from 'three';
-import { type MeshProps, type ThreeEvent, useFrame } from '@react-three/fiber';
-import useEventCallback from '@mui/utils/useEventCallback';
+import { type ThreeEvent, useFrame } from '@react-three/fiber';
 
 import { createBlobShaderMaterial, getRandomBlobOptions } from './utils';
-import type { BlobOptions } from './types';
+import type { BlobRenderProps } from './types';
 
 export interface ShaderBlobProps
-  extends Omit<MeshProps, 'geometry' | 'onClick' | 'material'> {
+  extends Pick<BlobRenderProps, 'position' | 'scale'> {
+  /**
+   * @default 1
+   */
   radius?: number;
+  /**
+   * @default 64
+   */
   widthSegments?: number;
+  /**
+   * @default 32
+   */
   heightSegments?: number;
-  // randomRefresh?: number;
 }
 
-type State = {
-  options: BlobOptions;
-  material: ShaderMaterial;
-};
-
-const getRandomizedState = (): State => {
-  const options = getRandomBlobOptions();
-  return {
-    options,
-    material: createBlobShaderMaterial(options.shader),
-  };
-};
-
 export const ShaderBlob = ({
+  scale,
+  position,
   radius = 1,
   widthSegments = 64,
   heightSegments = 32,
-  scale,
-  // randomRefresh,
-  ...meshProps
 }: ShaderBlobProps) => {
-  const [{ options, material }, setState] = useState(() =>
-    getRandomizedState(),
+  const [{ shader: shaderOptions, mesh: meshOptions }, setOptions] = useState(
+    () => getRandomBlobOptions(),
   );
 
   const [geometry] = useState(
     () => new SphereGeometry(radius, widthSegments, heightSegments),
   );
 
-  const mesh = useRef<Mesh<SphereGeometry, ShaderMaterial>>(null);
+  const material = useMemo(
+    () => createBlobShaderMaterial(shaderOptions),
+    [shaderOptions],
+  );
 
-  const handleClick = useEventCallback((e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    setState(getRandomizedState());
-  });
+  const meshRef = useRef<Mesh<SphereGeometry, ShaderMaterial>>(null);
 
-  const rotationSpeed = options.mesh.rotationSpeed;
+  const rotationSpeed = meshOptions.rotationSpeed;
 
   useFrame(() => {
-    if (!mesh.current) return;
+    if (!meshRef.current) return;
     const {
       rotation,
       material: { uniforms },
-    } = mesh.current;
+    } = meshRef.current;
 
-    (['x', 'y', 'z'] satisfies Array<keyof typeof rotationSpeed>).forEach(
-      (key) => {
-        rotation[key] += rotationSpeed[key] || 0;
-      },
-    );
+    (['x', 'y', 'z'] satisfies Array<keyof typeof rotation>).forEach((key) => {
+      rotation[key] += rotationSpeed[key] || 0;
+    });
 
     uniforms.uTime.value += 0.1;
   });
 
   return (
     <mesh
-      ref={mesh}
-      scale={scale ?? options.mesh.scale}
+      ref={meshRef}
+      scale={scale ?? meshOptions.scale}
+      position={position}
       geometry={geometry}
       material={material}
-      onClick={handleClick}
-      {...meshProps}
+      onClick={(e: ThreeEvent<MouseEvent>) => {
+        e.stopPropagation();
+        setOptions(getRandomBlobOptions());
+      }}
     />
   );
 };

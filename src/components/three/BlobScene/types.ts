@@ -39,8 +39,11 @@ export type PartialRandomBlobOptionsLimits = {
   [K in keyof RandomBlobOptionsLimits]?: Partial<RandomBlobOptionsLimits[K]>;
 };
 
-export interface RequiredBlobProps
-  extends Pick<MeshProps, 'position' | 'scale'> {
+export interface BlobRenderProps extends Pick<MeshProps, 'position' | 'scale'> {
+  /**
+   * Unique identifier for the blob, used as React key.
+   */
+  id: string;
   position: Vector3;
   scale: Vector3;
 }

@@ -5,5 +5,5 @@ export const getWindow: () => Partial<Window> =
 
 export const getScreenSize = (): WH => {
   const { width = 0, height = 0 } = getWindow().screen ?? {};
-  return [width, height];
+  return { width, height };
 };

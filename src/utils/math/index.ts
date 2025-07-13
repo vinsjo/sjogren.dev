@@ -17,3 +17,7 @@ export const randomInt: (...args: MinMax) => number = (min, max) => {
 };
 
 export const randomNegativeNumber = (max: number) => randomNumber(max, -max);
+
+export const clamp = (value: number, min: number, max: number) => {
+  return Math.min(Math.max(value, min), max);
+};

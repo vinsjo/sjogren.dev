@@ -2,21 +2,23 @@ import { MathUtils, type PerspectiveCamera } from 'three';
 import { randomV3, v3, getVisibleSizeAtZ } from '@/utils/three';
 
 import { getAverage, randomNegativeNumber } from '@/utils/math';
-import type { RequiredBlobProps } from '../types';
+import type { BlobRenderProps } from '../types';
 import type { MinMax } from '@/types';
+import { randomUUID } from '@/utils/misc';
 
 export const getInitialBlobProps = (
   cols: number,
   rows: number,
   camera: Pick<PerspectiveCamera, 'aspect' | 'fov' | 'position'>,
-): RequiredBlobProps[] => {
+): BlobRenderProps[] => {
   if (cols <= 0 || rows <= 0) {
     return [];
   }
-  const [maxVisibleHeight, maxVisibleWidth] = getVisibleSizeAtZ(0, camera);
+  const { width: maxVisibleWidth, height: maxVisibleHeight } =
+    getVisibleSizeAtZ(0, camera);
 
   const maxRadius =
-    Math.min(maxVisibleWidth / cols, maxVisibleHeight / rows) * 0.75;
+    Math.min(maxVisibleWidth / cols, maxVisibleHeight / rows) / 2;
 
   const radiusLimits: MinMax = [maxRadius * 0.75, maxRadius * 1.25];
 
@@ -26,15 +28,15 @@ export const getInitialBlobProps = (
    * to avoid blobs being too close to the edges of the view.
    */
   const maxCenterOffset = {
-    x: averageRadius * cols * 0.6,
-    y: averageRadius * rows * 0.6,
+    x: (averageRadius * cols) / 2,
+    y: (averageRadius * rows) / 2,
   };
 
-  const maxPositionOffset = averageRadius * 0.75;
+  const maxPositionOffset = averageRadius / 2;
 
   const center = v3(0, 0, 0);
 
-  const output: RequiredBlobProps[] = [];
+  const output: BlobRenderProps[] = [];
 
   for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
     const y =
@@ -57,6 +59,7 @@ export const getInitialBlobProps = (
         ) || 0;
 
       output.push({
+        id: randomUUID(),
         position: v3(
           x + randomNegativeNumber(maxPositionOffset),
           y + randomNegativeNumber(maxPositionOffset),

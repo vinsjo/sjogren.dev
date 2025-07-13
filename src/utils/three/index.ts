@@ -40,7 +40,7 @@ export const getVisibleSizeAtZ = (
   positionZ: number,
   camera: Pick<PerspectiveCamera, 'fov' | 'position' | 'aspect'>,
 ): WH => {
-  if (!camera.fov) return [0, 0];
+  if (!camera.fov) return { width: 0, height: 0 };
 
   const camZ = camera.position.z;
   // compensate for cameras not positioned at z=0
@@ -50,8 +50,7 @@ export const getVisibleSizeAtZ = (
   const verticalFOV = (camera.fov * Math.PI) / 180;
 
   // Math.abs to ensure the result is always positive
-  const maxVisibleHeight = 2 * Math.tan(verticalFOV / 2) * Math.abs(depth);
-  const maxVisibleWidth = maxVisibleHeight * camera.aspect;
+  const height = 2 * Math.tan(verticalFOV / 2) * Math.abs(depth);
 
-  return [maxVisibleWidth, maxVisibleHeight];
+  return { width: height * camera.aspect, height: height };
 };

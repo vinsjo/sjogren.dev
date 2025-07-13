@@ -4,8 +4,11 @@ import { useInView } from 'react-intersection-observer';
 
 import FPSLimiter from './FPSLimiter';
 
-export type ThreeSceneProps = CanvasProps &
-  React.HTMLAttributes<HTMLDivElement> & { fpsLimit?: number };
+export interface ThreeSceneProps
+  extends CanvasProps,
+    React.HTMLAttributes<HTMLDivElement> {
+  fpsLimit?: number;
+}
 
 export const ThreeScene: React.FC<ThreeSceneProps> = ({
   children,
@@ -19,7 +22,8 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({
 
   return (
     <Canvas {...props} ref={viewRef}>
-      <FPSLimiter limit={inView ? fpsLimit : 0}>{children}</FPSLimiter>
+      <FPSLimiter limit={fpsLimit} disableAnimation={!inView} />
+      {children}
     </Canvas>
   );
 };
