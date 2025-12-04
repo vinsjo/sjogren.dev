@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import { isRegularObject, isNumber } from 'x-is-type';
 import { Octokit } from '@octokit/rest';
 
 export type Repo = Awaited<
@@ -10,21 +11,26 @@ export type Repo = Awaited<
 export type Owner = Repo['owner'];
 export type License = Repo['license'];
 
-export type PartialRepo = Pick<
-  Repo,
-  | 'name'
-  | 'full_name'
-  | 'description'
-  | 'url'
-  | 'html_url'
-  | 'created_at'
-  | 'updated_at'
-  | 'pushed_at'
-  | 'language'
-  | 'homepage'
-> & {
+/**
+ * A subset of properties in response from GitHub API for repositories,
+ * with added nullable `package_name` property (for repositories with a package.json file)
+ */
+export interface RepositoryInfo
+  extends Pick<
+    Repo,
+    | 'name'
+    | 'full_name'
+    | 'description'
+    | 'url'
+    | 'html_url'
+    | 'created_at'
+    | 'updated_at'
+    | 'pushed_at'
+    | 'language'
+    | 'homepage'
+  > {
   package_name: Nullable<string>;
-};
+}
 
 type PackageJSON = Readonly<{
   name: string;
@@ -47,24 +53,18 @@ type PackageJSON = Readonly<{
   // keywords: string[];
 }>;
 
+type DevCacheContent = {
+  updated_at: number;
+  data: RepositoryInfo[];
+};
+
 const PROFILE_REPO_NAME = 'vinsjo';
 const THIS_REPO_NAME = 'sjogren.dev';
 
-const { GH_UA, GH_AUTH } = process.env;
-
-const devCacheDir = path.join(process.cwd(), 'data');
-const devCacheFile = path.join(devCacheDir, 'repos.json');
+const devCacheDir = path.join(process.cwd(), 'tmp', 'cache');
+const devCacheFilePath = path.join(devCacheDir, 'repos.json');
 
 async function fetchAllRepos(): Promise<Repo[]> {
-  if (process.env.NODE_ENV === 'development') {
-    if (fs.existsSync(devCacheFile)) {
-      const data = await fs.promises.readFile(devCacheFile, 'utf-8');
-      const parsed = JSON.parse(data);
-      if (Array.isArray(parsed)) {
-        return parsed as Repo[];
-      }
-    }
-  }
   const octokit = new Octokit({
     auth: import.meta.env.GH_AUTH,
     userAgent: import.meta.env.GH_UA,
@@ -73,19 +73,14 @@ async function fetchAllRepos(): Promise<Repo[]> {
   const response = await octokit.rest.repos.listForAuthenticatedUser({
     visibility: 'public',
     affiliation: 'owner',
-    sort: 'created',
+    sort: 'updated',
     direction: 'desc',
   });
-
-  if (process.env.NODE_ENV === 'development') {
-    await fs.promises.mkdir(devCacheDir, { recursive: true });
-    await fs.promises.writeFile(devCacheFile, JSON.stringify(response.data));
-  }
 
   return response.data;
 }
 
-function getPackageURL({
+function getPackageJsonURL({
   full_name,
   default_branch,
 }: Pick<Repo, 'full_name' | 'default_branch'>): string | null {
@@ -95,56 +90,36 @@ function getPackageURL({
 }
 
 function isPackageJsonLanguage(language: Maybe<string>): boolean {
-  return (
-    typeof language === 'string' &&
-    ['typescript', 'javascript'].includes(language.toLowerCase())
-  );
+  return !!language && /^(type|java)script$/i.test(language);
 }
 
 async function fetchPackageJSON(
   repo: Pick<Repo, 'full_name' | 'default_branch' | 'language'>,
 ): Promise<Partial<PackageJSON> | null> {
-  const NO_URL_ERROR = 'NO_URL';
-  const INVALID_LANGUAGE_ERROR = 'INVALID_LANGUAGE';
-
   try {
-    if (!isPackageJsonLanguage(repo.language)) {
-      throw INVALID_LANGUAGE_ERROR;
-    }
-    const url = getPackageURL(repo);
+    const url = getPackageJsonURL(repo);
 
-    if (!url) {
-      throw NO_URL_ERROR;
-    }
+    if (!isPackageJsonLanguage(repo.language) || !url) return null;
 
-    const { data } = await axios.get<PackageJSON>(url, {
+    const response = await axios<Partial<PackageJSON>>({
+      url,
+      method: 'GET',
       headers: {
-        'User-Agent': GH_UA,
-        Authorization: `Bearer ${GH_AUTH}`,
+        'User-Agent': import.meta.env.GH_UA,
+        Authorization: `Bearer ${import.meta.env.GH_AUTH}`,
       },
     });
-    return data;
-  } catch (err) {
-    if (process.env.NODE_ENV === 'development') {
-      if (
-        err !== NO_URL_ERROR &&
-        err !== INVALID_LANGUAGE_ERROR &&
-        (!axios.isAxiosError(err) || err.response?.status !== 404)
-      ) {
-        console.error(err instanceof Error ? err.message : err);
-      }
-    }
 
+    return response.data;
+  } catch (err) {
+    if (!axios.isAxiosError(err) || err.response?.status !== 404) {
+      console.error(
+        `Failed to fetch package.json for ${repo.full_name} from '${getPackageJsonURL(repo)}'`,
+      );
+      console.error(err instanceof Error ? err.message : err);
+    }
     return null;
   }
-}
-
-async function getPackageJsonName(
-  repo: Pick<Repo, 'full_name' | 'default_branch' | 'language'>,
-): Promise<string | null> {
-  const pkg = await fetchPackageJSON(repo);
-
-  return pkg?.name || null;
 }
 
 const shouldIncludeRepo = (repo: Repo): boolean => {
@@ -158,24 +133,23 @@ const shouldIncludeRepo = (repo: Repo): boolean => {
     // Exclude repos missing description
     !!repo.description?.trim() &&
     // Only include repos with at least three words in description
-    /([\w.-@/!?&%]+(\s)+){2,}[\w.-@/!?&%]+/.test(repo.description)
+    repo.description.split(/\s+/).filter((word) => /\w+/.test(word)).length >= 3
   );
 };
 
-const getPartialRepo = async (repo: Repo): Promise<PartialRepo> => {
-  const {
-    name,
-    full_name,
-    description,
-    url,
-    html_url,
-    created_at,
-    updated_at,
-    pushed_at,
-    language,
-    homepage,
-  } = repo;
-
+const getRepoInfo = async ({
+  name,
+  full_name,
+  description,
+  url,
+  html_url,
+  created_at,
+  updated_at,
+  pushed_at,
+  language,
+  homepage,
+  default_branch,
+}: Repo): Promise<RepositoryInfo> => {
   return {
     name,
     full_name,
@@ -191,20 +165,91 @@ const getPartialRepo = async (repo: Repo): Promise<PartialRepo> => {
     updated_at,
     pushed_at,
     language,
-    package_name: await getPackageJsonName(repo),
+    package_name:
+      (await fetchPackageJSON({ full_name, default_branch, language }))?.name ||
+      null,
   };
 };
 
-export async function fetchRepos(): Promise<PartialRepo[]> {
+const readDevCache = async (
+  maxAge: number = 60_000 * 5,
+): Promise<RepositoryInfo[] | null> => {
+  try {
+    if (!fs.existsSync(devCacheFilePath)) return null;
+
+    const fileContent = await fs.promises.readFile(devCacheFilePath, 'utf-8');
+    const parsed = JSON.parse(fileContent) as Partial<DevCacheContent>;
+
+    if (
+      !isRegularObject(parsed) ||
+      !isNumber(parsed.updated_at) ||
+      !Array.isArray(parsed.data)
+    ) {
+      return null;
+    }
+
+    const now = Date.now();
+
+    if (now - parsed.updated_at > maxAge) {
+      return null;
+    }
+
+    return parsed.data;
+  } catch (err) {
+    console.error('Error reading dev cache:', err);
+    return null;
+  }
+};
+
+const writeDevCache = async (data: RepositoryInfo[]): Promise<void> => {
+  try {
+    if (!fs.existsSync(devCacheDir)) {
+      await fs.promises.mkdir(devCacheDir, { recursive: true });
+    }
+    await fs.promises.writeFile(
+      devCacheFilePath,
+      JSON.stringify(
+        {
+          updated_at: Date.now(),
+          data,
+        } satisfies DevCacheContent,
+        null,
+        2,
+      ),
+      'utf-8',
+    );
+  } catch (err) {
+    console.error('Error writing dev cache:', err);
+  }
+};
+
+export async function fetchRepos(): Promise<RepositoryInfo[]> {
+  if (process.env.NODE_ENV === 'development') {
+    const cachedData = await readDevCache();
+    if (cachedData) {
+      return cachedData;
+    }
+  }
+
   const repos = await fetchAllRepos();
 
-  return await Promise.all(
+  const output = await Promise.all(
     repos
       .filter(shouldIncludeRepo)
-      .sort((a, b) =>
-        // Place this project last
-        a.name === THIS_REPO_NAME ? 1 : b.name === THIS_REPO_NAME ? -1 : 0,
-      )
-      .map(getPartialRepo),
+      .sort((a, b) => {
+        // Place this respository last
+        return a.name === THIS_REPO_NAME
+          ? 1
+          : b.name === THIS_REPO_NAME
+            ? -1
+            : 0;
+      })
+      .map(getRepoInfo),
   );
+
+  if (process.env.NODE_ENV === 'development') {
+    await writeDevCache(output);
+  }
+
+  return output;
 }

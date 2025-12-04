@@ -1,7 +1,12 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
 
-export type Props = HTMLAttributes<'a'>;
+export interface Props extends HTMLAttributes<'a'> {
+  /**
+   * @default target === '_blank' ? 'noreferrer noopener' : undefined
+   */
+  rel?: HTMLAttributes<'a'>['rel'];
+}
 
 const {
   target,
@@ -24,7 +29,7 @@ const {
 </style>
 <a
   target={target}
-  rel={target === '_blank' ? 'noreferrer' : rel}
+  rel={target === '_blank' ? 'noreferrer noopener' : rel}
   class:list={[
     'link',
     className,

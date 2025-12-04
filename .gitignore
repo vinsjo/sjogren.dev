@@ -28,9 +28,11 @@ pnpm-debug.log*
 .vercel
 
 data/**/*.json
-/data
+
 
 .vscode
 
-
 /src/env.d.ts
+
+# Temporary files
+/tmp

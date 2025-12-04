@@ -1,3 +1,7 @@
+---
+import { capitalize } from '../utils/misc/string';
+---
+
 <style>
   .link-container {
     position: fixed;
@@ -29,13 +33,15 @@
 <>
   {
     (['contact', 'projects', 'start'] as const).map((section) => {
+      const isStart = section === 'start';
+      const title = isStart ? 'To Start' : capitalize(section);
       return (
         <div class:list={['link-container', section]}>
           <a
-            href={section === 'start' ? '#' : `#${section}`}
+            href={isStart ? '#' : `#${section}`}
             class:list={['title', 'link']}
           >
-            {section === 'start' ? 'To Start' : section}
+            {title}
           </a>
         </div>
       );

@@ -1,11 +1,13 @@
 ---
-import { fetchRepos, type PartialRepo } from '@/utils/api/github-api';
+import { fetchRepos, type RepositoryInfo } from '@/utils/api/github-api';
 import { formatURL } from '@/utils/misc';
 import Link from './Link.astro';
 import Section from './Section.astro';
 
-type Project = Pick<PartialRepo, 'name' | 'description' | 'homepage'> &
-  Omit<Partial<PartialRepo>, 'name' | 'description' | 'homepage'>;
+type Project = Prettify<
+  Pick<RepositoryInfo, 'name' | 'description' | 'homepage'> &
+    Partial<OmitStrict<RepositoryInfo, 'name' | 'description' | 'homepage'>>
+>;
 
 const projects: Project[] = [
   {
@@ -16,13 +18,7 @@ const projects: Project[] = [
   },
 ];
 
-await fetchRepos()
-  .then((repos) => projects.push(...repos))
-  .catch((err) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(err);
-    }
-  });
+await fetchRepos().then((repos) => projects.push(...repos));
 ---
 
 <style>
@@ -100,29 +96,48 @@ await fetchRepos()
 
           const hasHomePage = !!formattedHomePage && !!homepage;
 
+          const titleId = `project-${name}-title`;
+          const subtitleId = hasHomePage
+            ? `project-${name}-subtitle`
+            : undefined;
+          const descriptionId = `project-${name}-description`;
+
           return (
-            <div class='project-card'>
+            <article
+              class='project-card'
+              aria-labelledby={titleId}
+              aria-describedby={
+                subtitleId
+                  ? [descriptionId, subtitleId].join(' ')
+                  : descriptionId
+              }
+            >
               <div class='project-card__header'>
                 {githubUrl ? (
                   <Link
+                    id={titleId}
                     class='project-card__title'
                     href={githubUrl}
                     target='_blank'
-                    title='To GitHub Repository'
+                    title='To GitHub repository'
                   >
                     {displayName}
                   </Link>
                 ) : (
-                  <h4 class='project-card__title'>{displayName}</h4>
+                  <h4 id={titleId} class='project-card__title'>
+                    {displayName}
+                  </h4>
                 )}
-                {language && (
-                  <p class='project-card__language'>
+                {!!language && (
+                  <p id={subtitleId} class='project-card__language'>
                     <small>Written in {language}</small>
                   </p>
                 )}
               </div>
               <div class='project-card__content'>
-                <p class='project-card__description'>{description}</p>
+                <p id={descriptionId} class='project-card__description'>
+                  {description}
+                </p>
                 {hasHomePage && (
                   <Link
                     href={homepage}
@@ -133,7 +148,7 @@ await fetchRepos()
                   </Link>
                 )}
               </div>
-            </div>
+            </article>
           );
         },
       )
