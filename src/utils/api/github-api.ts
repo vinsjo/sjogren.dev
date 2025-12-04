@@ -65,6 +65,9 @@ const devCacheDir = path.join(process.cwd(), 'tmp', 'cache');
 const devCacheFilePath = path.join(devCacheDir, 'repos.json');
 
 async function fetchAllRepos(): Promise<Repo[]> {
+  if (import.meta.env.MODE === 'ci') {
+    return [];
+  }
   const octokit = new Octokit({
     auth: import.meta.env.GH_AUTH,
     userAgent: import.meta.env.GH_UA,
@@ -224,7 +227,7 @@ const writeDevCache = async (data: RepositoryInfo[]): Promise<void> => {
 };
 
 export async function fetchRepos(): Promise<RepositoryInfo[]> {
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     const cachedData = await readDevCache();
     if (cachedData) {
       return cachedData;
@@ -247,7 +250,7 @@ export async function fetchRepos(): Promise<RepositoryInfo[]> {
       .map(getRepoInfo),
   );
 
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     await writeDevCache(output);
   }
 

@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CI: true
     steps:
       - uses: actions/checkout@v3
       - name: 'setting up Node@20'
@@ -16,4 +18,4 @@ jobs:
         with:
           node-version: 20
       - run: 'npm install'
-      - run: 'npm run build'
+      - run: 'npm run build -- --mode ci'
