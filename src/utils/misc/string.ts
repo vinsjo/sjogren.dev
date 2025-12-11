@@ -2,55 +2,38 @@ export const capitalize = <T extends string>(str: T) => {
   return (str.charAt(0).toUpperCase() + str.slice(1)) as Capitalize<T>;
 };
 
-export function replaceAtEnd(
-  str: string,
-  searchValue: string,
-  replaceValue = '',
-) {
-  if (!str.length || !searchValue.length) return str;
-  const index = str.length - searchValue.length;
-  const slice = str.slice(index);
-  if (slice !== searchValue) return str;
-  return str.slice(0, index) + replaceValue;
-}
-
-export type FormatURLOptions = Record<
-  'protocol' | 'hostname' | 'pathname' | 'search' | 'www',
-  boolean
->;
-
+/**
+ * Format url for display
+ *
+ * Creates URL object and returns hostname + pathname (+ search if specified)
+ *
+ * @param urlString - URL string to format
+ * @param includeSearch - Set to false to exclude search params. Defaults to true.
+ * @param removeLeadingWww - Set to false to keep leading 'www.' if present. Defaults to true.
+ */
 export function formatURL(
   urlString: Maybe<string>,
-  formatOptions: Partial<FormatURLOptions> = {},
+  includeSearch: boolean = true,
+  removeLeadingWww: boolean = true,
 ) {
   if (!urlString) return null;
-  try {
-    const url = new URL(urlString);
-    const options: FormatURLOptions = Object.assign(
-      {
-        protocol: false,
-        www: false,
-        hostname: true,
-        pathname: true,
-        search: true,
-      },
-      formatOptions,
-    );
 
-    const output = replaceAtEnd(
-      (
-        ['protocol', 'hostname', 'pathname', 'search'] satisfies Array<
-          keyof typeof options
-        >
-      )
-        .map((key): string => {
-          return !options[key] ? '' : url[key];
-        })
-        .join(''),
-      '/',
-      '',
-    );
-    return !options.www ? output.replace('www.', '') : output;
+  try {
+    const { hostname, pathname, search } = new URL(urlString);
+
+    let output = hostname + pathname;
+
+    if (includeSearch) {
+      output += search;
+    }
+
+    // Remove leading 'www.'
+    if (removeLeadingWww) {
+      output = output.replace(/^www\./, '');
+    }
+
+    // Remove trailing slash(es)
+    return output.replace(/\/+$/, '');
   } catch (e) {
     return null;
   }

@@ -10,6 +10,7 @@ type Project = Prettify<
 >;
 
 const projects: Project[] = [
+  // Projects not public on GitHub can be added here manually
   {
     name: 'eleonoreandersson.com',
     language: 'TypeScript',
@@ -96,10 +97,10 @@ await fetchRepos().then((repos) => projects.push(...repos));
 
           const hasHomePage = !!formattedHomePage && !!homepage;
 
+          const subtitleId = language ? `project-${name}-subtitle` : undefined;
+
           const titleId = `project-${name}-title`;
-          const subtitleId = hasHomePage
-            ? `project-${name}-subtitle`
-            : undefined;
+
           const descriptionId = `project-${name}-description`;
 
           return (
@@ -142,7 +143,13 @@ await fetchRepos().then((repos) => projects.push(...repos));
                   <Link
                     href={homepage}
                     target='_blank'
-                    title={`View project at ${homepage}`}
+                    title={
+                      /npmjs\.com/.test(homepage)
+                        ? 'View package on npmjs.com'
+                        : /vimeo\.com/.test(homepage)
+                          ? 'View project video on vimeo.com'
+                          : `View project at ${formattedHomePage}`
+                    }
                   >
                     {formattedHomePage}
                   </Link>
