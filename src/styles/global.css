@@ -40,6 +40,13 @@
   --text-color: white;
   --safe-viewport-height: 100vh;
   --safe-viewport-width: 100vw;
+  --heading-font-size: 1.5rem;
+}
+
+@media only screen and (min-width: 700px) {
+  :root {
+    --heading-font-size: 2rem;
+  }
 }
 
 * {
@@ -96,30 +103,10 @@ code {
   font-family: var(--mono-font);
 }
 
-.title {
-  --font-size: 1.5rem;
-  font-size: var(--font-size);
-  font-weight: 800;
-}
-
-section > .title {
-  font-weight: 600;
-  font-size: calc(var(--font-size) * 0.8);
-}
-
 @media (hover: hover) {
   a:hover {
     opacity: var(--hover-opacity);
     transform: var(--hover-transform);
-  }
-}
-
-@media only screen and (min-width: 700px) {
-  .title {
-    --font-size: 2rem;
-  }
-  section > .title {
-    --font-size: 1.6rem;
   }
 }
 

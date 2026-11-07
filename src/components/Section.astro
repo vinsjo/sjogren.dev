@@ -2,10 +2,12 @@
 import type { HTMLAttributes } from 'astro/types';
 export interface Props extends HTMLAttributes<'section'> {
   id: string;
+  heading?: string;
 }
 
 const {
   id,
+  heading,
   class: className,
   'class:list': classList,
   ...restProps
@@ -22,6 +24,11 @@ const {
     padding: 4rem 1rem 1rem 1rem;
     gap: 1.5rem;
   }
+
+  .section-heading {
+    font-size: calc(var(--heading-font-size) * 0.8);
+    font-weight: 600;
+  }
 </style>
 
 <section
@@ -33,5 +40,6 @@ const {
   ]}
   {...restProps}
 >
+  {heading && <h2 class='section-heading'>{heading}</h2>}
   <slot />
 </section>

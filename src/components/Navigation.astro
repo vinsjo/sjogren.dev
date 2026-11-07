@@ -26,6 +26,7 @@ import { capitalize } from '../utils/misc/string';
   }
 
   .link-container .link {
+    font-size: var(--heading-font-size);
     font-weight: 600;
     text-transform: lowercase;
   }
@@ -36,10 +37,7 @@ import { capitalize } from '../utils/misc/string';
     const title = isStart ? 'To Start' : capitalize(section);
     return (
       <div class:list={['link-container', section]}>
-        <a
-          href={isStart ? '#top' : `#${section}`}
-          class:list={['title', 'link']}
-        >
+        <a href={isStart ? '#top' : `#${section}`} class='link'>
           {title}
         </a>
       </div>

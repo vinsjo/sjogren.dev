@@ -4,7 +4,7 @@ import BlobScene from './three/BlobScene';
 ---
 
 <style>
-  .section#start {
+  #start {
     align-items: center;
     justify-content: center;
     padding: 1rem;
@@ -43,9 +43,8 @@ import BlobScene from './three/BlobScene';
     gap: 1rem;
   }
 
-  .caption-container .caption {
-    --font-size: 1.5rem;
-    font-size: var(--font-size);
+  .caption {
+    font-size: var(--heading-font-size);
     font-weight: 800;
     color: white;
     text-align: center;
@@ -53,8 +52,8 @@ import BlobScene from './three/BlobScene';
     text-transform: lowercase;
   }
 
-  .caption-container .caption:not(:first-child) {
-    font-size: calc(var(--font-size) * 0.8);
+  .caption.sub {
+    font-size: calc(var(--heading-font-size) * 0.8);
   }
 
   .blob-scene {
@@ -79,19 +78,13 @@ import BlobScene from './three/BlobScene';
   [data-device-type='tablet'] .blob-scene {
     max-height: calc(var(--safe-viewport-height) * 0.8);
   }
-
-  @media only screen and (min-width: 700px) {
-    .caption {
-      --font-size: 2rem;
-    }
-  }
 </style>
 
 <Section id='start'>
   <div class='start-container'>
     <div class='caption-container'>
-      <h1 class:list={['title', 'caption']}>Vincent Sjögren</h1>
-      <h3 class:list={['title', 'caption']}>Web developer</h3>
+      <h1 class='caption'>Vincent Sjögren</h1>
+      <p class:list={['caption', 'sub']}>Web developer</p>
     </div>
     <BlobScene client:load className='blob-scene' />
   </div>

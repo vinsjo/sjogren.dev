@@ -23,7 +23,7 @@ await fetchRepos().then((repos) => projects.push(...repos));
 ---
 
 <style>
-  .section#projects {
+  #projects {
     height: fit-content;
     min-height: 0;
   }
@@ -79,8 +79,7 @@ await fetchRepos().then((repos) => projects.push(...repos));
   }
 </style>
 
-<Section id='projects' class='section'>
-  <h3 class='title'>Projects</h3>
+<Section id='projects' heading='Projects'>
   <div class='card-grid'>
     {projects.map(
       ({
@@ -111,21 +110,19 @@ await fetchRepos().then((repos) => projects.push(...repos));
             }
           >
             <div class='project-card__header'>
-              {githubUrl ? (
-                <Link
-                  id={titleId}
-                  class='project-card__title'
-                  href={githubUrl}
-                  target='_blank'
-                  title='To GitHub repository'
-                >
-                  {displayName}
-                </Link>
-              ) : (
-                <h4 id={titleId} class='project-card__title'>
-                  {displayName}
-                </h4>
-              )}
+              <h3 id={titleId} class='project-card__title'>
+                {githubUrl ? (
+                  <Link
+                    href={githubUrl}
+                    target='_blank'
+                    title='To GitHub repository'
+                  >
+                    {displayName}
+                  </Link>
+                ) : (
+                  displayName
+                )}
+              </h3>
               {!!language && (
                 <p id={subtitleId} class='project-card__language'>
                   <small>Written in {language}</small>
