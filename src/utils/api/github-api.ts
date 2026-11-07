@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
 import { isRegularObject, isNumber } from 'x-is-type';
 import { Octokit } from '@octokit/rest';
 
@@ -15,20 +14,19 @@ export type License = Repo['license'];
  * A subset of properties in response from GitHub API for repositories,
  * with added nullable `package_name` property (for repositories with a package.json file)
  */
-export interface RepositoryInfo
-  extends Pick<
-    Repo,
-    | 'name'
-    | 'full_name'
-    | 'description'
-    | 'url'
-    | 'html_url'
-    | 'created_at'
-    | 'updated_at'
-    | 'pushed_at'
-    | 'language'
-    | 'homepage'
-  > {
+export interface RepositoryInfo extends Pick<
+  Repo,
+  | 'name'
+  | 'full_name'
+  | 'description'
+  | 'url'
+  | 'html_url'
+  | 'created_at'
+  | 'updated_at'
+  | 'pushed_at'
+  | 'language'
+  | 'homepage'
+> {
   package_name: Nullable<string>;
 }
 
@@ -53,21 +51,72 @@ type PackageJSON = Readonly<{
   // keywords: string[];
 }>;
 
-type DevCacheContent = {
-  updated_at: number;
-  data: RepositoryInfo[];
-};
-
 const PROFILE_REPO_NAME = 'vinsjo';
 const THIS_REPO_NAME = 'sjogren.dev';
 
-const devCacheDir = path.join(process.cwd(), 'tmp', 'cache');
-const devCacheFilePath = path.join(devCacheDir, 'repos.json');
+const createDevCacheApi = () => {
+  type DevCacheContent = {
+    updated_at: number;
+    data: RepositoryInfo[];
+  };
+
+  const cacheFilePath = path.join(process.cwd(), 'tmp', 'cache', 'repos.json');
+  const maxAge = 60_000 * 60;
+
+  const isDevCacheContent = (value: unknown): value is DevCacheContent =>
+    isRegularObject(value) &&
+    isNumber(value.updated_at) &&
+    Array.isArray(value.data);
+
+  return {
+    read: async (): Promise<RepositoryInfo[] | null> => {
+      try {
+        if (!fs.existsSync(cacheFilePath)) return null;
+        const fileContent = await fs.promises.readFile(cacheFilePath, 'utf-8');
+        const parsed = JSON.parse(fileContent) as Partial<DevCacheContent>;
+        if (
+          !isDevCacheContent(parsed) ||
+          Date.now() - parsed.updated_at > maxAge
+        ) {
+          return null;
+        }
+
+        return parsed.data;
+      } catch (err) {
+        console.error('Error reading dev cache:', err);
+        return null;
+      }
+    },
+    write: async (data: RepositoryInfo[]): Promise<void> => {
+      try {
+        if (!fs.existsSync(path.dirname(cacheFilePath))) {
+          await fs.promises.mkdir(path.dirname(cacheFilePath), {
+            recursive: true,
+          });
+        }
+        await fs.promises.writeFile(
+          cacheFilePath,
+          JSON.stringify(
+            {
+              updated_at: Date.now(),
+              data,
+            } satisfies DevCacheContent,
+            null,
+            2,
+          ),
+          'utf-8',
+        );
+      } catch (err) {
+        console.error('Error writing dev cache:', err);
+      }
+    },
+  };
+};
 
 async function fetchAllRepos(): Promise<Repo[]> {
-  if (import.meta.env.MODE === 'ci') {
-    return [];
-  }
+  // Skip fetching repos in CI
+  if (import.meta.env.MODE === 'ci') return [];
+
   const octokit = new Octokit({
     auth: import.meta.env.GH_AUTH,
     userAgent: import.meta.env.GH_UA,
@@ -104,23 +153,25 @@ async function fetchPackageJSON(
 
     if (!isPackageJsonLanguage(repo.language) || !url) return null;
 
-    const response = await axios<Partial<PackageJSON>>({
-      url,
-      method: 'GET',
+    const response = await fetch(url, {
       headers: {
         'User-Agent': import.meta.env.GH_UA,
         Authorization: `Bearer ${import.meta.env.GH_AUTH}`,
       },
     });
 
-    return response.data;
-  } catch (err) {
-    if (!axios.isAxiosError(err) || err.response?.status !== 404) {
-      console.error(
-        `Failed to fetch package.json for ${repo.full_name} from '${getPackageJsonURL(repo)}'`,
-      );
-      console.error(err instanceof Error ? err.message : err);
+    // Repos without a package.json are expected, so 404s are not logged
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
     }
+
+    return (await response.json()) as Partial<PackageJSON>;
+  } catch (err) {
+    console.error(
+      `Failed to fetch package.json for ${repo.full_name} from '${getPackageJsonURL(repo)}'`,
+    );
+    console.error(err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -174,64 +225,16 @@ const getRepoInfo = async ({
   };
 };
 
-const readDevCache = async (
-  maxAge: number = 60_000 * 5,
-): Promise<RepositoryInfo[] | null> => {
-  try {
-    if (!fs.existsSync(devCacheFilePath)) return null;
-
-    const fileContent = await fs.promises.readFile(devCacheFilePath, 'utf-8');
-    const parsed = JSON.parse(fileContent) as Partial<DevCacheContent>;
-
-    if (
-      !isRegularObject(parsed) ||
-      !isNumber(parsed.updated_at) ||
-      !Array.isArray(parsed.data)
-    ) {
-      return null;
-    }
-
-    const now = Date.now();
-
-    if (now - parsed.updated_at > maxAge) {
-      return null;
-    }
-
-    return parsed.data;
-  } catch (err) {
-    console.error('Error reading dev cache:', err);
-    return null;
-  }
-};
-
-const writeDevCache = async (data: RepositoryInfo[]): Promise<void> => {
-  try {
-    if (!fs.existsSync(devCacheDir)) {
-      await fs.promises.mkdir(devCacheDir, { recursive: true });
-    }
-    await fs.promises.writeFile(
-      devCacheFilePath,
-      JSON.stringify(
-        {
-          updated_at: Date.now(),
-          data,
-        } satisfies DevCacheContent,
-        null,
-        2,
-      ),
-      'utf-8',
-    );
-  } catch (err) {
-    console.error('Error writing dev cache:', err);
-  }
-};
+// Enable dev cache for local development, or local builds with `DEV_BUILD=true`
+const devCache =
+  import.meta.env.DEV || process.env.DEV_BUILD === 'true'
+    ? createDevCacheApi()
+    : null;
 
 export async function fetchRepos(): Promise<RepositoryInfo[]> {
-  if (import.meta.env.DEV) {
-    const cachedData = await readDevCache();
-    if (cachedData) {
-      return cachedData;
-    }
+  if (devCache) {
+    const cachedData = await devCache.read();
+    if (cachedData) return cachedData;
   }
 
   const repos = await fetchAllRepos();
@@ -241,17 +244,15 @@ export async function fetchRepos(): Promise<RepositoryInfo[]> {
       .filter(shouldIncludeRepo)
       .sort((a, b) => {
         // Place this respository last
-        return a.name === THIS_REPO_NAME
-          ? 1
-          : b.name === THIS_REPO_NAME
-            ? -1
-            : 0;
+        if (a.name === THIS_REPO_NAME) return 1;
+        if (b.name === THIS_REPO_NAME) return -1;
+        return 0;
       })
       .map(getRepoInfo),
   );
 
-  if (import.meta.env.DEV) {
-    await writeDevCache(output);
+  if (devCache) {
+    await devCache.write(output);
   }
 
   return output;

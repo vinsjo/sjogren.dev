@@ -39,7 +39,7 @@ export const FPSLimiter: React.FC<Props> = ({
     (fpsLimit: number, disableAnimation: boolean): (() => void) | void => {
       if (!fpsLimit || disableAnimation) {
         // Set frameloop to never to disable animation
-        frameloop !== 'never' && setFrameloop('never');
+        if (frameloop !== 'never') setFrameloop('never');
         return;
       }
 

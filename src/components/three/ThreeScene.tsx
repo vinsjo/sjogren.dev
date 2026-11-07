@@ -1,12 +1,11 @@
 import React from 'react';
-import { Canvas, type Props as CanvasProps } from '@react-three/fiber';
+import { Canvas, type CanvasProps } from '@react-three/fiber';
 import { useInView } from 'react-intersection-observer';
 
 import FPSLimiter from './FPSLimiter';
 
 export interface ThreeSceneProps
-  extends CanvasProps,
-    React.HTMLAttributes<HTMLDivElement> {
+  extends CanvasProps, React.HTMLAttributes<HTMLDivElement> {
   fpsLimit?: number;
 }
 

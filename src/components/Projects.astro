@@ -82,83 +82,79 @@ await fetchRepos().then((repos) => projects.push(...repos));
 <Section id='projects' class='section'>
   <h3 class='title'>Projects</h3>
   <div class='card-grid'>
-    {
-      projects.map(
-        ({
-          package_name,
-          name,
-          description,
-          html_url: githubUrl,
-          language,
-          homepage,
-        }) => {
-          const displayName = package_name || name;
-          const formattedHomePage = formatURL(homepage);
+    {projects.map(
+      ({
+        package_name,
+        name,
+        description,
+        html_url: githubUrl,
+        language,
+        homepage,
+      }) => {
+        const displayName = package_name || name;
+        const formattedHomePage = formatURL(homepage);
 
-          const hasHomePage = !!formattedHomePage && !!homepage;
+        const hasHomePage = !!formattedHomePage && !!homepage;
 
-          const subtitleId = language ? `project-${name}-subtitle` : undefined;
+        const subtitleId = language ? `project-${name}-subtitle` : undefined;
 
-          const titleId = `project-${name}-title`;
+        const titleId = `project-${name}-title`;
 
-          const descriptionId = `project-${name}-description`;
+        const descriptionId = `project-${name}-description`;
 
-          return (
-            <article
-              class='project-card'
-              aria-labelledby={titleId}
-              aria-describedby={
-                subtitleId
-                  ? [descriptionId, subtitleId].join(' ')
-                  : descriptionId
-              }
-            >
-              <div class='project-card__header'>
-                {githubUrl ? (
-                  <Link
-                    id={titleId}
-                    class='project-card__title'
-                    href={githubUrl}
-                    target='_blank'
-                    title='To GitHub repository'
-                  >
-                    {displayName}
-                  </Link>
-                ) : (
-                  <h4 id={titleId} class='project-card__title'>
-                    {displayName}
-                  </h4>
-                )}
-                {!!language && (
-                  <p id={subtitleId} class='project-card__language'>
-                    <small>Written in {language}</small>
-                  </p>
-                )}
-              </div>
-              <div class='project-card__content'>
-                <p id={descriptionId} class='project-card__description'>
-                  {description}
+        return (
+          <article
+            class='project-card'
+            aria-labelledby={titleId}
+            aria-describedby={
+              subtitleId ? [descriptionId, subtitleId].join(' ') : descriptionId
+            }
+          >
+            <div class='project-card__header'>
+              {githubUrl ? (
+                <Link
+                  id={titleId}
+                  class='project-card__title'
+                  href={githubUrl}
+                  target='_blank'
+                  title='To GitHub repository'
+                >
+                  {displayName}
+                </Link>
+              ) : (
+                <h4 id={titleId} class='project-card__title'>
+                  {displayName}
+                </h4>
+              )}
+              {!!language && (
+                <p id={subtitleId} class='project-card__language'>
+                  <small>Written in {language}</small>
                 </p>
-                {hasHomePage && (
-                  <Link
-                    href={homepage}
-                    target='_blank'
-                    title={
-                      /npmjs\.com/.test(homepage)
-                        ? 'View package on npmjs.com'
-                        : /vimeo\.com/.test(homepage)
-                          ? 'View project video on vimeo.com'
-                          : `View project at ${formattedHomePage}`
-                    }
-                  >
-                    {formattedHomePage}
-                  </Link>
-                )}
-              </div>
-            </article>
-          );
-        },
-      )
-    }
+              )}
+            </div>
+            <div class='project-card__content'>
+              <p id={descriptionId} class='project-card__description'>
+                {description}
+              </p>
+              {hasHomePage && (
+                <Link
+                  href={homepage}
+                  target='_blank'
+                  title={
+                    /npmjs\.com/.test(homepage)
+                      ? 'View package on npmjs.com'
+                      : /vimeo\.com/.test(homepage)
+                        ? 'View project video on vimeo.com'
+                        : `View project at ${formattedHomePage}`
+                  }
+                >
+                  {formattedHomePage}
+                </Link>
+              )}
+            </div>
+          </article>
+        );
+      },
+    )}
   </div>
 </Section>

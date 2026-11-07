@@ -13,8 +13,7 @@ type State = {
 };
 
 type Action =
-  | { type: 'add'; payload: number }
-  | { type: 'error'; payload: unknown };
+  { type: 'add'; payload: number } | { type: 'error'; payload: unknown };
 
 const reducer: React.Reducer<State, Action> = (prevState, action) => {
   if (action.type === 'add') {

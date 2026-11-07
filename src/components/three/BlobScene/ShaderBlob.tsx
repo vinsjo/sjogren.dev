@@ -1,12 +1,14 @@
 import { useMemo, useRef, useState } from 'react';
-import { SphereGeometry, ShaderMaterial, Mesh } from 'three';
-import { type ThreeEvent, useFrame } from '@react-three/fiber';
+import { SphereGeometry, type Mesh, type ShaderMaterial } from 'three';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
 
 import { createBlobShaderMaterial, getRandomBlobOptions } from './utils';
 import type { BlobRenderProps } from './types';
 
-export interface ShaderBlobProps
-  extends Pick<BlobRenderProps, 'position' | 'scale'> {
+export interface ShaderBlobProps extends Pick<
+  BlobRenderProps,
+  'position' | 'scale'
+> {
   /**
    * @default 1
    */

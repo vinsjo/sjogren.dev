@@ -31,8 +31,8 @@
     "x-is-type": "^1.3.3"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,astro}": "eslint",
-    "*.{ts,tsx,cjs,js,css,md,astro,json}": "prettier --write"
+    "*.{ts,tsx,js,mjs,cjs,astro}": "eslint",
+    "*.{ts,tsx,js,mjs,cjs,css,md,astro,json}": "prettier --write"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",

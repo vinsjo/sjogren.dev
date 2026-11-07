@@ -1,4 +1,4 @@
-import type { MeshProps } from '@react-three/fiber';
+import type { ThreeElements } from '@react-three/fiber';
 import type { IUniform, Vector3 } from 'three';
 import type { MinMax } from '@/types';
 
@@ -39,7 +39,10 @@ export type PartialRandomBlobOptionsLimits = {
   [K in keyof RandomBlobOptionsLimits]?: Partial<RandomBlobOptionsLimits[K]>;
 };
 
-export interface BlobRenderProps extends Pick<MeshProps, 'position' | 'scale'> {
+export interface BlobRenderProps extends Pick<
+  ThreeElements['mesh'],
+  'position' | 'scale'
+> {
   /**
    * Unique identifier for the blob, used as React key.
    */

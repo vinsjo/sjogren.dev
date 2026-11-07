@@ -34,7 +34,7 @@ export function formatURL(
 
     // Remove trailing slash(es)
     return output.replace(/\/+$/, '');
-  } catch (e) {
+  } catch {
     return null;
   }
 }

@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { PerspectiveCamera } from 'three';
+import { type PerspectiveCamera } from 'three';
 import { useThree, type RootState as ThreeState } from '@react-three/fiber';
 
 import { useIsomorphicLayoutEffect } from 'usehooks-ts';
 
-import type { WH } from '@/types';
+import { type WH } from '@/types';
 
 import { getScreenSize, hasEqualProps } from '@/utils/misc';
 
@@ -17,6 +17,12 @@ import { ShaderBlob } from './ShaderBlob';
 import type { BlobRenderProps } from './types';
 
 type GridSize = { cols: number; rows: number };
+
+/**
+ * R3F types `useThree`'s equality fn as fully generic, so typed comparators
+ * need a cast to be accepted.
+ */
+type EqualityFn = <T>(a: T, b: T) => boolean;
 
 const canvasSizeSelector = (state: ThreeState) => state.size;
 const cameraSelector = (state: ThreeState) => state.camera as PerspectiveCamera;
@@ -35,8 +41,8 @@ const isEqualCameras = (a: PerspectiveCamera, b: PerspectiveCamera) => {
 };
 
 const BlobGroup: React.FC = () => {
-  const canvasSize = useThree(canvasSizeSelector, isEqualSizes);
-  const camera = useThree(cameraSelector, isEqualCameras);
+  const canvasSize = useThree(canvasSizeSelector, isEqualSizes as EqualityFn);
+  const camera = useThree(cameraSelector, isEqualCameras as EqualityFn);
 
   const [screenSize, setScreenSize] = useState(() => getScreenSize());
 

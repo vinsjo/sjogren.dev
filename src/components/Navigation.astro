@@ -31,20 +31,18 @@ import { capitalize } from '../utils/misc/string';
   }
 </style>
 <>
-  {
-    (['contact', 'projects', 'start'] as const).map((section) => {
-      const isStart = section === 'start';
-      const title = isStart ? 'To Start' : capitalize(section);
-      return (
-        <div class:list={['link-container', section]}>
-          <a
-            href={isStart ? '#' : `#${section}`}
-            class:list={['title', 'link']}
-          >
-            {title}
-          </a>
-        </div>
-      );
-    })
-  }
+  {(['contact', 'projects', 'start'] as const).map((section) => {
+    const isStart = section === 'start';
+    const title = isStart ? 'To Start' : capitalize(section);
+    return (
+      <div class:list={['link-container', section]}>
+        <a
+          href={isStart ? '#top' : `#${section}`}
+          class:list={['title', 'link']}
+        >
+          {title}
+        </a>
+      </div>
+    );
+  })}
 </>
