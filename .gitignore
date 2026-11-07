@@ -29,9 +29,6 @@ pnpm-debug.log*
 
 data/**/*.json
 
-
-.vscode
-
 /src/env.d.ts
 
 # Temporary files
