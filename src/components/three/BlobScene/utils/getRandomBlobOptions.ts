@@ -1,47 +1,16 @@
-import type { Vector3 } from 'three';
-
 import { randomV3 } from '@/utils/three';
-import type {
-  BlobOptions,
-  BlobShaderOptions,
-  RandomBlobOptionsLimits,
-} from '../types';
-import { getDefaultBlobShaderOptions } from './getDefaultBlobShaderOptions';
-import { getDefaultRandomBlobOptionsLimits } from './getDefaultRandomBlobOptionsLimits';
+import type { BlobOptions } from '../types';
 
-export const getRandomBlobOptions = (
-  limitOptions: DeepPartial<RandomBlobOptionsLimits> = {},
-): BlobOptions => {
-  const shader = getDefaultBlobShaderOptions();
-
-  const { mesh: meshLimits, shader: shaderLimits } =
-    getDefaultRandomBlobOptionsLimits();
-
-  if (limitOptions.mesh) {
-    Object.assign(meshLimits, limitOptions.mesh);
-  }
-
-  if (limitOptions.shader) {
-    Object.assign(shaderLimits, limitOptions.shader);
-  }
-
-  (
-    [
-      'lightThreshold',
-      'frequency',
-      'amplitude',
-      'distSpeed',
-      'colorMultiplier',
-    ] satisfies ExtractKeysByType<BlobShaderOptions, Vector3>[]
-  ).forEach((key) => {
-    shader[key] = randomV3(...shaderLimits[key]);
-  });
-
-  return {
-    shader,
-    mesh: {
-      scale: randomV3(...meshLimits.scale),
-      rotationSpeed: randomV3(...meshLimits.rotationSpeed),
-    },
-  };
-};
+export const getRandomBlobOptions = (): BlobOptions => ({
+  shader: {
+    colorMultiplier: randomV3(0.5, 1),
+    lightThreshold: randomV3(0.1, 0.3),
+    frequency: randomV3(0.5, 5),
+    amplitude: randomV3(0.05, 0.3),
+    distSpeed: randomV3(0.03, 0.6),
+  },
+  mesh: {
+    scale: randomV3(0.9, 1.1),
+    rotationSpeed: randomV3(-0.15, 0.15),
+  },
+});

@@ -1,27 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useEffectEvent } from 'react';
 import { useThree } from '@react-three/fiber';
-import { useEventCallback } from 'usehooks-ts';
-
-import { useScreenRefreshRate } from '@/hooks/useScreenRefreshRate';
-
-import { clamp } from '@/utils/math';
 
 type Props = {
   /**
-   * FPS limit
-   *
-   * If this is 0 or less, animation will be disabled.
+   * Max FPS to render at.
    */
   limit: number;
   /**
    * Set to true to disable animation.
    */
   disableAnimation?: boolean;
-};
-
-const getFpsLimit = (limit: number, maxFps: number) => {
-  if (!maxFps) return Math.max(0, limit);
-  return clamp(limit, 0, maxFps);
 };
 
 /* based on: 
@@ -31,49 +19,41 @@ export const FPSLimiter: React.FC<Props> = ({
   limit: limitProp,
   disableAnimation = false,
 }) => {
-  const { frameloop, setFrameloop, clock, invalidate } = useThree();
+  const { frameloop, setFrameloop, invalidate } = useThree();
 
-  const refreshRate = useScreenRefreshRate(500);
-
-  const handleUpdate = useEventCallback(
+  const handleFrameLoop = useEffectEvent(
     (fpsLimit: number, disableAnimation: boolean): (() => void) | void => {
-      if (!fpsLimit || disableAnimation) {
-        // Set frameloop to never to disable animation
+      if (fpsLimit <= 0 || disableAnimation) {
+        // Set frameloop to never to disable animation loop
         if (frameloop !== 'never') setFrameloop('never');
         return;
       }
+      // Set frameloop to demand to take manual control over animation loop
+      if (frameloop !== 'demand') setFrameloop('demand');
 
-      // Set frameloop to demand to manually the frame rate of the animation
-      if (frameloop !== 'demand') {
-        setFrameloop('demand');
-      }
+      // FPS limit converted to frame time in ms
+      const frameTimeMs = 1000 / fpsLimit;
 
-      // How often to re-render (FPS converted to ms)
-      const interval = 1 / fpsLimit;
-
-      // Time since last frame
-      let delta = 0;
+      let last = 0;
       let animationRequestHandle = 0;
 
-      function animate() {
+      const animate: FrameRequestCallback = (now) => {
         animationRequestHandle = window.requestAnimationFrame(animate);
-        delta += clock.getDelta();
-        if (delta > interval) {
+        const delta = now - last;
+        if (delta > frameTimeMs) {
+          // Call invalidate to render a new frame
           invalidate();
-          delta = delta % interval;
+          last = now - (delta % frameTimeMs);
         }
-      }
-
-      animate();
-
-      // Return a cleanup function to cancel the animation frame
+      };
+      animationRequestHandle = window.requestAnimationFrame(animate);
       return () => window.cancelAnimationFrame(animationRequestHandle);
     },
   );
 
   useEffect(
-    () => handleUpdate(getFpsLimit(limitProp, refreshRate), disableAnimation),
-    [handleUpdate, disableAnimation, limitProp, refreshRate],
+    () => handleFrameLoop(limitProp, disableAnimation),
+    [limitProp, disableAnimation],
   );
 
   return null;

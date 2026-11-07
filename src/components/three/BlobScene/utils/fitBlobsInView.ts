@@ -1,6 +1,6 @@
 import { MathUtils, type PerspectiveCamera, type Vector2Like } from 'three';
 import type { BlobRenderProps } from '../types';
-import { equalV3, getVisibleSizeAtZ, v3 } from '@/utils/three';
+import { getVisibleSizeAtZ, v3 } from '@/utils/three';
 
 export const fitBlobsInView = (
   blobProps: BlobRenderProps[],
@@ -13,24 +13,23 @@ export const fitBlobsInView = (
   const center = v3(0, 0, 0);
 
   return blobProps.map((blob) => {
-    let s = blob.scale;
-    let p = blob.position;
-    // eslint-disable-next-line prefer-const
-    let { x, y, z } = p;
+    let scale = blob.scale;
+    let position = blob.position;
+    let { x, y } = blob.position;
 
     const { width: visibleWidth, height: visibleHeight } = getVisibleSizeAtZ(
-      z,
+      position.z,
       camera,
     );
 
-    const maxRadius = Math.max(s.x, s.y, s.z);
+    const maxRadius = Math.max(scale.x, scale.y, scale.z);
 
     const radiusLimit: Vector2Like = {
       x: (visibleWidth * maxCover) / 2,
       y: (visibleHeight * maxCover) / 2,
     };
 
-    if (radiusLimit.x - maxRadius < 0) {
+    if (maxRadius > radiusLimit.x) {
       x = 0;
     } else if (x) {
       x = MathUtils.clamp(
@@ -40,7 +39,7 @@ export const fitBlobsInView = (
       );
     }
 
-    if (radiusLimit.y - maxRadius < 0) {
+    if (maxRadius > radiusLimit.y) {
       y = 0;
     } else if (y) {
       y = MathUtils.clamp(
@@ -52,26 +51,22 @@ export const fitBlobsInView = (
 
     const minLimit = Math.min(radiusLimit.x, radiusLimit.y);
 
-    let hasChanged = false;
-
-    if (minLimit - maxRadius < 0 && (!x || !y)) {
-      s = s.clone().clamp(equalV3(0), equalV3(minLimit));
-      hasChanged = true;
+    if (maxRadius > minLimit && (!x || !y)) {
+      scale = scale.clone().clampScalar(0, minLimit);
     }
 
-    if (x !== p.x || y !== p.y) {
-      p = v3(x, y, z).lerp(center, 0.1);
-      hasChanged = true;
+    if (x !== position.x || y !== position.y) {
+      position = v3(x, y, position.z).lerp(center, 0.1);
     }
 
-    if (hasChanged) {
-      return {
-        ...blob,
-        position: p,
-        scale: s,
-      };
+    if (scale === blob.scale && position === blob.position) {
+      return blob;
     }
 
-    return blob;
+    return {
+      ...blob,
+      position: position,
+      scale: scale,
+    };
   });
 };

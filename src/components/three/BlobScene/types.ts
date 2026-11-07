@@ -1,6 +1,5 @@
 import type { ThreeElements } from '@react-three/fiber';
 import type { IUniform, Vector3 } from 'three';
-import type { MinMax } from '@/types';
 
 export type BlobShaderOptions = {
   lightThreshold: Vector3;
@@ -8,6 +7,12 @@ export type BlobShaderOptions = {
   amplitude: Vector3;
   distSpeed: Vector3;
   colorMultiplier: Vector3;
+};
+
+export type BlobMeshOptions = {
+  scale: Vector3;
+  /** Radians per second, in all directions */
+  rotationSpeed: Vector3;
 };
 
 export type BlobUniforms = {
@@ -18,25 +23,9 @@ export type BlobUniforms = {
   >;
 };
 
-export type BlobMeshOptions = {
-  scale: Vector3;
-  rotationSpeed: Vector3;
-};
-
 export type BlobOptions = {
   mesh: BlobMeshOptions;
   shader: BlobShaderOptions;
-};
-
-/**
- * Limits as {@link MinMax} objects when generating random {@link BlobOptions}
- */
-export type RandomBlobOptionsLimits = {
-  [K in keyof BlobOptions]: { [U in keyof BlobOptions[K]]: MinMax };
-};
-
-export type PartialRandomBlobOptionsLimits = {
-  [K in keyof RandomBlobOptionsLimits]?: Partial<RandomBlobOptionsLimits[K]>;
 };
 
 export interface BlobRenderProps extends Pick<

@@ -1,18 +1,12 @@
-import { Vector2, Vector3, type PerspectiveCamera, type IUniform } from 'three';
+import { Vector3, type PerspectiveCamera, type IUniform } from 'three';
 import { randomNumber } from '@/utils/math';
 import type { MinMax, WH } from '@/types';
 
-/** Create Vector3 */
+/** Shortcut for `new Vector3(...args)` */
 export const v3 = (...args: ConstructorParameters<typeof Vector3>) =>
   new Vector3(...args);
 
-/** Create Vector2 */
-export const v2 = (...args: ConstructorParameters<typeof Vector2>) =>
-  new Vector2(...args);
-
-/** Create Vector3 with equal x, y and z values */
-export const equalV3 = (xyz: number) => v3(xyz, xyz, xyz);
-
+/** Shortcut for `{ value }` */
 export const uValue = <T>(value: T): IUniform<T> => ({ value });
 
 /** Create Vector3 with random x, y and z values, between min and max */

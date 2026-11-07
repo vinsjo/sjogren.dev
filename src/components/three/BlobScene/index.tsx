@@ -21,7 +21,12 @@ const BlobScene: React.FC<Props> = (props) => {
   const [loaded, setLoaded] = useState(false);
   return (
     <div {...props} data-loaded={loaded}>
-      <ThreeScene gl={gl} camera={camera} onCreated={() => setLoaded(true)}>
+      <ThreeScene
+        gl={gl}
+        camera={camera}
+        onCreated={() => setLoaded(true)}
+        dpr={[1, 1.5]}
+      >
         <BlobGroup />
       </ThreeScene>
     </div>

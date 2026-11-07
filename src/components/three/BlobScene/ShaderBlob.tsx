@@ -5,37 +5,13 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { createBlobShaderMaterial, getRandomBlobOptions } from './utils';
 import type { BlobRenderProps } from './types';
 
-export interface ShaderBlobProps extends Pick<
-  BlobRenderProps,
-  'position' | 'scale'
-> {
-  /**
-   * @default 1
-   */
-  radius?: number;
-  /**
-   * @default 64
-   */
-  widthSegments?: number;
-  /**
-   * @default 32
-   */
-  heightSegments?: number;
-}
+export type ShaderBlobProps = Pick<BlobRenderProps, 'position' | 'scale'>;
 
-export const ShaderBlob = ({
-  scale,
-  position,
-  radius = 1,
-  widthSegments = 64,
-  heightSegments = 32,
-}: ShaderBlobProps) => {
+const geometry = new SphereGeometry(1, 64, 32);
+
+export const ShaderBlob = ({ scale, position }: ShaderBlobProps) => {
   const [{ shader: shaderOptions, mesh: meshOptions }, setOptions] = useState(
     () => getRandomBlobOptions(),
-  );
-
-  const [geometry] = useState(
-    () => new SphereGeometry(radius, widthSegments, heightSegments),
   );
 
   const material = useMemo(
@@ -47,18 +23,15 @@ export const ShaderBlob = ({
 
   const rotationSpeed = meshOptions.rotationSpeed;
 
-  useFrame(() => {
-    if (!meshRef.current) return;
-    const {
-      rotation,
-      material: { uniforms },
-    } = meshRef.current;
+  useFrame((_, delta) => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
 
-    (['x', 'y', 'z'] satisfies Array<keyof typeof rotation>).forEach((key) => {
-      rotation[key] += rotationSpeed[key] || 0;
-    });
+    mesh.rotation.x += rotationSpeed.x * delta;
+    mesh.rotation.y += rotationSpeed.y * delta;
+    mesh.rotation.z += rotationSpeed.z * delta;
 
-    uniforms.uTime.value += 0.1;
+    mesh.material.uniforms.uTime.value += delta;
   });
 
   return (
